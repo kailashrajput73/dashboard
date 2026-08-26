@@ -1,0 +1,37 @@
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { AppModal, Button, ErrorModal, Header, Input } from "@/src/components/UI";
+import { ApiError } from "@/src/api/client";
+import { assignRackSlot, createRack, deleteRack, listCatalog, listRacks, type CatalogItem, type Rack } from "@/src/api/endpoints";
+import { colors, font, radii, spacing } from "@/src/theme";
+
+export default function AdminRacks() {
+  const router = useRouter();
+  const [racks, setRacks] = useState<Rack[]>([]);
+  const [products, setProducts] = useState<CatalogItem[]>([]);
+  const [selected, setSelected] = useState<Rack | null>(null);
+  const [slot, setSlot] = useState<string | null>(null);
+  const [productId, setProductId] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [rows, setRows] = useState("3");
+  const [columns, setColumns] = useState("5");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => { try { const [nextRacks, nextProducts] = await Promise.all([listRacks(), listCatalog()]); setRacks(nextRacks || []); setProducts(nextProducts || []); } catch (e) { setError(e instanceof ApiError ? e.message : "Failed to load racks"); } }, []);
+  useEffect(() => { setLoading(true); load().finally(() => setLoading(false)); }, [load]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+  async function saveRack() { const rowCount = Number(rows); const columnCount = Number(columns); if (!name.trim() || !Number.isInteger(rowCount) || !Number.isInteger(columnCount) || rowCount < 1 || columnCount < 1) { setError("Enter a rack name and valid row and column counts."); return; } setSaving(true); try { await createRack({ name: name.trim(), rows: rowCount, columns: columnCount }); setCreateOpen(false); setName(""); await load(); } catch (e) { setError(e instanceof ApiError ? e.message : "Could not create rack"); } finally { setSaving(false); } }
+  async function assign() { if (!selected || !slot || !productId) return; setSaving(true); try { await assignRackSlot(selected.id, { productId, slotCode: slot }); setSlot(null); setProductId(""); await load(); } catch (e) { setError(e instanceof ApiError ? e.message : "Could not assign product"); } finally { setSaving(false); } }
+  async function removeRack(rack: Rack) { try { await deleteRack(rack.id); await load(); } catch (e) { setError(e instanceof ApiError ? e.message : "Rack must be empty before deletion"); } }
+  return <SafeAreaView style={styles.safe} edges={["top", "bottom"]}><Header title="Rack Locations" subtitle={`${racks.length} rack${racks.length === 1 ? "" : "s"}`} onBack={() => router.back()} right={<TouchableOpacity testID="open-add-rack" onPress={() => setCreateOpen(true)} hitSlop={8}><Ionicons name="add-circle" size={26} color={colors.primary} /></TouchableOpacity>} />
+    {loading ? <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View> : <FlatList data={racks} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} ListEmptyComponent={<Text style={styles.empty}>No racks configured.</Text>} renderItem={({ item }) => <View style={styles.rack}><View style={styles.rackHeader}><View style={styles.main}><Text style={styles.name}>{item.name}</Text><Text style={styles.meta}>{item.rows} rows x {item.columns} columns</Text></View><TouchableOpacity testID={`delete-rack-${item.id}`} onPress={() => removeRack(item)} hitSlop={8}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity></View><View style={styles.grid}>{item.slots.map((rackSlot) => <TouchableOpacity key={rackSlot.code} testID={`rack-slot-${item.id}-${rackSlot.code}`} style={[styles.slot, rackSlot.productId && styles.occupied]} onPress={() => { setSelected(item); setSlot(rackSlot.code); }}><Text style={styles.slotCode}>{rackSlot.code}</Text>{rackSlot.productId && <Ionicons name="cube" size={13} color={colors.primary} />}</TouchableOpacity>)}</View><Button testID={`open-rack-${item.id}`} title="Assign product" icon="cube-outline" size="sm" onPress={() => { setSelected(item); setSlot(item.slots.find((rackSlot) => !rackSlot.productId)?.code || item.slots[0]?.code || null); }} /></View>} />}
+    <AppModal testID="rack-create-modal" visible={createOpen} onClose={() => setCreateOpen(false)} title="New rack"><Input testID="rack-name-input" label="Rack name" value={name} onChangeText={setName} placeholder="Warehouse A" /><Input testID="rack-rows-input" label="Rows" value={rows} onChangeText={setRows} keyboardType="numeric" /><Input testID="rack-columns-input" label="Columns" value={columns} onChangeText={setColumns} keyboardType="numeric" /><Button testID="save-rack" title="Create rack" onPress={saveRack} loading={saving} fullWidth /></AppModal>
+    <AppModal testID="rack-assignment-modal" visible={!!selected && !!slot} onClose={() => { setSelected(null); setSlot(null); }} title={`${selected?.name} / ${slot || ""}`}><Text style={styles.hint}>Select a product for this storage location.</Text>{products.map((product) => <TouchableOpacity key={product.id} testID={`assign-product-${product.id}`} style={[styles.product, productId === product.id && styles.selectedProduct]} onPress={() => setProductId(product.id)}><Text style={styles.productName}>{product.name}</Text><Text style={styles.meta}>{product.productCode || "Legacy product"}</Text></TouchableOpacity>)}<View style={{ height: spacing.md }} /><Button testID="assign-rack-product" title="Assign to slot" onPress={assign} loading={saving} disabled={!productId} fullWidth /></AppModal>
+    <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} /></SafeAreaView>;
+}
+const styles = StyleSheet.create({ safe: { flex: 1, backgroundColor: colors.bg }, center: { flex: 1, alignItems: "center", justifyContent: "center" }, list: { padding: spacing.lg, paddingBottom: 40 }, rack: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.md }, rackHeader: { flexDirection: "row", alignItems: "center", marginBottom: spacing.md }, main: { flex: 1 }, name: { ...font.title, color: colors.textPrimary }, meta: { color: colors.textSecondary, fontSize: 12, marginTop: 3 }, grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.md }, slot: { width: 48, height: 44, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radii.sm, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg }, occupied: { backgroundColor: colors.primaryLight, borderColor: colors.primary }, slotCode: { color: colors.textPrimary, fontSize: 12, fontWeight: "700" }, empty: { textAlign: "center", color: colors.textSecondary, padding: spacing.xl }, hint: { color: colors.textSecondary, marginBottom: spacing.md }, product: { padding: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border }, selectedProduct: { backgroundColor: colors.primaryLight }, productName: { color: colors.textPrimary, fontWeight: "600" } });

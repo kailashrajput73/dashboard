@@ -1,0 +1,137 @@
+{
+  "theme_and_identity": {
+    "archetype": "THE PERFORMANCE PRO + OLD MONEY TECH",
+    "vibe": "Professional, clean, highly functional, trustworthy. High contrast for B2B usage.",
+    "theme_mode": "light",
+    "rationale": "Light themes improve legibility of small numerical text and grid tables for quotation/business apps."
+  },
+  "typography": {
+    "headings": {
+      "font_family": "System font (San Francisco / Roboto), weighted 700/800",
+      "style": "Strong, geometric, highly legible.",
+      "tracking": "Tight"
+    },
+    "body": {
+      "font_family": "System font (San Francisco / Roboto), weighted 400/500",
+      "style": "Perfect for numerical data, tables, and precise alignments."
+    }
+  },
+  "colors": {
+    "primary": {
+      "default": "#1E3A8A",
+      "hover": "#1E40AF",
+      "light": "#EFF6FF"
+    },
+    "secondary": {
+      "default": "#3B82F6",
+      "hover": "#60A5FA"
+    },
+    "background": {
+      "default": "#F8FAFC",
+      "surface": "#FFFFFF",
+      "elevated": "#FFFFFF"
+    },
+    "text": {
+      "primary": "#0F172A",
+      "secondary": "#475569",
+      "muted": "#94A3B8"
+    },
+    "status": {
+      "success": "#059669",
+      "success_bg": "#D1FAE5",
+      "error": "#E11D48",
+      "error_bg": "#FFE4E6"
+    }
+  },
+  "spacing_and_layout": {
+    "container": "flex: 1, backgroundColor: '#F8FAFC'",
+    "padding": {
+      "screen": 16,
+      "card": 16,
+      "tight": 8
+    },
+    "border_radius": {
+      "card": 16,
+      "button": 12,
+      "input": 8,
+      "chip": 24
+    },
+    "shadows": {
+      "card": "elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2",
+      "bottom_sheet": "elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 8"
+    }
+  },
+  "visual_enhancers": {
+    "surfaces": "Use pure white View cards (#FFFFFF) on a slate background (#F8FAFC) to create depth without heavy shadows.",
+    "borders": "1px solid #E2E8F0 on all cards and inputs to define boundaries clearly.",
+    "micro_interactions": "Use TouchableOpacity or Pressable with slight opacity reduction on press. Active state for category chips must invert colors."
+  },
+  "component_strategy": {
+    "buttons": "Pill-shaped or heavily rounded (borderRadius: 12) for primary actions. Full width for form submissions.",
+    "inputs": "Solid border (borderColor: '#CBD5E1', borderWidth: 1), backgroundColor: '#FFFFFF'. Focus state requires changing border color to primary blue.",
+    "cards": "Cardless feeling with borders (borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF', borderRadius: 16).",
+    "bottom_sheet_or_modal": "React Native Modal with transparent background outside, but solid #FFFFFF inside the slide-up view. Add a drag handle pill at the top.",
+    "tabs_chips": "ScrollView horizontal={true} showsHorizontalScrollIndicator={false}. Selected chip gets bg '#1E3A8A' text '#FFF'."
+  },
+  "screens": {
+    "role_selection": {
+      "layout": "Vertical layout using SafeAreaView. Two large touchable cards for 'Admin' and 'Requester'.",
+      "features": "Use Image components with absolute fill or top placement for visual appeal."
+    },
+    "requester_register": {
+      "layout": "ScrollView with KeyboardAvoidingView. Top left back button."
+    },
+    "admin_register_login": {
+      "layout": "Similar to requester. Login requires secureTextEntry for Passcode."
+    },
+    "catalog_browse": {
+      "layout": "Sticky top View for category chips. FlatList for catalog items.",
+      "features": "Each item row shows Name, Unit, and Rate with a '+' button. Floating Action Button (FAB) anchored bottom-right to View Draft."
+    },
+    "quotation_draft": {
+      "layout": "FlatList of selected items. Editable numeric inputs (TextInput) for Quantity and Rate.",
+      "features": "Sticky bottom View containing Summary (Subtotal, Tax, Grand Total) and a 'Generate Quotation' button."
+    },
+    "quotation_output": {
+      "layout": "ScrollView with monospace font if possible for plain-text formatting, placed inside a heavily bordered card."
+    },
+    "admin_catalog_manage": {
+      "layout": "FlatList view. 'Add Item' FAB. Implement simple 'Edit/Delete' action buttons on each row."
+    },
+    "csv_import": {
+      "layout": "Centered View with file picker button. Summary FlatList of items detected."
+    },
+    "money_config": {
+      "layout": "ScrollView with Switch components and numeric TextInputs for Tax/Discount."
+    }
+  },
+  "image_urls": {
+    "admin_role": {
+      "url": "https://images.unsplash.com/photo-1758518729463-0bb73ed899ac?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMHByb2Zlc3Npb25hbCUyMGJ1aWxkaW5nfGVufDB8fHx8MTc4MzczNTQ3Nnww&ixlib=rb-4.1.0&q=85",
+      "description": "Business professionals in modern office, use for Admin Role selection card."
+    },
+    "requester_role": {
+      "url": "https://images.unsplash.com/photo-1644946959578-8ec8db9cc98b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwyfHxkb2N1bWVudCUyMGNoZWNrbGlzdCUyMG1vZGVybnxlbnwwfHx8fDE3ODM3MzU0Nzd8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Person writing checklist, use for Requester Role selection card."
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure primary blue meets 4.5:1 ratio against white. No transparent backgrounds behind text.",
+    "testing": "All interactive and key informational elements MUST include a `data-testid` attribute (or `testID` mapped to data-testid in RN Web) e.g., data-testid='role-admin-card'."
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You are building a React Native Expo application using standard .js files (no .tsx).",
+    "Do NOT use web tags like <div>, <span>. Use React Native components: View, Text, TouchableOpacity, ScrollView, FlatList, Image, TextInput, Modal, Switch.",
+    "Use StyleSheet.create() for all styling. Avoid inline styles where possible.",
+    "Avoid generic centered layouts for data apps. Use left-aligned text for readability.",
+    "Create depth using `#F8FAFC` background and pure `#FFFFFF` cards with 1px `#E2E8F0` borders.",
+    "Never use generic AI emojis for icons. Use @expo/vector-icons (e.g., Lucide, MaterialIcons, Feather).",
+    "Must implement `testID` (and `data-testid` via prop spread if needed) on all buttons, forms, and key components to facilitate testing."
+  ],
+  "instructions_to_main_agent": {
+    "setup": "Build separate Screen components for navigation (role-selection, admin-register, etc.). Setup a standard React Navigation stack/tab structure.",
+    "components": "Create reusable UI components in a components folder (e.g., CustomButton, Card, InputField, Chip) that accept testID props.",
+    "data_density": "For quotation drafts and catalogs, maximize horizontal space. Use multi-line text only when necessary. Keep numbers aligned right for easy reading.",
+    "modals": "For bottom-sheet-like features, use standard React Native Modal with slide animation, and place content at the bottom of the screen with flex-end."
+  }
+}
