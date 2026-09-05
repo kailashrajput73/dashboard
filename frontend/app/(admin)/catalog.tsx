@@ -9,6 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -62,11 +63,41 @@ function parseLanguageNames(value: string): Record<string, string> {
   try {
     const parsed = JSON.parse(value);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
-    return Object.fromEntries(Object.entries(parsed).filter(([, name]) => typeof name === "string"));
+    const names: Record<string, string> = {};
+    for (const [language, name] of Object.entries(parsed)) {
+      if (typeof name === "string") names[language] = name;
+    }
+    return names;
   } catch {
     return {};
   }
 }
+
+async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promise<string> {
+  if (Platform.OS === "web") {
+    const response = await fetch(asset.uri);
+    if (!response.ok) throw new Error("Could not read selected product image");
+    const blob = await response.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Could not read selected product image"));
+      reader.onload = () => {
+        if (typeof reader.result !== "string") {
+          reject(new Error("Could not read selected product image"));
+          return;
+        }
+        resolve(reader.result);
+      };
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  return `data:${asset.mimeType || "image/jpeg"};base64,${base64}`;
+}
+
   // Add / edit dialog state
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<CatalogItem | null>(null);
@@ -76,6 +107,11 @@ function parseLanguageNames(value: string): Record<string, string> {
   const [fName, setFName] = useState("");
   const [fUnit, setFUnit] = useState("");
   const [fRate, setFRate] = useState("");
+  const [fMrp, setFMrp] = useState("");
+  const [fSellingPrice, setFSellingPrice] = useState("");
+  const [fPurchasePrice, setFPurchasePrice] = useState("");
+  const [fPriceDiscount, setFPriceDiscount] = useState("");
+  const [fProductCode, setFProductCode] = useState("");
   const [fCategory, setFCategory] = useState<string>("");
   const [fBrandId, setFBrandId] = useState<string>("");
   const [fAliases, setFAliases] = useState("");
@@ -125,6 +161,7 @@ function parseLanguageNames(value: string): Record<string, string> {
     setFName("");
     setFUnit("");
     setFRate("");
+     setFMrp(""); setFSellingPrice(""); setFPurchasePrice(""); setFPriceDiscount(""); setFProductCode("");
     setFCategory(cats[0]?.name || "");
     setFBrandId(brands.find((brand) => brand.isActive)?.id || "");
     setFAliases(""); setFLanguages(""); setFSequence("0"); setFRol("0"); setFDiscount("0");
@@ -137,6 +174,11 @@ function parseLanguageNames(value: string): Record<string, string> {
     setFName(it.name);
     setFUnit(it.unit);
     setFRate(String(it.standardRate));
+     setFMrp(it.mrp == null ? "" : String(it.mrp));
+     setFSellingPrice(it.sellingPrice == null ? String(it.standardRate) : String(it.sellingPrice));
+     setFPurchasePrice(it.purchasePrice == null ? "" : String(it.purchasePrice));
+     setFPriceDiscount(it.discount == null ? "" : String(it.discount));
+     setFProductCode(it.productCode || "");
     setFCategory(it.category);
     setFBrandId(it.brandId || "");
     setFAliases((it.aliases || []).join(", ")); setFLanguages(JSON.stringify(it.multilingualNames || {}));
@@ -163,6 +205,11 @@ function parseLanguageNames(value: string): Record<string, string> {
         category: fCategory.trim(),
         unit: fUnit.trim(),
         standardRate: rate,
+        productCode: fProductCode.trim() || undefined,
+        mrp: fMrp.trim() ? Number(fMrp) : undefined,
+        sellingPrice: fSellingPrice.trim() ? Number(fSellingPrice) : rate,
+        purchasePrice: fPurchasePrice.trim() ? Number(fPurchasePrice) : undefined,
+        discount: fPriceDiscount.trim() ? Number(fPriceDiscount) : undefined,
         brandId: fBrandId,
         aliases: fAliases.split(",").map((alias) => alias.trim()).filter(Boolean),
         multilingualNames: parseLanguageNames(fLanguages),
@@ -188,12 +235,17 @@ function parseLanguageNames(value: string): Record<string, string> {
       const result = await DocumentPicker.getDocumentAsync({ type: ["image/*"], copyToCacheDirectory: true, multiple: false });
       if (result.canceled || !result.assets?.[0]) return;
       const asset = result.assets[0];
-      const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 });
-      setFImageUrl(`data:${asset.mimeType || "image/jpeg"};base64,${base64}`);
+      setFImageUrl(await assetToDataUrl(asset));
       setFImageName(asset.name || "product-image");
     } catch (e: any) {
       setErr(e?.message || "Could not read product image");
     }
+
+  }
+
+  function setProductImageUrl(value: string) {
+    setFImageUrl(value.trim() || undefined);
+    if (!value.trim()) setFImageName(undefined);
   }
 
   async function submitNewCategory() {
@@ -337,10 +389,24 @@ function parseLanguageNames(value: string): Record<string, string> {
           onChangeText={setFRate}
           keyboardType="decimal-pad"
         />
+        <Input testID="item-product-code-input" label="Product code (optional)" value={fProductCode} onChangeText={setFProductCode} autoCapitalize="characters" />
+        <Input testID="item-mrp-input" label="MRP" value={fMrp} onChangeText={setFMrp} keyboardType="decimal-pad" />
+        <Input testID="item-selling-price-input" label="Selling price" value={fSellingPrice} onChangeText={setFSellingPrice} keyboardType="decimal-pad" />
+        <Input testID="item-purchase-price-input" label="Purchase price" value={fPurchasePrice} onChangeText={setFPurchasePrice} keyboardType="decimal-pad" />
+        <Input testID="item-price-discount-input" label="Price discount (%)" value={fPriceDiscount} onChangeText={setFPriceDiscount} keyboardType="decimal-pad" />
 
         <Text style={styles.inputLabel}>Product image</Text>
         {fImageUrl ? <Image source={{ uri: fImageUrl }} style={styles.imagePreview} /> : <View style={styles.imageEmpty}><Ionicons name="image-outline" size={28} color={colors.textMuted} /><Text style={styles.imageEmptyText}>No image selected</Text></View>}
         <View style={styles.imageActions}><Button testID="pick-product-image" title={fImageUrl ? "Replace image" : "Upload image"} icon="image-outline" onPress={pickProductImage} size="sm" />{fImageUrl ? <Button testID="remove-product-image" title="Remove" variant="ghost" onPress={() => { setFImageUrl(undefined); setFImageName(undefined); }} size="sm" /> : null}</View>
+        <Input
+          testID="item-image-url-input"
+          label="Or paste image URL"
+          placeholder="https://example.com/product.jpg"
+          value={fImageUrl && !fImageUrl.startsWith("data:") ? fImageUrl : ""}
+          onChangeText={setProductImageUrl}
+          autoCapitalize="none"
+          keyboardType="url"
+        />
 
         <Text style={styles.inputLabel}>Category</Text>
         <TouchableOpacity

@@ -108,7 +108,11 @@ export default function CsvImport() {
         categoryMode: mode,
         overrideCategory: override.trim(),
       });
-      setResult(`Imported ${res.inserted} item(s), skipped ${res.skipped}.`);
+      const hasProductCodes = items.some((item) => item.productCode);
+      const backendWarning = hasProductCodes && res.updated === undefined
+        ? " The connected backend is an older version and did not report product-code updates. Deploy/restart the updated backend before importing again."
+        : "";
+      setResult(`Imported ${res.inserted} item(s), updated ${res.updated || 0}, skipped ${res.skipped}.${backendWarning}`);
       setItems([]);
       setFileName("");
       setModeOpen(false);
@@ -132,11 +136,12 @@ export default function CsvImport() {
         <Card>
           <Text style={styles.title}>Step 1 — pick your file</Text>
           <Text style={styles.hint}>
-            CSV headers required: <Text style={styles.mono}>name</Text>,{" "}
-            <Text style={styles.mono}>unit</Text>,{" "}
-            <Text style={styles.mono}>standardRate</Text>. Optional:{" "}
-            <Text style={styles.mono}>category</Text>. Encodings auto-detected:
+            Required headers: <Text style={styles.mono}>category, type, product_group, brand, product_name, size_mm, size_inch, product_code, length, unit, mrp, selling_price, purchase_price, discount, image_url, is_active</Text>.{" "}
+            <Text style={styles.mono}>product_code</Text> updates existing products instead of creating duplicates. Encodings auto-detected:
             UTF-8, UTF-8 BOM, UTF-16 LE/BE.
+          </Text>
+          <Text style={styles.hint}>
+            For photos, put a publicly reachable image URL in <Text style={styles.mono}>image_url</Text>. Leave it blank when using the dashboard image uploader.
           </Text>
           <View style={{ height: spacing.md }} />
           <Button
@@ -168,8 +173,10 @@ export default function CsvImport() {
             <Text style={styles.sectionTitle}>Preview</Text>
             <Card style={{ padding: 0 }}>
               <View style={styles.previewHead}>
-                <Text style={[styles.previewCell, { flex: 2 }]}>Name</Text>
+                <Text style={[styles.previewCell, { flex: 2 }]}>Product</Text>
                 <Text style={styles.previewCell}>Category</Text>
+                <Text style={styles.previewCell}>Brand</Text>
+                <Text style={styles.previewCell}>Code</Text>
                 <Text style={styles.previewCell}>Unit</Text>
                 <Text style={[styles.previewCell, { textAlign: "right" }]}>
                   Rate
@@ -185,6 +192,12 @@ export default function CsvImport() {
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
                     {it.category || "—"}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.previewCellBody}>
+                    {it.brand || "—"}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.previewCellBody}>
+                    {it.productCode || "—"}
                   </Text>
                   <Text style={styles.previewCellBody}>{it.unit}</Text>
                   <Text

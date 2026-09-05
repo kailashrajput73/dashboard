@@ -66,6 +66,18 @@ export type CatalogItem = {
   rackSlot?: string;
   imageUrl?: string;
   imageName?: string;
+  productName?: string;
+  type?: string;
+  productGroup?: string;
+  sizeMm?: number;
+  sizeInch?: string;
+  length?: string;
+  mrp?: number;
+  sellingPrice?: number;
+  purchasePrice?: number;
+  discount?: number;
+  isActive?: boolean;
+  priceUpdatedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -94,10 +106,25 @@ export type ImportRow = {
   category?: string;
   unit: string;
   standardRate: number;
+  type?: string;
+  productGroup?: string;
+  brand?: string;
+  productName?: string;
+  sizeMm?: number;
+  sizeInch?: string;
+  productCode?: string;
+  length?: string;
+  mrp?: number;
+  sellingPrice?: number;
+  purchasePrice?: number;
+  discount?: number;
+  imageUrl?: string;
+  isActive?: boolean;
 };
 
 export type ImportResult = {
   inserted: number;
+  updated?: number;
   skipped: number;
   categoryMode: string;
 };
@@ -205,9 +232,22 @@ export function importSubcategories(items: { name: string; categoryId?: string; 
 // ---------- Catalog ----------
 
 // NOTE (DB): reads `catalog`; optional `category` filters by exact match.
-export function listCatalog(category?: string, search?: string, groupId?: string) {
+export function listCatalog(category?: string, search?: string, groupId?: string, filters?: {
+  type?: string;
+  brand?: string;
+  productGroup?: string;
+  sizeMm?: number;
+}) {
   return apiRequest<CatalogItem[]>("/catalog", {
-    query: { category: category && category !== "All" ? category : undefined, search, group_id: groupId },
+    query: {
+      category: category && category !== "All" ? category : undefined,
+      search,
+      group_id: groupId,
+      type: filters?.type,
+      brand: filters?.brand,
+      product_group: filters?.productGroup,
+      size_mm: filters?.sizeMm,
+    },
   });
 }
 
@@ -227,6 +267,19 @@ export function createCatalogItem(body: {
   productGroupIds?: string[];
   imageUrl?: string;
   imageName?: string;
+  productCode?: string;
+  productName?: string;
+  type?: string;
+  productGroup?: string;
+  sizeMm?: number;
+  sizeInch?: string;
+  length?: string;
+  brand?: string;
+  mrp?: number;
+  sellingPrice?: number;
+  purchasePrice?: number;
+  discount?: number;
+  isActive?: boolean;
 }) {
   return apiRequest<CatalogItem>("/catalog", { method: "POST", body });
 }
@@ -247,6 +300,19 @@ export function updateCatalogItem(id: string, body: {
   productGroupIds?: string[];
   imageUrl?: string;
   imageName?: string;
+  productCode?: string;
+  productName?: string;
+  type?: string;
+  productGroup?: string;
+  sizeMm?: number;
+  sizeInch?: string;
+  length?: string;
+  brand?: string;
+  mrp?: number;
+  sellingPrice?: number;
+  purchasePrice?: number;
+  discount?: number;
+  isActive?: boolean;
 }) {
   return apiRequest<CatalogItem>(`/catalog/${id}`, { method: "PUT", body });
 }

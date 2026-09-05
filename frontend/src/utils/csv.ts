@@ -11,6 +11,20 @@ export type ImportItem = {
   category?: string;
   unit: string;
   standardRate: number;
+  type?: string;
+  productGroup?: string;
+  brand?: string;
+  productName?: string;
+  sizeMm?: number;
+  sizeInch?: string;
+  productCode?: string;
+  length?: string;
+  mrp?: number;
+  sellingPrice?: number;
+  purchasePrice?: number;
+  discount?: number;
+  imageUrl?: string;
+  isActive?: boolean;
 };
 
 // Excel file magic bytes:
@@ -140,11 +154,10 @@ export function rowsToItems(rows: Record<string, string>[]): {
   const items: ImportItem[] = [];
   let invalid = 0;
   for (const r of rows) {
-    const name = (r["name"] || r["item"] || r["item name"] || "").trim();
+    const name = (r["product_name"] || r["name"] || r["item"] || r["item name"] || "").trim();
     const category = (r["category"] || "").trim();
     const unit = (r["unit"] || r["uom"] || "").trim();
-    const rateRaw =
-      r["standardrate"] ?? r["standard rate"] ?? r["rate"] ?? r["price"] ?? "";
+    const rateRaw = r["selling_price"] ?? r["sellingprice"] ?? r["standardrate"] ?? r["standard rate"] ?? r["rate"] ?? r["price"] ?? "";
     const rate = parseFloat(String(rateRaw).replace(/[,\s]/g, ""));
 
     if (!name || !unit || Number.isNaN(rate)) {
@@ -153,10 +166,39 @@ export function rowsToItems(rows: Record<string, string>[]): {
     }
     items.push({
       name,
+      productName: name,
       category: category || undefined,
       unit,
       standardRate: rate,
+      type: clean(r["type"]),
+      productGroup: clean(r["product_group"] || r["productgroup"]),
+      brand: clean(r["brand"]),
+      sizeMm: numberOrUndefined(r["size_mm"] || r["sizemm"]),
+      sizeInch: clean(r["size_inch"] || r["sizeinch"]),
+      productCode: clean(r["product_code"] || r["productcode"]),
+      length: clean(r["length"]),
+      mrp: numberOrUndefined(r["mrp"]),
+      sellingPrice: numberOrUndefined(r["selling_price"] || r["sellingprice"]),
+      purchasePrice: numberOrUndefined(r["purchase_price"] || r["purchaseprice"]),
+      discount: numberOrUndefined(r["discount"]),
+      imageUrl: clean(r["image_url"] || r["imageurl"]),
+      isActive: parseBoolean(r["is_active"] || r["isactive"]),
     });
+  }
+
+  function clean(value: string | undefined): string | undefined {
+    const trimmed = (value || "").trim();
+    return trimmed || undefined;
+  }
+
+  function numberOrUndefined(value: string | undefined): number | undefined {
+    const parsed = parseFloat((value || "").replace(/[,\s]/g, ""));
+    return Number.isNaN(parsed) ? undefined : parsed;
+  }
+
+  function parseBoolean(value: string | undefined): boolean | undefined {
+    if (!value?.trim()) return undefined;
+    return !["false", "0", "no", "inactive"].includes(value.trim().toLowerCase());
   }
   return { items, invalid };
 }
