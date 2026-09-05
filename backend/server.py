@@ -34,7 +34,7 @@ import re
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
-mongo_url = os.getenv("MONGO_URL", "mongodb://127.0.0.1:27017")
+mongo_url = os.getenv("MONGO_URI", "mongodb://127.0.0.1:27017")
 db_name = os.getenv("DB_NAME", "quotation_db")
 
 client = AsyncIOMotorClient(mongo_url)
