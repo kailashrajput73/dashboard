@@ -6,7 +6,8 @@
 //            verify collections in Compass/mongosh without reading code.
 // ============================================================================
 
-import { apiRequest } from "./client";
+import { apiRequest, ApiError } from "./client";
+import { sellingFromMrpDiscount } from "../utils/pricing";
 
 // ---------- Types (mirror teammate's schema) ----------
 
@@ -60,7 +61,6 @@ export type CatalogItem = {
   regularDiscount?: number;
   subcategoryId?: string;
   productGroupIds?: string[];
-  stock?: number;
   rackId?: string;
   rackName?: string;
   rackSlot?: string;
@@ -76,6 +76,7 @@ export type CatalogItem = {
   sellingPrice?: number;
   purchasePrice?: number;
   discount?: number;
+  stock?: number;
   isActive?: boolean;
   priceUpdatedAt?: string;
   createdAt?: string;
@@ -118,6 +119,7 @@ export type ImportRow = {
   sellingPrice?: number;
   purchasePrice?: number;
   discount?: number;
+  stock?: number;
   imageUrl?: string;
   isActive?: boolean;
 };
@@ -279,6 +281,7 @@ export function createCatalogItem(body: {
   sellingPrice?: number;
   purchasePrice?: number;
   discount?: number;
+  stock?: number;
   isActive?: boolean;
 }) {
   return apiRequest<CatalogItem>("/catalog", { method: "POST", body });
@@ -312,9 +315,73 @@ export function updateCatalogItem(id: string, body: {
   sellingPrice?: number;
   purchasePrice?: number;
   discount?: number;
+  stock?: number;
   isActive?: boolean;
 }) {
   return apiRequest<CatalogItem>(`/catalog/${id}`, { method: "PUT", body });
+}
+
+export async function applyCatalogPricingBulk(
+  items: CatalogItem[],
+  body: { mrp?: number; discount?: number; stock?: number },
+) {
+  try {
+    return await apiRequest<{ updated: number; skipped: number }>("/catalog/pricing-bulk", {
+      method: "POST",
+      body: { itemIds: items.map((item) => item.id), ...body },
+    });
+  } catch (e) {
+    if (!(e instanceof ApiError) || e.status === 401 || e.status === 403) throw e;
+    let updated = 0;
+    let skipped = 0;
+    for (const item of items) {
+      const mrp = body.mrp ?? item.mrp ?? item.standardRate;
+      const discount = body.discount ?? item.discount ?? 0;
+      const selling = sellingFromMrpDiscount(Number(mrp || 0), Number(discount || 0));
+      try {
+        await updateCatalogPricing(item, {
+          mrp: Number(mrp || 0),
+          discount: Number(discount || 0),
+          sellingPrice: selling,
+          stock: body.stock ?? item.stock,
+        });
+        updated += 1;
+      } catch {
+        skipped += 1;
+      }
+    }
+    return { updated, skipped };
+  }
+}
+
+export async function updateCatalogPricing(
+  item: CatalogItem,
+  body: { mrp?: number; sellingPrice?: number; discount?: number; stock?: number },
+) {
+  try {
+    return await apiRequest<CatalogItem>(`/catalog/${item.id}/pricing`, {
+      method: "PATCH",
+      body,
+    });
+  } catch (e) {
+    if (!(e instanceof ApiError) || e.status === 401 || e.status === 403) throw e;
+    return updateCatalogItem(item.id, {
+      name: item.name,
+      category: item.category,
+      unit: item.unit,
+      standardRate: body.sellingPrice ?? item.sellingPrice ?? item.standardRate,
+      brandId: item.brandId || "",
+      productCode: item.productCode,
+      mrp: body.mrp ?? item.mrp,
+      sellingPrice: body.sellingPrice ?? item.sellingPrice ?? item.standardRate,
+      purchasePrice: item.purchasePrice,
+      discount: body.discount ?? item.discount,
+      stock: body.stock ?? item.stock,
+      imageUrl: item.imageUrl,
+      imageName: item.imageName,
+      isActive: item.isActive,
+    });
+  }
 }
 
 // NOTE (DB): deletes `catalog` document by id.
@@ -324,11 +391,28 @@ export function deleteCatalogItem(id: string) {
   });
 }
 
+/** Wipe every catalog product. Uses bulk delete when the API supports it. */
+export async function clearCatalog() {
+  try {
+    return await apiRequest<{ deleted: number }>("/catalog", { method: "DELETE" });
+  } catch (e) {
+    if (!(e instanceof ApiError) || e.status === 401 || e.status === 403) throw e;
+    const items = await listCatalog();
+    let deleted = 0;
+    for (const item of items) {
+      await deleteCatalogItem(item.id);
+      deleted += 1;
+    }
+    return { deleted };
+  }
+}
+
 // NOTE (DB): bulk-inserts to `catalog`. Category routing per `categoryMode`.
 export function importCatalog(body: {
   items: ImportRow[];
   categoryMode: "fromCsv" | "overrideExisting" | "overrideNew";
   overrideCategory: string;
+  replaceExisting?: boolean;
 }) {
   return apiRequest<ImportResult>("/catalog/import", { method: "POST", body });
 }

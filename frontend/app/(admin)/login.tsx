@@ -6,13 +6,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
-import { Header, Input, Button, Card, ErrorModal } from "@/src/components/UI";
-import { colors, spacing, font } from "@/src/theme";
+import { Input, Button, Card, ErrorModal } from "@/src/components/UI";
+import { colors, spacing, font, isWeb, pointer } from "@/src/theme";
 import { loginAdmin } from "@/src/api/endpoints";
 import { saveAdmin } from "@/src/state/session";
 import { ApiError } from "@/src/api/client";
@@ -52,66 +52,71 @@ export default function AdminLogin() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-      <Header
-        title="Admin Login"
-        subtitle="Sign in with your contact & passcode"
-      />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          contentContainerStyle={{ padding: spacing.lg, paddingBottom: 40 }}
+          contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <Card>
-            <Text style={styles.title}>Welcome back</Text>
-            <Text style={styles.hint}>
-              Manage catalog, imports, and money configuration.
-            </Text>
-            <View style={{ height: spacing.md }} />
-
-            <Input
-              testID="admin-contact-input"
-              label="Contact Number"
-              placeholder="e.g. 98xxxxxxxx"
-              value={contact}
-              onChangeText={setContact}
-              keyboardType="phone-pad"
-              error={fieldErr.contact}
-            />
-            <Input
-              testID="admin-passcode-input"
-              label="Passcode"
-              placeholder="Enter your passcode"
-              value={passcode}
-              onChangeText={setPasscode}
-              secureTextEntry
-              error={fieldErr.passcode}
-            />
-
-            <Button
-              testID="admin-login-submit"
-              title="Sign In"
-              icon="log-in-outline"
-              onPress={submit}
-              loading={loading}
-              fullWidth
-            />
-
-            <TouchableOpacity
-              onPress={() => router.push("/(admin)/register")}
-              style={{ marginTop: spacing.md, alignSelf: "center" }}
-              testID="go-to-admin-register"
-            >
-              <Text style={styles.linkText}>
-                First time here?{" "}
-                <Text style={{ color: colors.primary, fontWeight: "700" }}>
-                  Create an admin account
-                </Text>
+          <View style={styles.frame}>
+            <Text style={styles.brand}>Admin dashboard</Text>
+            <Text style={styles.lede}>Sign in with your contact and passcode</Text>
+            <Card>
+              <Text style={styles.title}>Welcome back</Text>
+              <Text style={styles.hint}>
+                Manage catalog, inventory, RFQs, and billing.
               </Text>
-            </TouchableOpacity>
-          </Card>
+              <View style={{ height: spacing.md }} />
+
+              <Input
+                testID="admin-contact-input"
+                label="Contact Number"
+                placeholder="e.g. 98xxxxxxxx"
+                value={contact}
+                onChangeText={setContact}
+                keyboardType="phone-pad"
+                error={fieldErr.contact}
+                onSubmitEditing={submit}
+              />
+              <Input
+                testID="admin-passcode-input"
+                label="Passcode"
+                placeholder="Enter your passcode"
+                value={passcode}
+                onChangeText={setPasscode}
+                secureTextEntry
+                error={fieldErr.passcode}
+                onSubmitEditing={submit}
+              />
+
+              <Button
+                testID="admin-login-submit"
+                title="Sign In"
+                icon="log-in-outline"
+                onPress={submit}
+                loading={loading}
+                fullWidth
+              />
+
+              <Pressable
+                onPress={() => router.push("/(admin)/register")}
+                accessibilityRole="link"
+                style={({ hovered }) => [
+                  styles.linkWrap,
+                  pointer,
+                  hovered && { opacity: 0.8 },
+                ]}
+                testID="go-to-admin-register"
+              >
+                <Text style={styles.linkText}>
+                  First time here?{" "}
+                  <Text style={styles.linkAccent}>Create an admin account</Text>
+                </Text>
+              </Pressable>
+            </Card>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -126,7 +131,22 @@ export default function AdminLogin() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  scroll: {
+    flexGrow: 1,
+    padding: spacing.lg,
+    paddingBottom: 40,
+    justifyContent: isWeb ? "center" : "flex-start",
+    alignItems: isWeb ? "center" : "stretch",
+  },
+  frame: {
+    width: "100%",
+    maxWidth: isWeb ? 440 : undefined,
+  },
+  brand: { ...font.h2, color: colors.textPrimary, marginBottom: 4 },
+  lede: { color: colors.textSecondary, marginBottom: spacing.lg, fontSize: 14 },
   title: { ...font.h3, color: colors.textPrimary },
   hint: { color: colors.textSecondary, marginTop: 4, fontSize: 13 },
+  linkWrap: { marginTop: spacing.md, alignSelf: "center" },
   linkText: { color: colors.textSecondary, fontSize: 13 },
+  linkAccent: { color: colors.primary, fontWeight: "700" },
 });

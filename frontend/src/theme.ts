@@ -1,6 +1,15 @@
 // Design tokens — mirror design_guidelines.json.
 // Import from here everywhere instead of hardcoding hex/spacing.
 
+import { Platform } from "react-native";
+
+export const isWeb = Platform.OS === "web";
+
+/** RN-web defaults to `cursor: default`, so clicks feel dead. */
+export const pointer = isWeb
+  ? ({ cursor: "pointer" as const, userSelect: "none" as const })
+  : {};
+
 export const colors = {
   primary: "#1E3A8A",
   primaryHover: "#1E40AF",

@@ -50,7 +50,7 @@ export async function writeAdminToken(token: string | null) {
 }
 
 type ReqOpts = {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: any;
   query?: Record<string, string | number | undefined | null>;
   /** Set false to skip attaching the admin bearer token. */

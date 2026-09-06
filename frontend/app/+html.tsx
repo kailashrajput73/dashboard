@@ -6,7 +6,7 @@ export default function Root({ children }: PropsWithChildren) {
   return (
     <html lang="en" style={{ height: "100%" }}>
       <head>
-        <meta charSet="utf-8" />
+        <meta name="referrer" content="no-referrer" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta
           name="viewport"
@@ -21,9 +21,14 @@ export default function Root({ children }: PropsWithChildren) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
+              html, body { background: #F8FAFC; }
               body > div:first-child { position: fixed !important; top: 0; left: 0; right: 0; bottom: 0; }
               [role="tablist"] [role="tab"] * { overflow: visible !important; }
               [role="heading"], [role="heading"] * { overflow: visible !important; }
+              [role="button"], [role="link"], [role="tab"], a, div[tabindex="0"] { cursor: pointer; }
+              button { cursor: pointer; }
+              input, textarea, input[tabindex="0"] { cursor: text; }
+              [role="button"]:hover { filter: brightness(0.98); }
             `,
           }}
         />

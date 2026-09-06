@@ -17,7 +17,7 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radii, spacing, shadow, font } from "@/src/theme";
+import { colors, radii, spacing, shadow, font, isWeb, pointer } from "@/src/theme";
 
 // ---------------- Button ----------------
 
@@ -68,17 +68,20 @@ export function Button({
       : undefined;
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={testID}
       accessibilityRole="button"
       onPress={onPress}
       disabled={isDisabled}
-      activeOpacity={0.7}
-      style={[
+      style={({ hovered, pressed }) => [
         styles.btn,
-        { backgroundColor: bg, height, opacity: isDisabled ? 0.6 : 1 },
+        pointer,
+        { backgroundColor: bg, height, opacity: isDisabled ? 0.55 : 1 },
         border,
         fullWidth && { alignSelf: "stretch" },
+        hovered && !isDisabled && variant === "primary" && { backgroundColor: colors.primaryHover },
+        hovered && !isDisabled && variant !== "primary" && { backgroundColor: colors.primaryLight },
+        pressed && !isDisabled && { opacity: 0.88 },
         style,
       ]}
     >
@@ -104,7 +107,7 @@ export function Button({
           </Text>
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -138,6 +141,7 @@ type InputProps = {
   editable?: boolean;
   style?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
+  onSubmitEditing?: () => void;
 };
 
 export function Input({
@@ -154,6 +158,7 @@ export function Input({
   editable = true,
   style,
   inputStyle,
+  onSubmitEditing,
 }: InputProps) {
   const [focused, setFocused] = React.useState(false);
   return (
@@ -172,6 +177,8 @@ export function Input({
         editable={editable}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
+        onSubmitEditing={onSubmitEditing}
+        returnKeyType="done"
         style={[
           styles.input,
           multiline && { height: 90, textAlignVertical: "top", paddingTop: 12 },
@@ -194,13 +201,16 @@ export function Chip(props: {
   testID?: string;
 }) {
   return (
-    <TouchableOpacity
+    <Pressable
       testID={props.testID}
+      accessibilityRole="button"
       onPress={props.onPress}
-      activeOpacity={0.7}
-      style={[
+      style={({ hovered, pressed }) => [
         styles.chip,
+        pointer,
         props.selected ? styles.chipSelected : styles.chipUnselected,
+        hovered && !props.selected && { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+        pressed && { opacity: 0.88 },
       ]}
     >
       <Text
@@ -214,7 +224,7 @@ export function Chip(props: {
       >
         {props.label}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -226,6 +236,7 @@ export function AppModal(props: {
   title?: string;
   children: React.ReactNode;
   testID?: string;
+  wide?: boolean;
 }) {
   return (
     <Modal
@@ -234,28 +245,46 @@ export function AppModal(props: {
       animationType="fade"
       onRequestClose={props.onClose}
     >
-      <Pressable
-        testID={props.testID ? `${props.testID}-backdrop` : undefined}
-        style={styles.backdrop}
-        onPress={props.onClose}
-      >
+      <View style={[styles.backdrop, isWeb && styles.backdropWeb]}>
         <Pressable
-          style={styles.sheet}
-          onPress={(e) => e.stopPropagation()}
-          testID={props.testID}
-        >
-          <View style={styles.grabber} />
-          {props.title ? (
-            <Text style={styles.modalTitle}>{props.title}</Text>
-          ) : null}
+          testID={props.testID ? `${props.testID}-backdrop` : undefined}
+          accessibilityRole="button"
+          accessibilityLabel="Close dialog"
+          onPress={props.onClose}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View style={[styles.sheet, isWeb && styles.sheetWeb, isWeb && props.wide && styles.sheetWide]} testID={props.testID}>
+          {!isWeb ? <View style={styles.grabber} /> : null}
+          <View style={styles.modalHeader}>
+            {props.title ? (
+              <Text style={styles.modalTitle}>{props.title}</Text>
+            ) : (
+              <View />
+            )}
+            {isWeb ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+                onPress={props.onClose}
+                hitSlop={8}
+                style={({ hovered }) => [
+                  styles.modalClose,
+                  pointer,
+                  hovered && { backgroundColor: colors.primaryLight },
+                ]}
+              >
+                <Ionicons name="close" size={20} color={colors.textSecondary} />
+              </Pressable>
+            ) : null}
+          </View>
           <ScrollView
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: 8 }}
           >
             {props.children}
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -298,16 +327,17 @@ export function Header(props: {
   return (
     <View style={styles.header}>
       <View style={styles.headerRow}>
-        {props.onBack ? (
+        {props.onBack && !isWeb ? (
           <TouchableOpacity
             onPress={props.onBack}
-            style={styles.headerBack}
+            style={[styles.headerBack, pointer]}
             testID="header-back"
             hitSlop={10}
+            accessibilityRole="button"
           >
             <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
-        ) : (
+        ) : isWeb ? null : (
           <View style={{ width: 40 }} />
         )}
         <View style={{ flex: 1, alignItems: "flex-start" }}>
@@ -416,6 +446,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(15, 23, 42, 0.55)",
     justifyContent: "flex-end",
   },
+  backdropWeb: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing.xl,
+  },
   sheet: {
     backgroundColor: colors.surface,
     borderTopLeftRadius: radii.lg,
@@ -423,6 +458,31 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     maxHeight: "85%",
     ...shadow.sheet,
+  },
+  sheetWeb: {
+    borderRadius: radii.lg,
+    borderTopLeftRadius: radii.lg,
+    borderTopRightRadius: radii.lg,
+    width: "100%",
+    maxWidth: 560,
+    maxHeight: "80%",
+    zIndex: 1,
+  },
+  sheetWide: {
+    maxWidth: 760,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  modalClose: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
   grabber: {
     width: 40,
@@ -444,7 +504,7 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: isWeb ? spacing.xl : spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
     backgroundColor: colors.bg,

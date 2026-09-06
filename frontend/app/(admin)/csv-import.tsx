@@ -1,17 +1,14 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
-// Legacy namespace still ships `readAsStringAsync` + `EncodingType` in
-// expo-file-system 19; the new File API doesn't have a base64 shortcut yet.
-import * as FileSystem from "expo-file-system/legacy";
 import { Ionicons } from "@expo/vector-icons";
 
 import {
@@ -22,9 +19,11 @@ import {
   AppModal,
   ErrorModal,
 } from "@/src/components/UI";
-import { colors, spacing, radii, shadow, font } from "@/src/theme";
-import { parseCsvBytes, rowsToItems, type ImportItem } from "@/src/utils/csv";
-import { importCatalog } from "@/src/api/endpoints";
+import { colors, spacing, radii, shadow, font, pointer } from "@/src/theme";
+import { rowsToItems, type ImportItem } from "@/src/utils/csv";
+import { parseSpreadsheetBytes } from "@/src/utils/spreadsheet";
+import { readAssetBytes } from "@/src/utils/read-asset-bytes";
+import { clearCatalog, importCatalog, listCatalog } from "@/src/api/endpoints";
 import { ApiError } from "@/src/api/client";
 
 type Mode = "fromCsv" | "overrideExisting" | "overrideNew";
@@ -43,12 +42,29 @@ export default function CsvImport() {
   const [override, setOverride] = useState<string>("");
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [catalogCount, setCatalogCount] = useState(0);
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [replaceExisting, setReplaceExisting] = useState(true);
+
+  const refreshCount = useCallback(async () => {
+    try {
+      const rows = await listCatalog();
+      setCatalogCount(rows?.length || 0);
+    } catch {
+      setCatalogCount(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshCount();
+  }, [refreshCount]);
 
   async function pick() {
     setPicking(true);
     try {
       const res = await DocumentPicker.getDocumentAsync({
-        type: ["text/csv", "text/plain", "text/comma-separated-values", "*/*"],
+        type: ["text/csv", "text/plain", "text/comma-separated-values", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel", "*/*"],
         copyToCacheDirectory: true,
         multiple: false,
       });
@@ -64,20 +80,8 @@ export default function CsvImport() {
       const name = asset.name || "file.csv";
       setFileName(name);
 
-      const lower = name.toLowerCase();
-      if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) {
-        setErr(
-          "Excel files (.xlsx / .xls) are not supported. Please export as CSV (UTF-8) and try again.",
-        );
-        setPicking(false);
-        return;
-      }
-
-      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      const bytes = base64ToBytes(base64);
-      const parsed = parseCsvBytes(bytes);
+      const bytes = await readAssetBytes(asset);
+      const parsed = await parseSpreadsheetBytes(bytes, name);
       if (!parsed.ok) {
         setErr(parsed.error);
         setPicking(false);
@@ -90,7 +94,7 @@ export default function CsvImport() {
 
       if (mapped.items.length === 0) {
         setErr(
-          "No valid rows found. CSV needs headers: name, category (optional), unit, standardRate/rate.",
+          "No valid rows found. Need product_name, unit, and selling_price (or mrp). Brand, product_code, and image_url should be in the same header row.",
         );
       }
     } catch (e: any) {
@@ -103,23 +107,54 @@ export default function CsvImport() {
   async function runImport() {
     setImporting(true);
     try {
+      if (replaceExisting && catalogCount > 0) {
+        await clearCatalog();
+        setCatalogCount(0);
+      }
       const res = await importCatalog({
         items,
         categoryMode: mode,
         overrideCategory: override.trim(),
+        replaceExisting,
       });
       const hasProductCodes = items.some((item) => item.productCode);
-      const backendWarning = hasProductCodes && res.updated === undefined
+      const listed = await listCatalog();
+      const sample = listed?.[0];
+      const missingBits = [
+        items[0]?.brand && sample && !sample.brand ? "brand" : "",
+        items[0]?.productCode && sample && !sample.productCode ? "product code" : "",
+        items[0]?.imageUrl && sample && !sample.imageUrl ? "image" : "",
+      ].filter(Boolean);
+      const backendWarning = missingBits.length
+        ? ` Imported rows are missing ${missingBits.join(", ")} on the server. Deploy the updated backend, then import again.`
+        : hasProductCodes && res.updated === undefined
         ? " The connected backend is an older version and did not report product-code updates. Deploy/restart the updated backend before importing again."
         : "";
-      setResult(`Imported ${res.inserted} item(s), updated ${res.updated || 0}, skipped ${res.skipped}.${backendWarning}`);
+      setResult(
+        `${replaceExisting ? "Replaced catalog. " : ""}Imported ${res.inserted} item(s), updated ${res.updated || 0}, skipped ${res.skipped}.${backendWarning}`,
+      );
       setItems([]);
       setFileName("");
       setModeOpen(false);
+      await refreshCount();
     } catch (e: any) {
       setErr(e instanceof ApiError ? e.message : "Import failed");
     } finally {
       setImporting(false);
+    }
+  }
+
+  async function runClear() {
+    setClearing(true);
+    try {
+      const res = await clearCatalog();
+      setClearOpen(false);
+      setResult(`Cleared ${res.deleted} product(s). Catalog is empty — you can import a CSV now.`);
+      await refreshCount();
+    } catch (e: any) {
+      setErr(e instanceof ApiError ? e.message : "Could not clear catalog");
+    } finally {
+      setClearing(false);
     }
   }
 
@@ -128,25 +163,44 @@ export default function CsvImport() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header
-        title="Import Catalog CSV"
-        subtitle="Bulk-add items from a spreadsheet"
+        title="Import Catalog"
+        subtitle="CSV or Excel with brand, product code, prices, and image URLs"
         onBack={() => router.back()}
       />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: 40 }}>
+        <Card style={styles.warnCard}>
+          <Text style={styles.title}>Current catalog</Text>
+          <Text style={styles.hint}>
+            {catalogCount === 0
+              ? "Catalog is empty. Import will add a clean product list."
+              : `${catalogCount} product(s) are in the live catalog. A normal import only adds rows — it does not replace the messy ones. Clear first, or turn on “Replace catalog” when you import.`}
+          </Text>
+          <View style={{ height: spacing.md }} />
+          <Button
+            testID="clear-catalog-btn"
+            title={catalogCount === 0 ? "Catalog already empty" : `Clear all ${catalogCount} products`}
+            icon="trash-outline"
+            variant="danger"
+            onPress={() => setClearOpen(true)}
+            disabled={catalogCount === 0}
+            fullWidth
+          />
+        </Card>
+        <View style={{ height: spacing.md }} />
         <Card>
           <Text style={styles.title}>Step 1 — pick your file</Text>
           <Text style={styles.hint}>
-            Required headers: <Text style={styles.mono}>category, type, product_group, brand, product_name, size_mm, size_inch, product_code, length, unit, mrp, selling_price, purchase_price, discount, image_url, is_active</Text>.{" "}
+            Required headers: <Text style={styles.mono}>category, type, product_group, brand, product_name, size_mm, size_inch, product_code, length, unit, mrp, selling_price, purchase_price, stock_qty, discount, image_url, is_active</Text>.{" "}
             <Text style={styles.mono}>product_code</Text> updates existing products instead of creating duplicates. Encodings auto-detected:
-            UTF-8, UTF-8 BOM, UTF-16 LE/BE.
+            UTF-8, UTF-8 BOM, UTF-16 LE/BE. You can also upload the same columns as <Text style={styles.mono}>.xlsx</Text>.
           </Text>
           <Text style={styles.hint}>
-            For photos, put a publicly reachable image URL in <Text style={styles.mono}>image_url</Text>. Leave it blank when using the dashboard image uploader.
+            Brand, product_code, product_group, type, and image_url are saved on each product — they are not optional extras. For photos, put a publicly reachable image URL in <Text style={styles.mono}>image_url</Text>. Discount can be <Text style={styles.mono}>25</Text> or <Text style={styles.mono}>25%</Text>. After import, change MRP, discount, and stock on Products — you do not need to upload again.
           </Text>
           <View style={{ height: spacing.md }} />
           <Button
             testID="pick-csv-btn"
-            title={fileName ? `Change file` : "Choose CSV file"}
+            title={fileName ? `Change file` : "Choose CSV or Excel file"}
             icon="folder-open-outline"
             onPress={pick}
             loading={picking}
@@ -177,10 +231,10 @@ export default function CsvImport() {
                 <Text style={styles.previewCell}>Category</Text>
                 <Text style={styles.previewCell}>Brand</Text>
                 <Text style={styles.previewCell}>Code</Text>
-                <Text style={styles.previewCell}>Unit</Text>
-                <Text style={[styles.previewCell, { textAlign: "right" }]}>
-                  Rate
-                </Text>
+                <Text style={[styles.previewCell, { textAlign: "right" }]}>MRP</Text>
+                <Text style={[styles.previewCell, { textAlign: "right" }]}>Disc</Text>
+                <Text style={[styles.previewCell, { textAlign: "right" }]}>Sell</Text>
+                <Text style={[styles.previewCell, { textAlign: "right" }]}>Qty</Text>
               </View>
               {items.slice(0, 30).map((it, idx) => (
                 <View key={`${it.name}-${idx}`} style={styles.previewRow}>
@@ -199,11 +253,17 @@ export default function CsvImport() {
                   <Text numberOfLines={1} style={styles.previewCellBody}>
                     {it.productCode || "—"}
                   </Text>
-                  <Text style={styles.previewCellBody}>{it.unit}</Text>
-                  <Text
-                    style={[styles.previewCellBody, { textAlign: "right" }]}
-                  >
-                    ₹{it.standardRate}
+                  <Text style={[styles.previewCellBody, { textAlign: "right" }]}>
+                    {it.mrp ?? "—"}
+                  </Text>
+                  <Text style={[styles.previewCellBody, { textAlign: "right" }]}>
+                    {it.discount == null ? "—" : `${it.discount}%`}
+                  </Text>
+                  <Text style={[styles.previewCellBody, { textAlign: "right" }]}>
+                    ₹{it.sellingPrice ?? it.standardRate}
+                  </Text>
+                  <Text style={[styles.previewCellBody, { textAlign: "right" }]}>
+                    {it.stock ?? 0}
                   </Text>
                 </View>
               ))}
@@ -275,12 +335,73 @@ export default function CsvImport() {
         ) : null}
 
         <View style={{ height: spacing.md }} />
+        <Pressable
+          testID="toggle-replace-existing"
+          accessibilityRole="button"
+          onPress={() => setReplaceExisting((v) => !v)}
+          style={({ hovered }) => [
+            styles.modeRow,
+            pointer,
+            replaceExisting && { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+            hovered && { borderColor: colors.primary },
+          ]}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.modeTitle, replaceExisting && { color: colors.primary }]}>
+              Replace catalog with this CSV
+            </Text>
+            <Text style={styles.modeSub}>
+              Deletes every existing product first, then imports. Use this after a bad import.
+            </Text>
+          </View>
+          <Ionicons
+            name={replaceExisting ? "checkbox" : "square-outline"}
+            size={22}
+            color={replaceExisting ? colors.primary : colors.textMuted}
+          />
+        </Pressable>
+
+        <View style={{ height: spacing.md }} />
         <Button
           testID="run-import-btn"
-          title={importing ? "Importing…" : `Import ${items.length} items`}
+          title={
+            importing
+              ? "Importing…"
+              : replaceExisting
+              ? `Replace catalog with ${items.length} items`
+              : `Import ${items.length} items`
+          }
           icon="cloud-upload-outline"
           onPress={runImport}
           loading={importing}
+          fullWidth
+        />
+      </AppModal>
+
+      <AppModal
+        testID="clear-catalog-modal"
+        visible={clearOpen}
+        onClose={() => setClearOpen(false)}
+        title="Clear entire catalog?"
+      >
+        <Text style={styles.hint}>
+          This deletes all {catalogCount} products from the live catalog. Categories, brands, and partners stay. This cannot be undone.
+        </Text>
+        <View style={{ height: spacing.md }} />
+        <Button
+          testID="confirm-clear-catalog"
+          title={clearing ? "Clearing…" : "Yes, delete all products"}
+          variant="danger"
+          onPress={runClear}
+          loading={clearing}
+          fullWidth
+        />
+        <View style={{ height: spacing.sm }} />
+        <Button
+          testID="cancel-clear-catalog"
+          title="Cancel"
+          variant="ghost"
+          onPress={() => setClearOpen(false)}
           fullWidth
         />
       </AppModal>
@@ -322,14 +443,16 @@ function ModeRow(props: {
   testID?: string;
 }) {
   return (
-    <TouchableOpacity
+    <Pressable
       testID={props.testID}
-      style={[
+      accessibilityRole="button"
+      style={({ hovered }) => [
         styles.modeRow,
+        pointer,
         props.selected && { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+        hovered && { borderColor: colors.primary },
       ]}
       onPress={props.onPress}
-      activeOpacity={0.7}
     >
       <View style={{ flex: 1 }}>
         <Text
@@ -347,22 +470,8 @@ function ModeRow(props: {
         size={20}
         color={props.selected ? colors.primary : colors.textMuted}
       />
-    </TouchableOpacity>
+    </Pressable>
   );
-}
-
-function base64ToBytes(b64: string): Uint8Array {
-  // Node-free base64 decode that works on RN + web.
-  const binary =
-    typeof atob === "function"
-      ? atob(b64)
-      : // React Native (Hermes) exposes atob globally, but fallback anyway
-        globalThis.Buffer
-        ? globalThis.Buffer.from(b64, "base64").toString("binary")
-        : "";
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
 }
 
 const styles = StyleSheet.create({
@@ -370,6 +479,10 @@ const styles = StyleSheet.create({
   title: { ...font.h3, color: colors.textPrimary, marginBottom: 4 },
   hint: { color: colors.textSecondary, fontSize: 13, lineHeight: 20 },
   mono: { fontFamily: "Courier", color: colors.textPrimary },
+  warnCard: {
+    borderColor: colors.warning,
+    backgroundColor: colors.warningBg,
+  },
   fileRow: {
     marginTop: spacing.md,
     padding: spacing.sm,

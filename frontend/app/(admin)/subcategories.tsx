@@ -3,13 +3,13 @@ import { ActivityIndicator, FlatList, Linking, StyleSheet, Text, TouchableOpacit
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system/legacy";
 import { Ionicons } from "@expo/vector-icons";
 
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
 import { ApiError } from "@/src/api/client";
 import { createSubcategory, deleteSubcategory, importSubcategories, listCategories, listSubcategories, updateSubcategory, type Category, type Subcategory } from "@/src/api/endpoints";
 import { parseCsvBytes } from "@/src/utils/csv";
+import { readAssetBytes } from "@/src/utils/read-asset-bytes";
 import { colors, font, radii, spacing } from "@/src/theme";
 
 export default function AdminSubcategories() {
@@ -88,8 +88,7 @@ export default function AdminSubcategories() {
       const result = await DocumentPicker.getDocumentAsync({ type: ["text/csv", "text/plain", "*/*"], copyToCacheDirectory: true, multiple: false });
       if (result.canceled || !result.assets?.[0]) return;
       const asset = result.assets[0];
-      const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 });
-      const parsed = parseCsvBytes(base64ToBytes(base64));
+      const parsed = parseCsvBytes(await readAssetBytes(asset));
       if (!parsed.ok) { setError(parsed.error); return; }
       const rows = parsed.rows.map((row) => ({
         name: (row.name || row.subcategory || row["sub category"] || "").trim(),
@@ -168,14 +167,6 @@ export default function AdminSubcategories() {
   );
 }
 
-function base64ToBytes(base64: string) {
-  const binary = typeof atob === "function"
-    ? atob(base64)
-    : globalThis.Buffer
-      ? globalThis.Buffer.from(base64, "base64").toString("binary")
-      : "";
-  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
-}
 function csvCell(value: string) { return /[,"\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value; }
 
 const styles = StyleSheet.create({

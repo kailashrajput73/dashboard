@@ -1,6 +1,5 @@
-// CSV parsing utilities for admin bulk import.
-// Handles encoding auto-detect (UTF-8, UTF-8 BOM, UTF-16 LE/BE) and blocks
-// binary xlsx/xls uploads with a clear signal.
+// CSV / spreadsheet row mapping for admin bulk import.
+// Handles encoding auto-detect (UTF-8, UTF-8 BOM, UTF-16 LE/BE).
 
 export type CsvParseResult =
   | { ok: true; rows: Record<string, string>[]; encoding: string }
@@ -17,27 +16,29 @@ export type ImportItem = {
   productName?: string;
   sizeMm?: number;
   sizeInch?: string;
-  productCode?: string;
   length?: string;
+  productCode?: string;
   mrp?: number;
   sellingPrice?: number;
   purchasePrice?: number;
   discount?: number;
+  stock?: number;
   imageUrl?: string;
   isActive?: boolean;
 };
 
-// Excel file magic bytes:
-//   .xlsx (ZIP): PK\x03\x04         -> 50 4B 03 04
-//   .xls (OLE):  D0 CF 11 E0 A1 B1 1A E1
+export function normalizeHeader(value: string): string {
+  return value
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
 function isBinaryOfficeFile(bytes: Uint8Array): boolean {
   if (bytes.length < 4) return false;
-  if (
-    bytes[0] === 0x50 &&
-    bytes[1] === 0x4b &&
-    bytes[2] === 0x03 &&
-    bytes[3] === 0x04
-  ) {
+  if (bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04) {
     return true;
   }
   if (
@@ -45,11 +46,7 @@ function isBinaryOfficeFile(bytes: Uint8Array): boolean {
     bytes[0] === 0xd0 &&
     bytes[1] === 0xcf &&
     bytes[2] === 0x11 &&
-    bytes[3] === 0xe0 &&
-    bytes[4] === 0xa1 &&
-    bytes[5] === 0xb1 &&
-    bytes[6] === 0x1a &&
-    bytes[7] === 0xe1
+    bytes[3] === 0xe0
   ) {
     return true;
   }
@@ -60,7 +57,6 @@ function detectEncodingAndDecode(bytes: Uint8Array): {
   encoding: string;
   text: string;
 } {
-  // BOM checks
   if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
     return {
       encoding: "utf-8-bom",
@@ -82,8 +78,21 @@ function detectEncodingAndDecode(bytes: Uint8Array): {
   return { encoding: "utf-8", text: new TextDecoder("utf-8").decode(bytes) };
 }
 
-// Minimal RFC-4180-ish CSV row parser (handles quoted fields with commas / escaped quotes).
-function parseCsvLine(line: string): string[] {
+function sniffDelimiter(headerLine: string): string {
+  const counts: Record<string, number> = { ",": 0, ";": 0, "\t": 0 };
+  let inQuote = false;
+  for (let i = 0; i < headerLine.length; i++) {
+    const ch = headerLine[i];
+    if (ch === '"') {
+      inQuote = !inQuote;
+      continue;
+    }
+    if (!inQuote && ch in counts) counts[ch] += 1;
+  }
+  return (Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] as string) || ",";
+}
+
+function parseCsvLine(line: string, delimiter: string): string[] {
   const cells: string[] = [];
   let cur = "";
   let inQuote = false;
@@ -100,15 +109,13 @@ function parseCsvLine(line: string): string[] {
       } else {
         cur += ch;
       }
+    } else if (ch === delimiter) {
+      cells.push(cur);
+      cur = "";
+    } else if (ch === '"') {
+      inQuote = true;
     } else {
-      if (ch === ",") {
-        cells.push(cur);
-        cur = "";
-      } else if (ch === '"') {
-        inQuote = true;
-      } else {
-        cur += ch;
-      }
+      cur += ch;
     }
   }
   cells.push(cur);
@@ -120,7 +127,7 @@ export function parseCsvBytes(bytes: Uint8Array): CsvParseResult {
     return {
       ok: false,
       error:
-        "Excel files (.xlsx / .xls) are not supported. Please export as CSV (UTF-8) and try again.",
+        "This looks like an Excel file. Choose the .xlsx or export CSV (UTF-8) — the importer now accepts both.",
     };
   }
   const { encoding, text } = detectEncodingAndDecode(bytes);
@@ -132,21 +139,42 @@ export function parseCsvBytes(bytes: Uint8Array): CsvParseResult {
     return { ok: false, error: "CSV must have a header row and at least one data row." };
   }
 
-  const header = parseCsvLine(lines[0]).map((h) => h.toLowerCase());
+  const delimiter = sniffDelimiter(lines[0]);
+  const header = parseCsvLine(lines[0], delimiter).map(normalizeHeader);
   const rows: Record<string, string>[] = [];
   for (let i = 1; i < lines.length; i++) {
-    const cells = parseCsvLine(lines[i]);
+    const cells = parseCsvLine(lines[i], delimiter);
     const row: Record<string, string> = {};
     header.forEach((h, idx) => {
-      row[h] = cells[idx] ?? "";
+      if (h) row[h] = cells[idx] ?? "";
     });
     rows.push(row);
   }
   return { ok: true, rows, encoding };
 }
 
-// Map CSV rows (case-insensitive headers) to ImportItem[].
-// Accepted headers: name, category (optional), unit, rate | standardrate | price
+function cell(row: Record<string, string>, ...keys: string[]): string {
+  for (const key of keys) {
+    const value = row[normalizeHeader(key)];
+    if (value != null && String(value).trim()) return String(value).trim();
+  }
+  return "";
+}
+
+function clean(value: string): string | undefined {
+  return value.trim() || undefined;
+}
+
+function numberOrUndefined(value: string): number | undefined {
+  const parsed = parseFloat(value.replace(/[,%\s]/g, ""));
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+function parseBoolean(value: string): boolean | undefined {
+  if (!value.trim()) return undefined;
+  return !["false", "0", "no", "inactive"].includes(value.trim().toLowerCase());
+}
+
 export function rowsToItems(rows: Record<string, string>[]): {
   items: ImportItem[];
   invalid: number;
@@ -154,13 +182,18 @@ export function rowsToItems(rows: Record<string, string>[]): {
   const items: ImportItem[] = [];
   let invalid = 0;
   for (const r of rows) {
-    const name = (r["product_name"] || r["name"] || r["item"] || r["item name"] || "").trim();
-    const category = (r["category"] || "").trim();
-    const unit = (r["unit"] || r["uom"] || "").trim();
-    const rateRaw = r["selling_price"] ?? r["sellingprice"] ?? r["standardrate"] ?? r["standard rate"] ?? r["rate"] ?? r["price"] ?? "";
-    const rate = parseFloat(String(rateRaw).replace(/[,\s]/g, ""));
+    const name = cell(r, "product_name", "name", "item", "item_name");
+    const category = cell(r, "category");
+    const unit = cell(r, "unit", "uom");
+    const sellingRaw = cell(r, "selling_price", "sellingprice", "standard_rate", "standardrate", "rate", "price");
+    const mrp = numberOrUndefined(cell(r, "mrp"));
+    const discount = numberOrUndefined(cell(r, "discount"));
+    let rate = numberOrUndefined(sellingRaw);
+    if (rate == null && mrp != null) {
+      rate = Math.round(mrp * (1 - Math.max(0, discount || 0) / 100) * 100) / 100;
+    }
 
-    if (!name || !unit || Number.isNaN(rate)) {
+    if (!name || !unit || rate == null) {
       invalid++;
       continue;
     }
@@ -170,35 +203,21 @@ export function rowsToItems(rows: Record<string, string>[]): {
       category: category || undefined,
       unit,
       standardRate: rate,
-      type: clean(r["type"]),
-      productGroup: clean(r["product_group"] || r["productgroup"]),
-      brand: clean(r["brand"]),
-      sizeMm: numberOrUndefined(r["size_mm"] || r["sizemm"]),
-      sizeInch: clean(r["size_inch"] || r["sizeinch"]),
-      productCode: clean(r["product_code"] || r["productcode"]),
-      length: clean(r["length"]),
-      mrp: numberOrUndefined(r["mrp"]),
-      sellingPrice: numberOrUndefined(r["selling_price"] || r["sellingprice"]),
-      purchasePrice: numberOrUndefined(r["purchase_price"] || r["purchaseprice"]),
-      discount: numberOrUndefined(r["discount"]),
-      imageUrl: clean(r["image_url"] || r["imageurl"]),
-      isActive: parseBoolean(r["is_active"] || r["isactive"]),
+      type: clean(cell(r, "type")),
+      productGroup: clean(cell(r, "product_group", "productgroup", "group")),
+      brand: clean(cell(r, "brand")),
+      sizeMm: numberOrUndefined(cell(r, "size_mm", "sizemm")),
+      sizeInch: clean(cell(r, "size_inch", "sizeinch")),
+      productCode: clean(cell(r, "product_code", "productcode", "sku", "code")),
+      length: clean(cell(r, "length")),
+      mrp,
+      sellingPrice: numberOrUndefined(sellingRaw) ?? rate,
+      purchasePrice: numberOrUndefined(cell(r, "purchase_price", "purchaseprice")),
+      discount,
+      stock: numberOrUndefined(cell(r, "stock_qty", "stockqty", "stock", "qty")),
+      imageUrl: clean(cell(r, "image_url", "imageurl", "image", "photo")),
+      isActive: parseBoolean(cell(r, "is_active", "isactive")),
     });
-  }
-
-  function clean(value: string | undefined): string | undefined {
-    const trimmed = (value || "").trim();
-    return trimmed || undefined;
-  }
-
-  function numberOrUndefined(value: string | undefined): number | undefined {
-    const parsed = parseFloat((value || "").replace(/[,\s]/g, ""));
-    return Number.isNaN(parsed) ? undefined : parsed;
-  }
-
-  function parseBoolean(value: string | undefined): boolean | undefined {
-    if (!value?.trim()) return undefined;
-    return !["false", "0", "no", "inactive"].includes(value.trim().toLowerCase());
   }
   return { items, invalid };
 }

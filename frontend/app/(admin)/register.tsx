@@ -6,12 +6,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 import { Header, Input, Button, Card, ErrorModal } from "@/src/components/UI";
-import { colors, spacing, font } from "@/src/theme";
+import { colors, spacing, font, isWeb, pointer } from "@/src/theme";
 import { registerAdmin, loginAdmin } from "@/src/api/endpoints";
 import { saveAdmin } from "@/src/state/session";
 import { ApiError } from "@/src/api/client";
@@ -47,7 +48,6 @@ export default function AdminRegister() {
         contactNumber: contact.trim(),
         passcode: passcode.trim(),
       });
-      // Auto-login for a smoother demo.
       const a = await loginAdmin({
         contactNumber: contact.trim(),
         passcode: passcode.trim(),
@@ -63,72 +63,92 @@ export default function AdminRegister() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-      <Header
-        title="Create Admin Account"
-        subtitle="Company details for your quotations"
-        onBack={() => router.back()}
-      />
+      {!isWeb ? (
+        <Header
+          title="Create Admin Account"
+          subtitle="Company details for your quotations"
+          onBack={() => router.back()}
+        />
+      ) : null}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          contentContainerStyle={{ padding: spacing.lg, paddingBottom: 40 }}
+          contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <Card>
-            <Text style={styles.title}>Register as Admin</Text>
-            <Text style={styles.hint}>
-              Set a passcode you’ll remember — you’ll use it every time to sign in.
-            </Text>
-            <View style={{ height: spacing.md }} />
+          <View style={styles.frame}>
+            {isWeb ? (
+              <>
+                <Text style={styles.brand}>Create admin account</Text>
+                <Text style={styles.lede}>Company details for your quotations</Text>
+              </>
+            ) : null}
+            <Card>
+              <Text style={styles.title}>Register as Admin</Text>
+              <Text style={styles.hint}>
+                Set a passcode you’ll remember — you’ll use it every time to sign in.
+              </Text>
+              <View style={{ height: spacing.md }} />
 
-            <Input
-              testID="admin-company-input"
-              label="Company Name"
-              placeholder="e.g. Acme Traders"
-              value={company}
-              onChangeText={setCompany}
-              autoCapitalize="words"
-              error={fieldErr.company}
-            />
-            <Input
-              testID="admin-gstin-input"
-              label="GSTIN"
-              placeholder="e.g. 27ABCDE1234F1Z5"
-              value={gstin}
-              onChangeText={(v) => setGstin(v.toUpperCase())}
-              autoCapitalize="characters"
-              error={fieldErr.gstin}
-            />
-            <Input
-              testID="admin-reg-contact-input"
-              label="Contact Number"
-              placeholder="Phone / WhatsApp"
-              value={contact}
-              onChangeText={setContact}
-              keyboardType="phone-pad"
-              error={fieldErr.contact}
-            />
-            <Input
-              testID="admin-reg-passcode-input"
-              label="Passcode"
-              placeholder="Min 4 characters"
-              value={passcode}
-              onChangeText={setPasscode}
-              secureTextEntry
-              error={fieldErr.passcode}
-            />
+              <Input
+                testID="admin-company-input"
+                label="Company Name"
+                placeholder="e.g. Acme Traders"
+                value={company}
+                onChangeText={setCompany}
+                autoCapitalize="words"
+                error={fieldErr.company}
+              />
+              <Input
+                testID="admin-gstin-input"
+                label="GSTIN"
+                placeholder="e.g. 27ABCDE1234F1Z5"
+                value={gstin}
+                onChangeText={(v) => setGstin(v.toUpperCase())}
+                autoCapitalize="characters"
+                error={fieldErr.gstin}
+              />
+              <Input
+                testID="admin-reg-contact-input"
+                label="Contact Number"
+                placeholder="Phone / WhatsApp"
+                value={contact}
+                onChangeText={setContact}
+                keyboardType="phone-pad"
+                error={fieldErr.contact}
+              />
+              <Input
+                testID="admin-reg-passcode-input"
+                label="Passcode"
+                placeholder="Min 4 characters"
+                value={passcode}
+                onChangeText={setPasscode}
+                secureTextEntry
+                error={fieldErr.passcode}
+              />
 
-            <Button
-              testID="admin-register-submit"
-              title="Create Account"
-              icon="checkmark-circle-outline"
-              onPress={submit}
-              loading={loading}
-              fullWidth
-            />
-          </Card>
+              <Button
+                testID="admin-register-submit"
+                title="Create Account"
+                icon="checkmark-circle-outline"
+                onPress={submit}
+                loading={loading}
+                fullWidth
+              />
+              <Pressable
+                onPress={() => router.push("/(admin)/login")}
+                accessibilityRole="link"
+                style={({ hovered }) => [styles.linkWrap, pointer, hovered && { opacity: 0.8 }]}
+                testID="go-to-admin-login"
+              >
+                <Text style={styles.linkText}>
+                  Already have an account? <Text style={styles.linkAccent}>Sign in</Text>
+                </Text>
+              </Pressable>
+            </Card>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -143,6 +163,22 @@ export default function AdminRegister() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  scroll: {
+    flexGrow: 1,
+    padding: spacing.lg,
+    paddingBottom: 40,
+    justifyContent: isWeb ? "center" : "flex-start",
+    alignItems: isWeb ? "center" : "stretch",
+  },
+  frame: {
+    width: "100%",
+    maxWidth: isWeb ? 480 : undefined,
+  },
+  brand: { ...font.h2, color: colors.textPrimary, marginBottom: 4 },
+  lede: { color: colors.textSecondary, marginBottom: spacing.lg, fontSize: 14 },
   title: { ...font.h3, color: colors.textPrimary },
   hint: { color: colors.textSecondary, marginTop: 4, fontSize: 13 },
+  linkWrap: { marginTop: spacing.md, alignSelf: "center" },
+  linkText: { color: colors.textSecondary, fontSize: 13 },
+  linkAccent: { color: colors.primary, fontWeight: "700" },
 });

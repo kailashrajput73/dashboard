@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -10,6 +9,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
+  Pressable,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -17,16 +18,9 @@ import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 
-import {
-  Header,
-  Chip,
-  Input,
-  Button,
-  AppModal,
-  ErrorModal,
-  EmptyState,
-} from "@/src/components/UI";
-import { colors, spacing, radii, shadow, font } from "@/src/theme";
+import { Header, Chip, Input, Button, AppModal, ErrorModal, EmptyState } from "@/src/components/UI";
+import { colors, spacing, radii, shadow, font, isWeb, pointer } from "@/src/theme";
+import { RemoteImage } from "@/src/components/RemoteImage";
 import {
   createCatalogItem,
   createCategory,
@@ -36,6 +30,8 @@ import {
   listBrands,
   listProductGroups,
   updateCatalogItem,
+  updateCatalogPricing,
+  applyCatalogPricingBulk,
   type CatalogItem,
   type Category,
   type Brand,
@@ -43,6 +39,7 @@ import {
 } from "@/src/api/endpoints";
 import { ApiError } from "@/src/api/client";
 import { formatMoney } from "@/src/utils/money";
+import { discountFromMrpSelling, sellingFromMrpDiscount } from "@/src/utils/pricing";
 
 export default function AdminCatalog() {
   const router = useRouter();
@@ -111,6 +108,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   const [fSellingPrice, setFSellingPrice] = useState("");
   const [fPurchasePrice, setFPurchasePrice] = useState("");
   const [fPriceDiscount, setFPriceDiscount] = useState("");
+  const [fStock, setFStock] = useState("");
   const [fProductCode, setFProductCode] = useState("");
   const [fCategory, setFCategory] = useState<string>("");
   const [fBrandId, setFBrandId] = useState<string>("");
@@ -126,6 +124,9 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   const [creatingCat, setCreatingCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [bulkDiscount, setBulkDiscount] = useState("");
+  const [bulkStock, setBulkStock] = useState("");
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -161,7 +162,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     setFName("");
     setFUnit("");
     setFRate("");
-     setFMrp(""); setFSellingPrice(""); setFPurchasePrice(""); setFPriceDiscount(""); setFProductCode("");
+     setFMrp(""); setFSellingPrice(""); setFPurchasePrice(""); setFPriceDiscount(""); setFStock(""); setFProductCode("");
     setFCategory(cats[0]?.name || "");
     setFBrandId(brands.find((brand) => brand.isActive)?.id || "");
     setFAliases(""); setFLanguages(""); setFSequence("0"); setFRol("0"); setFDiscount("0");
@@ -178,6 +179,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
      setFSellingPrice(it.sellingPrice == null ? String(it.standardRate) : String(it.sellingPrice));
      setFPurchasePrice(it.purchasePrice == null ? "" : String(it.purchasePrice));
      setFPriceDiscount(it.discount == null ? "" : String(it.discount));
+     setFStock(it.stock == null ? "0" : String(it.stock));
      setFProductCode(it.productCode || "");
     setFCategory(it.category);
     setFBrandId(it.brandId || "");
@@ -210,6 +212,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
         sellingPrice: fSellingPrice.trim() ? Number(fSellingPrice) : rate,
         purchasePrice: fPurchasePrice.trim() ? Number(fPurchasePrice) : undefined,
         discount: fPriceDiscount.trim() ? Number(fPriceDiscount) : undefined,
+        stock: fStock.trim() ? Number(fStock) : 0,
         brandId: fBrandId,
         aliases: fAliases.split(",").map((alias) => alias.trim()).filter(Boolean),
         multilingualNames: parseLanguageNames(fLanguages),
@@ -265,6 +268,33 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     }
   }
 
+  async function applyListed(kind: "discount" | "stock") {
+    if (items.length === 0) return;
+    const discount = parseFloat(bulkDiscount);
+    const stock = parseFloat(bulkStock);
+    if (kind === "discount" && Number.isNaN(discount)) {
+      setErr("Enter a discount % to apply to the listed products.");
+      return;
+    }
+    if (kind === "stock" && Number.isNaN(stock)) {
+      setErr("Enter a stock quantity to apply to the listed products.");
+      return;
+    }
+    setBulkSaving(true);
+    try {
+      const res = await applyCatalogPricingBulk(
+        items,
+        kind === "discount" ? { discount } : { stock },
+      );
+      await load();
+      if (res.skipped) setErr(`Updated ${res.updated}, skipped ${res.skipped}.`);
+    } catch (e: any) {
+      setErr(e instanceof ApiError ? e.message : "Could not apply pricing");
+    } finally {
+      setBulkSaving(false);
+    }
+  }
+
   async function confirmDelete() {
     if (!actionSheet) return;
     const id = actionSheet.id;
@@ -283,12 +313,12 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header
         title="Manage Catalog"
-        subtitle={`${items.length} item${items.length === 1 ? "" : "s"}`}
+        subtitle={`${items.length} item${items.length === 1 ? "" : "s"} · edit MRP, discount, and stock without re-uploading`}
         onBack={() => router.back()}
         right={
-          <TouchableOpacity onPress={openAdd} testID="open-add-item" hitSlop={8}>
+          <Pressable onPress={openAdd} testID="open-add-item" hitSlop={8} accessibilityRole="button" style={pointer}>
             <Ionicons name="add-circle" size={26} color={colors.primary} />
-          </TouchableOpacity>
+          </Pressable>
         }
       />
 
@@ -323,6 +353,53 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           subtitle="Add your first item or import a CSV file."
           cta={{ label: "Add Item", onPress: openAdd, testID: "empty-add-item" }}
         />
+      ) : isWeb ? (
+        <ScrollView
+          contentContainerStyle={styles.tableWrap}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          <Text style={styles.tableHint}>
+            Day-to-day work: change MRP, discount %, or stock on a row, then Save. Selling price updates from MRP and discount.
+          </Text>
+          <View style={styles.bulkBar}>
+            <Text style={styles.bulkLabel}>Apply to {items.length} listed product{items.length === 1 ? "" : "s"}</Text>
+            <TextInput
+              value={bulkDiscount}
+              onChangeText={setBulkDiscount}
+              placeholder="Discount %"
+              keyboardType="decimal-pad"
+              style={styles.bulkInput}
+              testID="bulk-discount-input"
+            />
+            <Button title="Apply discount" size="sm" onPress={() => applyListed("discount")} loading={bulkSaving} testID="bulk-discount-btn" />
+            <TextInput
+              value={bulkStock}
+              onChangeText={setBulkStock}
+              placeholder="Stock qty"
+              keyboardType="decimal-pad"
+              style={styles.bulkInput}
+              testID="bulk-stock-input"
+            />
+            <Button title="Set stock" size="sm" onPress={() => applyListed("stock")} loading={bulkSaving} testID="bulk-stock-btn" />
+          </View>
+          <View style={styles.tableHead}>
+            <Text style={[styles.th, styles.colProduct]}>Product</Text>
+            <Text style={[styles.th, styles.colNum]}>MRP</Text>
+            <Text style={[styles.th, styles.colNum]}>Discount %</Text>
+            <Text style={[styles.th, styles.colNum]}>Selling</Text>
+            <Text style={[styles.th, styles.colNum]}>Stock</Text>
+            <Text style={[styles.th, styles.colActions]}> </Text>
+          </View>
+          {items.map((item) => (
+            <PricingRow
+              key={item.id}
+              item={item}
+              onEdit={() => openEdit(item)}
+              onDeleted={load}
+              onError={setErr}
+            />
+          ))}
+        </ScrollView>
       ) : (
         <FlatList
           data={items}
@@ -338,7 +415,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
               style={styles.row}
               testID={`admin-item-${item.id}`}
             >
-              {item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={styles.productThumb} /> : <View style={styles.productThumbPlaceholder}><Ionicons name="image-outline" size={22} color={colors.textMuted} /></View>}
+              <RemoteImage uri={item.imageUrl} style={styles.productThumb} placeholderSize={22} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowName} numberOfLines={2}>
                   {item.name}
@@ -348,11 +425,11 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
                   <View style={styles.pill}>
                     <Text style={styles.pillText}>{item.category}</Text>
                   </View>
-                  <Text style={styles.rowMeta}>per {item.unit}</Text>
-                  <Text style={styles.rowMeta}>{item.brand || "No brand"}</Text>
+                  <Text style={styles.rowMeta}>MRP ₹{formatMoney(item.mrp || item.standardRate)}</Text>
+                  <Text style={styles.rowMeta}>Sell ₹{formatMoney(item.sellingPrice || item.standardRate)}</Text>
+                  <Text style={styles.rowMeta}>Qty {item.stock ?? 0}</Text>
                 </View>
               </View>
-              <Text style={styles.rate}>₹{formatMoney(item.standardRate)}</Text>
               <Ionicons name="ellipsis-vertical" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           )}
@@ -364,7 +441,8 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
         testID="add-item-modal"
         visible={addOpen}
         onClose={() => setAddOpen(false)}
-        title={editing ? "Edit Item" : "Add New Item"}
+        title={editing ? "Edit product" : "Add product"}
+        wide
       >
         <Input
           testID="item-name-input"
@@ -374,29 +452,77 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           onChangeText={setFName}
           autoCapitalize="words"
         />
-        <Input
-          testID="item-unit-input"
-          label="Unit"
-          placeholder="e.g. bag, kg, hr, nos"
-          value={fUnit}
-          onChangeText={setFUnit}
-        />
-        <Input
-          testID="item-rate-input"
-          label="Standard Rate (INR)"
-          placeholder="e.g. 380"
-          value={fRate}
-          onChangeText={setFRate}
-          keyboardType="decimal-pad"
-        />
-        <Input testID="item-product-code-input" label="Product code (optional)" value={fProductCode} onChangeText={setFProductCode} autoCapitalize="characters" />
-        <Input testID="item-mrp-input" label="MRP" value={fMrp} onChangeText={setFMrp} keyboardType="decimal-pad" />
-        <Input testID="item-selling-price-input" label="Selling price" value={fSellingPrice} onChangeText={setFSellingPrice} keyboardType="decimal-pad" />
-        <Input testID="item-purchase-price-input" label="Purchase price" value={fPurchasePrice} onChangeText={setFPurchasePrice} keyboardType="decimal-pad" />
-        <Input testID="item-price-discount-input" label="Price discount (%)" value={fPriceDiscount} onChangeText={setFPriceDiscount} keyboardType="decimal-pad" />
+        <View style={styles.formRow}>
+          <View style={styles.formCol}>
+            <Input
+              testID="item-unit-input"
+              label="Unit"
+              placeholder="e.g. bag, kg, hr, nos"
+              value={fUnit}
+              onChangeText={setFUnit}
+            />
+          </View>
+          <View style={styles.formCol}>
+            <Input testID="item-product-code-input" label="Product code (optional)" value={fProductCode} onChangeText={setFProductCode} autoCapitalize="characters" />
+          </View>
+        </View>
+        <Text style={styles.sectionTitle}>Pricing and stock</Text>
+        <Text style={styles.sectionHint}>Change these anytime. Discount % recalculates selling price from MRP.</Text>
+        <View style={styles.formRow}>
+          <View style={styles.formCol}>
+            <Input testID="item-mrp-input" label="MRP" value={fMrp} onChangeText={(v) => {
+              setFMrp(v);
+              const mrp = parseFloat(v);
+              const disc = parseFloat(fPriceDiscount);
+              if (!Number.isNaN(mrp) && !Number.isNaN(disc)) {
+                const next = String(sellingFromMrpDiscount(mrp, disc));
+                setFSellingPrice(next);
+                setFRate(next);
+              }
+            }} keyboardType="decimal-pad" />
+          </View>
+          <View style={styles.formCol}>
+            <Input testID="item-price-discount-input" label="Price discount (%)" value={fPriceDiscount} onChangeText={(v) => {
+              setFPriceDiscount(v);
+              const mrp = parseFloat(fMrp);
+              const disc = parseFloat(v);
+              if (!Number.isNaN(mrp) && !Number.isNaN(disc)) {
+                const next = String(sellingFromMrpDiscount(mrp, disc));
+                setFSellingPrice(next);
+                setFRate(next);
+              }
+            }} keyboardType="decimal-pad" />
+          </View>
+        </View>
+        <View style={styles.formRow}>
+          <View style={styles.formCol}>
+            <Input testID="item-selling-price-input" label="Selling price" value={fSellingPrice} onChangeText={(v) => {
+              setFSellingPrice(v);
+              setFRate(v);
+            }} keyboardType="decimal-pad" />
+          </View>
+          <View style={styles.formCol}>
+            <Input testID="item-purchase-price-input" label="Purchase price" value={fPurchasePrice} onChangeText={setFPurchasePrice} keyboardType="decimal-pad" />
+          </View>
+        </View>
+        <View style={styles.formRow}>
+          <View style={styles.formCol}>
+            <Input testID="item-stock-input" label="Stock qty" value={fStock} onChangeText={setFStock} keyboardType="decimal-pad" />
+          </View>
+          <View style={styles.formCol}>
+            <Input
+              testID="item-rate-input"
+              label="Standard rate (same as selling)"
+              placeholder="e.g. 380"
+              value={fRate}
+              onChangeText={setFRate}
+              keyboardType="decimal-pad"
+            />
+          </View>
+        </View>
 
         <Text style={styles.inputLabel}>Product image</Text>
-        {fImageUrl ? <Image source={{ uri: fImageUrl }} style={styles.imagePreview} /> : <View style={styles.imageEmpty}><Ionicons name="image-outline" size={28} color={colors.textMuted} /><Text style={styles.imageEmptyText}>No image selected</Text></View>}
+        {fImageUrl ? <RemoteImage uri={fImageUrl} style={styles.imagePreview} placeholderSize={28} /> : <View style={styles.imageEmpty}><Ionicons name="image-outline" size={28} color={colors.textMuted} /><Text style={styles.imageEmptyText}>No image selected</Text></View>}
         <View style={styles.imageActions}><Button testID="pick-product-image" title={fImageUrl ? "Replace image" : "Upload image"} icon="image-outline" onPress={pickProductImage} size="sm" />{fImageUrl ? <Button testID="remove-product-image" title="Remove" variant="ghost" onPress={() => { setFImageUrl(undefined); setFImageName(undefined); }} size="sm" /> : null}</View>
         <Input
           testID="item-image-url-input"
@@ -542,6 +668,111 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   );
 }
 
+function PricingRow(props: {
+  item: CatalogItem;
+  onEdit: () => void;
+  onDeleted: () => Promise<void>;
+  onError: (message: string) => void;
+}) {
+  const item = props.item;
+  const [mrp, setMrp] = useState(item.mrp == null ? "" : String(item.mrp));
+  const [discount, setDiscount] = useState(item.discount == null ? "" : String(item.discount));
+  const [selling, setSelling] = useState(
+    String(item.sellingPrice ?? item.standardRate ?? ""),
+  );
+  const [stock, setStock] = useState(item.stock == null ? "0" : String(item.stock));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setMrp(item.mrp == null ? "" : String(item.mrp));
+    setDiscount(item.discount == null ? "" : String(item.discount));
+    setSelling(String(item.sellingPrice ?? item.standardRate ?? ""));
+    setStock(item.stock == null ? "0" : String(item.stock));
+  }, [item.id, item.mrp, item.discount, item.sellingPrice, item.standardRate, item.stock]);
+
+  const dirty =
+    Number(mrp || 0) !== Number(item.mrp || 0) ||
+    Number(discount || 0) !== Number(item.discount || 0) ||
+    Number(selling || 0) !== Number(item.sellingPrice ?? item.standardRate ?? 0) ||
+    Number(stock || 0) !== Number(item.stock || 0);
+
+  function onMrp(value: string) {
+    setMrp(value);
+    const nextMrp = parseFloat(value);
+    const nextDisc = parseFloat(discount);
+    if (!Number.isNaN(nextMrp) && !Number.isNaN(nextDisc)) {
+      setSelling(String(sellingFromMrpDiscount(nextMrp, nextDisc)));
+    }
+  }
+
+  function onDiscount(value: string) {
+    setDiscount(value);
+    const nextMrp = parseFloat(mrp);
+    const nextDisc = parseFloat(value);
+    if (!Number.isNaN(nextMrp) && !Number.isNaN(nextDisc)) {
+      setSelling(String(sellingFromMrpDiscount(nextMrp, nextDisc)));
+    }
+  }
+
+  function onSelling(value: string) {
+    setSelling(value);
+    const nextMrp = parseFloat(mrp);
+    const nextSell = parseFloat(value);
+    if (!Number.isNaN(nextMrp) && nextMrp > 0 && !Number.isNaN(nextSell)) {
+      setDiscount(String(discountFromMrpSelling(nextMrp, nextSell)));
+    }
+  }
+
+  async function save() {
+    const nextMrp = parseFloat(mrp);
+    const nextDisc = parseFloat(discount || "0");
+    const nextSell = parseFloat(selling);
+    const nextStock = parseFloat(stock || "0");
+    if ([nextMrp, nextDisc, nextSell, nextStock].some((n) => Number.isNaN(n))) {
+      props.onError("Enter valid MRP, discount, selling price, and stock.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateCatalogPricing(item, {
+        mrp: nextMrp,
+        discount: nextDisc,
+        sellingPrice: nextSell,
+        stock: nextStock,
+      });
+      await props.onDeleted();
+    } catch (e: any) {
+      props.onError(e instanceof ApiError ? e.message : "Could not save price");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <View style={[styles.tableRow, dirty && styles.tableRowDirty]} testID={`admin-item-${item.id}`}>
+      <View style={[styles.colProduct, styles.productCell]}>
+        <RemoteImage uri={item.imageUrl} style={styles.tableThumb} placeholderSize={16} />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.rowMeta} numberOfLines={1}>
+            {item.productCode || "No code"} · {item.brand || "No brand"} · {item.category}
+          </Text>
+        </View>
+      </View>
+      <TextInput value={mrp} onChangeText={onMrp} keyboardType="decimal-pad" style={styles.tableInput} testID={`mrp-${item.id}`} />
+      <TextInput value={discount} onChangeText={onDiscount} keyboardType="decimal-pad" style={styles.tableInput} testID={`discount-${item.id}`} />
+      <TextInput value={selling} onChangeText={onSelling} keyboardType="decimal-pad" style={styles.tableInput} testID={`selling-${item.id}`} />
+      <TextInput value={stock} onChangeText={setStock} keyboardType="decimal-pad" style={styles.tableInput} testID={`stock-${item.id}`} />
+      <View style={styles.colActions}>
+        <Button title={saving ? "Saving" : dirty ? "Save" : "Saved"} size="sm" onPress={save} loading={saving} disabled={!dirty} testID={`save-price-${item.id}`} />
+        <Pressable onPress={props.onEdit} accessibilityRole="button" style={pointer} testID={`edit-item-${item.id}`}>
+          <Ionicons name="create-outline" size={18} color={colors.primary} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   chipsWrap: {
@@ -552,6 +783,83 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   search: { marginHorizontal: spacing.lg, marginTop: spacing.sm, marginBottom: 0 },
+  tableWrap: { padding: spacing.lg, paddingBottom: 48 },
+  tableHint: { color: colors.textSecondary, fontSize: 13, marginBottom: spacing.md, lineHeight: 20 },
+  bulkBar: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: spacing.md,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    backgroundColor: colors.surface,
+  },
+  bulkLabel: { color: colors.textPrimary, fontSize: 13, fontWeight: "600", marginRight: 8 },
+  bulkInput: {
+    width: 120,
+    height: 40,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.sm,
+    paddingHorizontal: 10,
+    color: colors.textPrimary,
+    backgroundColor: colors.bg,
+    fontSize: 14,
+    ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : {}),
+  },
+  formRow: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  formCol: { flexGrow: 1, flexBasis: 220, minWidth: 180 },
+  sectionTitle: { ...font.title, color: colors.textPrimary, marginTop: spacing.md, marginBottom: 4 },
+  sectionHint: { color: colors.textSecondary, fontSize: 13, marginBottom: spacing.sm },
+  tableHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    gap: 8,
+  },
+  th: { ...font.caption, color: colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 },
+  tableRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
+    gap: 8,
+  },
+  tableRowDirty: { backgroundColor: "#FFFBEB" },
+  colProduct: { flex: 2.4, minWidth: 220 },
+  colNum: { width: 110, textAlign: "right" as const },
+  colActions: { width: 140, flexDirection: "row", alignItems: "center", gap: 8, justifyContent: "flex-end" },
+  productCell: { flexDirection: "row", alignItems: "center", gap: 10 },
+  tableThumb: { width: 40, height: 40, borderRadius: 8, backgroundColor: colors.bg },
+  tableThumbPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: colors.bg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tableInput: {
+    width: 110,
+    height: 40,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.sm,
+    paddingHorizontal: 10,
+    color: colors.textPrimary,
+    backgroundColor: colors.surface,
+    fontSize: 14,
+    ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : {}),
+  },
   chipsRow: {
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
