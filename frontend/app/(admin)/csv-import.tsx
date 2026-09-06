@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -74,7 +73,10 @@ export default function CsvImport() {
         return;
       }
 
-      const bytes = await readAssetBytes(asset.uri);
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const bytes = base64ToBytes(base64);
       const parsed = parseCsvBytes(bytes);
       if (!parsed.ok) {
         setErr(parsed.error);
@@ -334,19 +336,6 @@ function ModeRow(props: {
       />
     </TouchableOpacity>
   );
-}
-
-async function readAssetBytes(uri: string): Promise<Uint8Array> {
-  if (Platform.OS === "web") {
-    const response = await fetch(uri);
-    if (!response.ok) throw new Error("Could not read the selected CSV file.");
-    return new Uint8Array(await response.arrayBuffer());
-  }
-
-  const base64 = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  return base64ToBytes(base64);
 }
 
 function base64ToBytes(b64: string): Uint8Array {
