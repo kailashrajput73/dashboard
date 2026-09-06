@@ -17,7 +17,7 @@ Response envelope for every endpoint: { success: bool, data: any, error: str|Non
 """
 
 from fastapi import FastAPI, APIRouter, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
@@ -30,6 +30,10 @@ import uuid
 import bcrypt
 import logging
 import re
+import asyncio
+import ipaddress
+from urllib.parse import urlparse
+import requests
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
@@ -47,6 +51,41 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("quotation-api")
 
 # ---------- Helpers ----------
+
+def selling_from(mrp: Optional[float], discount: Optional[float], selling: Optional[float], fallback: float = 0) -> float:
+    if selling is not None:
+        return float(selling)
+    if mrp is not None and discount is not None:
+        return round(float(mrp) * (1 - max(0, float(discount)) / 100), 2)
+    if mrp is not None:
+        return float(mrp)
+    return float(fallback)
+
+
+async def upsert_pricing(product_code: Optional[str], mrp, selling, purchase, discount):
+    if not product_code:
+        return
+    await db.pricing_history.insert_one({
+        "productCode": product_code,
+        "mrp": mrp,
+        "sellingPrice": selling,
+        "purchasePrice": purchase,
+        "discount": discount,
+        "updatedAt": now_iso(),
+    })
+    await db.pricing.update_one(
+        {"productCode": product_code},
+        {"$set": {
+            "productCode": product_code,
+            "mrp": mrp,
+            "sellingPrice": selling,
+            "purchasePrice": purchase,
+            "discount": discount,
+            "updatedAt": now_iso(),
+        }},
+        upsert=True,
+    )
+
 
 def envelope(data: Any = None, success: bool = True, error: Optional[str] = None):
     return {"success": success, "data": data, "error": error}
@@ -150,6 +189,7 @@ class CatalogItemIn(BaseModel):
     sellingPrice: Optional[float] = None
     purchasePrice: Optional[float] = None
     discount: Optional[float] = None
+    stock: Optional[float] = None
     isActive: bool = True
 
 
@@ -268,14 +308,31 @@ class ImportItem(BaseModel):
     sellingPrice: Optional[float] = None
     purchasePrice: Optional[float] = None
     discount: Optional[float] = None
+    stock: Optional[float] = None
     imageUrl: Optional[str] = None
     isActive: bool = True
+
+
+class CatalogPricingIn(BaseModel):
+    mrp: Optional[float] = None
+    sellingPrice: Optional[float] = None
+    discount: Optional[float] = None
+    purchasePrice: Optional[float] = None
+    stock: Optional[float] = None
+
+
+class CatalogBulkPricingIn(BaseModel):
+    itemIds: List[str]
+    mrp: Optional[float] = None
+    discount: Optional[float] = None
+    stock: Optional[float] = None
 
 
 class CatalogImportIn(BaseModel):
     items: List[ImportItem]
     categoryMode: str = Field(..., pattern="^(fromCsv|overrideExisting|overrideNew)$")
     overrideCategory: Optional[str] = ""
+    replaceExisting: bool = False
 
 
 class MoneyConfigIn(BaseModel):
@@ -556,7 +613,12 @@ async def list_brands():
     items = []
     async for brand in cursor:
         brand.setdefault("isActive", True)
-        brand["productCount"] = await db.catalog.count_documents({"brandId": brand["id"]})
+        brand["productCount"] = await db.catalog.count_documents({
+            "$or": [
+                {"brandId": brand["id"]},
+                {"brand": {"$regex": f"^{re.escape(brand['name'])}$", "$options": "i"}},
+            ]
+        })
         items.append(brand)
     return envelope(items)
 
@@ -1076,10 +1138,13 @@ async def list_catalog(
         q["productGroup"] = product_group
     if size_mm is not None:
         q["sizeMm"] = size_mm
+    brand_names = {b["id"]: b["name"] async for b in db.brands.find({}, {"_id": 0, "id": 1, "name": 1})}
     cursor = db.catalog.find(q, {"_id": 0}).sort("name", 1)
     items = []
     async for catalog_item in cursor:
         item = dict(catalog_item)
+        if not item.get("brand"):
+            item["brand"] = brand_names.get(item.get("brandId"))
         pricing = await db.pricing.find_one({"productCode": item.get("productCode")}, {"_id": 0})
         if pricing:
             item.update({
@@ -1105,12 +1170,18 @@ async def create_catalog(body: CatalogItemIn):
     if body.brandId and not brand:
         return JSONResponse(status_code=400, content=envelope(None, False, "Brand not found"))
     product_code = (body.productCode or "").strip() or f"PRD-{uuid.uuid4().hex[:10].upper()}"
+    selling = selling_from(body.mrp, body.discount, body.sellingPrice, body.standardRate)
     doc = {
         "id": new_id(),
         "name": body.name.strip(),
         "category": body.category.strip(),
         "unit": body.unit.strip(),
-        "standardRate": float(body.sellingPrice if body.sellingPrice is not None else body.standardRate),
+        "standardRate": selling,
+        "mrp": body.mrp,
+        "sellingPrice": selling,
+        "purchasePrice": body.purchasePrice,
+        "discount": body.discount,
+        "stock": body.stock if body.stock is not None else 0,
         "brandId": brand["id"] if brand else None,
         "brand": brand["name"] if brand else None,
         "productCode": product_code,
@@ -1135,24 +1206,7 @@ async def create_catalog(body: CatalogItemIn):
     }
     doc["qrCode"] = doc["productCode"]
     await db.catalog.insert_one(doc.copy())
-    if any(value is not None for value in (body.mrp, body.sellingPrice, body.purchasePrice, body.discount)):
-        await db.pricing_history.insert_one({
-            "productCode": product_code, "mrp": body.mrp,
-            "sellingPrice": body.sellingPrice if body.sellingPrice is not None else body.standardRate,
-            "purchasePrice": body.purchasePrice, "discount": body.discount, "updatedAt": now_iso(),
-        })
-        await db.pricing.update_one(
-            {"productCode": product_code},
-            {"$set": {
-                "productCode": product_code,
-                "mrp": body.mrp,
-                "sellingPrice": body.sellingPrice if body.sellingPrice is not None else body.standardRate,
-                "purchasePrice": body.purchasePrice,
-                "discount": body.discount,
-                "updatedAt": now_iso(),
-            }},
-            upsert=True,
-        )
+    await upsert_pricing(product_code, body.mrp, selling, body.purchasePrice, body.discount)
     # Ensure category exists too
     if not await db.categories.find_one({"name": doc["category"]}):
         await db.categories.insert_one({"id": new_id(), "name": doc["category"], "isDefault": False, "isActive": True})
@@ -1166,11 +1220,16 @@ async def update_catalog(item_id: str, body: CatalogItemIn):
         brand = await db.brands.find_one({"name": {"$regex": f"^{re.escape(body.brand.strip())}$", "$options": "i"}})
     if body.brandId and not brand:
         return JSONResponse(status_code=400, content=envelope(None, False, "Brand not found"))
+    selling = selling_from(body.mrp, body.discount, body.sellingPrice, body.standardRate)
     updates = {
         "name": body.name.strip(),
         "category": body.category.strip(),
         "unit": body.unit.strip(),
-        "standardRate": float(body.sellingPrice if body.sellingPrice is not None else body.standardRate),
+        "standardRate": selling,
+        "mrp": body.mrp,
+        "sellingPrice": selling,
+        "purchasePrice": body.purchasePrice,
+        "discount": body.discount,
         "brandId": brand["id"] if brand else None,
         "brand": brand["name"] if brand else None,
         "productName": body.productName or body.name.strip(),
@@ -1191,32 +1250,86 @@ async def update_catalog(item_id: str, body: CatalogItemIn):
         "isActive": body.isActive,
         "updatedAt": now_iso(),
     }
+    if body.stock is not None:
+        updates["stock"] = body.stock
     result = await db.catalog.update_one({"id": item_id}, {"$set": updates})
     if result.matched_count == 0:
         return JSONResponse(status_code=404, content=envelope(None, False, "Item not found"))
     if not await db.categories.find_one({"name": updates["category"]}):
         await db.categories.insert_one({"id": new_id(), "name": updates["category"], "isDefault": False})
     doc = await db.catalog.find_one({"id": item_id}, {"_id": 0})
-    if any(value is not None for value in (body.mrp, body.sellingPrice, body.purchasePrice, body.discount)):
-        product_code = doc.get("productCode")
-        await db.pricing_history.insert_one({
-            "productCode": product_code, "mrp": body.mrp,
-            "sellingPrice": body.sellingPrice if body.sellingPrice is not None else body.standardRate,
-            "purchasePrice": body.purchasePrice, "discount": body.discount, "updatedAt": now_iso(),
-        })
-        await db.pricing.update_one(
-            {"productCode": product_code},
-            {"$set": {
-                "productCode": product_code,
-                "mrp": body.mrp,
-                "sellingPrice": body.sellingPrice if body.sellingPrice is not None else body.standardRate,
-                "purchasePrice": body.purchasePrice,
-                "discount": body.discount,
-                "updatedAt": now_iso(),
-            }},
-            upsert=True,
-        )
+    await upsert_pricing(doc.get("productCode"), body.mrp, selling, body.purchasePrice, body.discount)
     return envelope(doc)
+
+
+@api.patch("/catalog/{item_id}/pricing")
+async def update_catalog_pricing(item_id: str, body: CatalogPricingIn):
+    current = await db.catalog.find_one({"id": item_id}, {"_id": 0})
+    if not current:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Item not found"))
+    mrp = body.mrp if body.mrp is not None else current.get("mrp")
+    discount = body.discount if body.discount is not None else current.get("discount")
+    selling = selling_from(mrp, discount, body.sellingPrice, current.get("sellingPrice") or current.get("standardRate") or 0)
+    updates = {
+        "mrp": mrp,
+        "discount": discount,
+        "sellingPrice": selling,
+        "standardRate": selling,
+        "updatedAt": now_iso(),
+    }
+    if body.purchasePrice is not None:
+        updates["purchasePrice"] = body.purchasePrice
+    if body.stock is not None:
+        updates["stock"] = body.stock
+    await db.catalog.update_one({"id": item_id}, {"$set": updates})
+    await upsert_pricing(
+        current.get("productCode"),
+        mrp,
+        selling,
+        updates.get("purchasePrice", current.get("purchasePrice")),
+        discount,
+    )
+    doc = await db.catalog.find_one({"id": item_id}, {"_id": 0})
+    return envelope(doc)
+
+
+@api.post("/catalog/pricing-bulk")
+async def update_catalog_pricing_bulk(body: CatalogBulkPricingIn):
+    updated = 0
+    skipped = 0
+    for item_id in body.itemIds:
+        current = await db.catalog.find_one({"id": item_id}, {"_id": 0})
+        if not current:
+            skipped += 1
+            continue
+        mrp = body.mrp if body.mrp is not None else current.get("mrp")
+        discount = body.discount if body.discount is not None else current.get("discount")
+        keep_selling = body.mrp is None and body.discount is None
+        selling = selling_from(
+            mrp,
+            discount,
+            current.get("sellingPrice") if keep_selling else None,
+            current.get("standardRate") or 0,
+        )
+        updates = {
+            "mrp": mrp,
+            "discount": discount,
+            "sellingPrice": selling,
+            "standardRate": selling,
+            "updatedAt": now_iso(),
+        }
+        if body.stock is not None:
+            updates["stock"] = body.stock
+        await db.catalog.update_one({"id": item_id}, {"$set": updates})
+        await upsert_pricing(
+            current.get("productCode"),
+            mrp,
+            selling,
+            current.get("purchasePrice"),
+            discount,
+        )
+        updated += 1
+    return envelope({"updated": updated, "skipped": skipped})
 
 
 @api.delete("/catalog/{item_id}")
@@ -1227,14 +1340,35 @@ async def delete_catalog(item_id: str):
     return envelope({"deleted": True, "id": item_id})
 
 
+@api.delete("/catalog")
+async def clear_catalog():
+    result = await db.catalog.delete_many({})
+    async for rack in db.racks.find({}):
+        slots = rack.get("slots") or []
+        dirty = False
+        for slot in slots:
+            if slot.get("productId"):
+                slot["productId"] = None
+                dirty = True
+        if dirty:
+            await db.racks.update_one({"id": rack["id"]}, {"$set": {"slots": slots}})
+    await db.product_groups.update_many({}, {"$set": {"productIds": [], "productCount": 0}})
+    return envelope({"deleted": result.deleted_count})
+
+
 @api.post("/catalog/import")
 async def import_catalog(body: CatalogImportIn):
+    if body.replaceExisting:
+        await db.catalog.delete_many({})
+        await db.product_groups.update_many({}, {"$set": {"productIds": [], "productCount": 0}})
     mode = body.categoryMode
     override = (body.overrideCategory or "").strip()
     inserted = 0
     skipped = 0
     categories_created: set = set()
     updated = 0
+    group_cache: dict = {}
+    brand_cache: dict = {}
     for it in body.items:
         # Determine final category
         if mode == "overrideExisting":
@@ -1249,59 +1383,77 @@ async def import_catalog(body: CatalogImportIn):
             continue
         product_code = (it.productCode or "").strip()
         brand = None
-        if it.brand:
-            brand = await db.brands.find_one({"name": {"$regex": f"^{re.escape(it.brand.strip())}$", "$options": "i"}})
+        if it.brand and it.brand.strip():
+            brand_key = it.brand.strip().lower()
+            brand = brand_cache.get(brand_key)
             if not brand:
-                brand = {"id": new_id(), "name": it.brand.strip(), "isActive": True}
-                await db.brands.insert_one(brand.copy())
+                brand = await db.brands.find_one({"name": {"$regex": f"^{re.escape(it.brand.strip())}$", "$options": "i"}})
+                if not brand:
+                    brand = {"id": new_id(), "name": it.brand.strip(), "isActive": True, "createdAt": now_iso(), "updatedAt": now_iso()}
+                    await db.brands.insert_one(brand.copy())
+                brand_cache[brand_key] = brand
         existing = await db.catalog.find_one({"productCode": product_code}) if product_code else None
+        selling = selling_from(it.mrp, it.discount, it.sellingPrice, it.standardRate or 0)
+        stock = it.stock if it.stock is not None else (existing.get("stock") if existing else 0)
+        group_ids = list((existing or {}).get("productGroupIds") or [])
+        if it.productGroup and it.productGroup.strip():
+            group_key = it.productGroup.strip().lower()
+            group = group_cache.get(group_key)
+            if not group:
+                group = await db.product_groups.find_one({"name": {"$regex": f"^{re.escape(it.productGroup.strip())}$", "$options": "i"}})
+                if not group:
+                    group = {"id": new_id(), "name": it.productGroup.strip(), "productIds": [], "productCount": 0}
+                    await db.product_groups.insert_one(group.copy())
+                group_cache[group_key] = group
+            if group["id"] not in group_ids:
+                group_ids.append(group["id"])
         doc = {
             "id": existing.get("id") if existing else new_id(),
             "name": it.name.strip(),
             "productName": it.productName or it.name.strip(),
             "category": cat,
             "unit": it.unit.strip(),
-            "standardRate": float(it.sellingPrice if it.sellingPrice is not None else (it.standardRate or 0)),
+            "standardRate": selling,
+            "mrp": it.mrp,
+            "sellingPrice": selling,
+            "purchasePrice": it.purchasePrice,
+            "discount": it.discount,
+            "stock": stock,
             "brandId": brand["id"] if brand else (existing.get("brandId") if existing else None),
             "brand": brand["name"] if brand else (existing.get("brand") if existing else None),
             "productCode": product_code or (existing.get("productCode") if existing else f"PRD-{uuid.uuid4().hex[:10].upper()}"),
             "type": it.type,
             "productGroup": it.productGroup,
+            "productGroupIds": group_ids,
             "sizeMm": it.sizeMm,
             "sizeInch": it.sizeInch,
             "length": it.length,
-            "imageUrl": it.imageUrl,
-            "isActive": it.isActive,
+            "imageUrl": (it.imageUrl or "").strip() or None,
+            "isActive": True if it.isActive is None else it.isActive,
             "createdAt": existing.get("createdAt") if existing else now_iso(),
             "updatedAt": now_iso(),
         }
+        doc["qrCode"] = doc["productCode"]
         if existing:
-            await db.catalog.replace_one({"id": existing["id"]}, doc)
+            await db.catalog.replace_one({"id": existing["id"]}, {**existing, **doc, "id": existing["id"]})
             updated += 1
         else:
             await db.catalog.insert_one(doc.copy())
             inserted += 1
-        if any(value is not None for value in (it.mrp, it.sellingPrice, it.purchasePrice, it.discount)):
-            await db.pricing_history.insert_one({
-                "productCode": doc["productCode"], "mrp": it.mrp,
-                "sellingPrice": it.sellingPrice if it.sellingPrice is not None else it.standardRate,
-                "purchasePrice": it.purchasePrice, "discount": it.discount, "updatedAt": now_iso(),
-            })
-            await db.pricing.update_one(
-                {"productCode": doc["productCode"]},
-                {"$set": {
-                    "productCode": doc["productCode"],
-                    "mrp": it.mrp,
-                    "sellingPrice": it.sellingPrice if it.sellingPrice is not None else it.standardRate,
-                    "purchasePrice": it.purchasePrice,
-                    "discount": it.discount,
-                    "updatedAt": now_iso(),
-                }},
-                upsert=True,
-            )
+        if it.productGroup and it.productGroup.strip():
+            group = group_cache[it.productGroup.strip().lower()]
+            ids = list(group.get("productIds") or [])
+            if doc["id"] not in ids:
+                ids.append(doc["id"])
+                group["productIds"] = ids
+        await upsert_pricing(doc["productCode"], it.mrp, selling, it.purchasePrice, it.discount)
         if cat not in categories_created and not await db.categories.find_one({"name": cat}):
             await db.categories.insert_one({"id": new_id(), "name": cat, "isDefault": False, "isActive": True})
             categories_created.add(cat)
+
+    for group in group_cache.values():
+        ids = list(dict.fromkeys(group.get("productIds") or []))
+        await db.product_groups.update_one({"id": group["id"]}, {"$set": {"productIds": ids, "productCount": len(ids)}})
 
     return envelope({"inserted": inserted, "updated": updated, "skipped": skipped, "categoryMode": mode})
 
@@ -1344,6 +1496,54 @@ async def update_money_config(admin_id: str, body: MoneyConfigIn):
 @api.get("/")
 async def root():
     return envelope({"service": "quotation-mirror", "ok": True})
+
+
+def _blocked_host(host: str) -> bool:
+    if not host:
+        return True
+    h = host.lower().strip("[]")
+    if h in ("localhost", "127.0.0.1", "::1", "0.0.0.0"):
+        return True
+    try:
+        ip = ipaddress.ip_address(h)
+        return bool(ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved)
+    except ValueError:
+        return h.endswith(".local") or h.endswith(".internal")
+
+
+@api.get("/media/proxy")
+async def media_proxy(url: str):
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or _blocked_host(parsed.hostname or ""):
+        return JSONResponse(status_code=400, content=envelope(None, False, "Invalid image URL"))
+
+    def fetch():
+        r = requests.get(
+            url,
+            timeout=20,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+            },
+        )
+        r.raise_for_status()
+        return r.content, r.headers.get("Content-Type", "image/jpeg")
+
+    try:
+        content, ctype = await asyncio.to_thread(fetch)
+    except Exception:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Image could not be loaded"))
+    ctype = (ctype or "image/jpeg").split(";")[0].strip()
+    if not ctype.startswith("image/"):
+        if content[:3] == b"\xff\xd8\xff":
+            ctype = "image/jpeg"
+        elif content[:8] == b"\x89PNG\r\n\x1a\n":
+            ctype = "image/png"
+        elif content[:6] in (b"GIF87a", b"GIF89a"):
+            ctype = "image/gif"
+        else:
+            return JSONResponse(status_code=404, content=envelope(None, False, "URL is not an image"))
+    return Response(content=content, media_type=ctype, headers={"Cache-Control": "public, max-age=86400"})
 
 
 app.include_router(api)
