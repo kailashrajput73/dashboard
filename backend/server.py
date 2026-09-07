@@ -20,7 +20,7 @@ from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.responses import JSONResponse, Response
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Any, List, Optional
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -89,6 +89,15 @@ async def upsert_pricing(product_code: Optional[str], mrp, selling, purchase, di
 
 def envelope(data: Any = None, success: bool = True, error: Optional[str] = None):
     return {"success": success, "data": data, "error": error}
+
+
+def parse_size_mm(value):
+    if value is None or value == "":
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    match = re.search(r"[-+]?\d*\.?\d+", str(value).replace(",", ""))
+    return float(match.group(0)) if match else None
 
 
 def now_iso() -> str:
@@ -171,6 +180,7 @@ class CatalogItemIn(BaseModel):
     productName: Optional[str] = None
     type: Optional[str] = None
     productGroup: Optional[str] = None
+    size: Optional[str] = None
     sizeMm: Optional[float] = None
     sizeInch: Optional[str] = None
     length: Optional[str] = None
@@ -191,6 +201,11 @@ class CatalogItemIn(BaseModel):
     discount: Optional[float] = None
     stock: Optional[float] = None
     isActive: bool = True
+
+    @field_validator("sizeMm", mode="before")
+    @classmethod
+    def coerce_size_mm(cls, value):
+        return parse_size_mm(value)
 
 
 class CategoryIn(BaseModel):
@@ -300,6 +315,7 @@ class ImportItem(BaseModel):
     productGroup: Optional[str] = None
     brand: Optional[str] = None
     productName: Optional[str] = None
+    size: Optional[str] = None
     sizeMm: Optional[float] = None
     sizeInch: Optional[str] = None
     productCode: Optional[str] = None
@@ -311,6 +327,11 @@ class ImportItem(BaseModel):
     stock: Optional[float] = None
     imageUrl: Optional[str] = None
     isActive: bool = True
+
+    @field_validator("sizeMm", mode="before")
+    @classmethod
+    def coerce_import_size_mm(cls, value):
+        return parse_size_mm(value)
 
 
 class CatalogPricingIn(BaseModel):
@@ -1188,6 +1209,7 @@ async def create_catalog(body: CatalogItemIn):
         "productName": body.productName or body.name.strip(),
         "type": body.type,
         "productGroup": body.productGroup,
+        "size": body.size or (f"{body.sizeMm} mm" if body.sizeMm is not None else None),
         "sizeMm": body.sizeMm,
         "sizeInch": body.sizeInch,
         "length": body.length,
@@ -1235,6 +1257,7 @@ async def update_catalog(item_id: str, body: CatalogItemIn):
         "productName": body.productName or body.name.strip(),
         "type": body.type,
         "productGroup": body.productGroup,
+        "size": body.size or (f"{body.sizeMm} mm" if body.sizeMm is not None else None),
         "sizeMm": body.sizeMm,
         "sizeInch": body.sizeInch,
         "length": body.length,
@@ -1425,6 +1448,7 @@ async def import_catalog(body: CatalogImportIn):
             "type": it.type,
             "productGroup": it.productGroup,
             "productGroupIds": group_ids,
+            "size": it.size or (str(it.sizeMm) if it.sizeMm is not None else None),
             "sizeMm": it.sizeMm,
             "sizeInch": it.sizeInch,
             "length": it.length,

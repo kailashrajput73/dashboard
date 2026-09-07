@@ -4,8 +4,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { API_BASE_URL, API_PREFIX } from "@/src/config/env";
 import { colors } from "@/src/theme";
 
-function proxyUrl(uri: string) {
+function apiProxyUrl(uri: string) {
   return `${API_BASE_URL}${API_PREFIX}/media/proxy?url=${encodeURIComponent(uri)}`;
+}
+
+function imageCdnUrl(uri: string) {
+  return `https://wsrv.nl/?url=${encodeURIComponent(uri.replace(/^https?:\/\//, ""))}&n=-1`;
 }
 
 function webStyle(style: StyleProp<ImageStyle>): React.CSSProperties {
@@ -20,13 +24,15 @@ function webStyle(style: StyleProp<ImageStyle>): React.CSSProperties {
   };
 }
 
+type LoadMode = "direct" | "cdn" | "proxy" | "failed";
+
 export function RemoteImage(props: {
   uri?: string | null;
   style?: StyleProp<ImageStyle>;
   testID?: string;
   placeholderSize?: number;
 }) {
-  const [mode, setMode] = useState<"direct" | "proxy" | "failed">("direct");
+  const [mode, setMode] = useState<LoadMode>("direct");
   const uri = (props.uri || "").trim();
   if (!uri) {
     return (
@@ -36,7 +42,14 @@ export function RemoteImage(props: {
     );
   }
   const isData = uri.startsWith("data:");
-  const src = mode === "proxy" && !isData ? proxyUrl(uri) : uri;
+  const src =
+    isData || mode === "direct"
+      ? uri
+      : mode === "cdn"
+        ? imageCdnUrl(uri)
+        : mode === "proxy"
+          ? apiProxyUrl(uri)
+          : uri;
   if (mode === "failed") {
     return (
       <View style={[props.style, styles.placeholder]}>
@@ -44,6 +57,15 @@ export function RemoteImage(props: {
       </View>
     );
   }
+  const onError = () => {
+    if (isData) {
+      setMode("failed");
+      return;
+    }
+    if (mode === "direct") setMode("cdn");
+    else if (mode === "cdn") setMode("proxy");
+    else setMode("failed");
+  };
   if (Platform.OS === "web") {
     return (
       // @ts-expect-error web img
@@ -52,10 +74,7 @@ export function RemoteImage(props: {
         alt=""
         data-testid={props.testID}
         referrerPolicy="no-referrer"
-        onError={() => {
-          if (!isData && mode === "direct") setMode("proxy");
-          else setMode("failed");
-        }}
+        onError={onError}
         style={webStyle(props.style)}
       />
     );
@@ -65,10 +84,7 @@ export function RemoteImage(props: {
       testID={props.testID}
       source={{ uri: src }}
       style={props.style}
-      onError={() => {
-        if (!isData && mode === "direct") setMode("proxy");
-        else setMode("failed");
-      }}
+      onError={onError}
     />
   );
 }

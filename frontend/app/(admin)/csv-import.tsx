@@ -231,6 +231,8 @@ export default function CsvImport() {
                 <Text style={styles.previewCell}>Category</Text>
                 <Text style={styles.previewCell}>Brand</Text>
                 <Text style={styles.previewCell}>Code</Text>
+                <Text style={styles.previewCell}>Size</Text>
+                <Text style={styles.previewCell}>Photo</Text>
                 <Text style={[styles.previewCell, { textAlign: "right" }]}>MRP</Text>
                 <Text style={[styles.previewCell, { textAlign: "right" }]}>Disc</Text>
                 <Text style={[styles.previewCell, { textAlign: "right" }]}>Sell</Text>
@@ -252,6 +254,12 @@ export default function CsvImport() {
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
                     {it.productCode || "—"}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.previewCellBody}>
+                    {[it.size, it.sizeInch, it.length].filter(Boolean).join(" · ") || "—"}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.previewCellBody}>
+                    {it.imageUrl ? "Yes" : "—"}
                   </Text>
                   <Text style={[styles.previewCellBody, { textAlign: "right" }]}>
                     {it.mrp ?? "—"}

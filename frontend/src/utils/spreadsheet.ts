@@ -115,7 +115,7 @@ function parseSheetRows(xml: string, shared: string[]): string[][] {
   for (const row of descendants(doc, "row")) {
     const line: string[] = [];
     for (const cell of descendants(row, "c")) {
-      if (cell.parentElement !== row) continue;
+      if (cell.parentNode !== row) continue;
       const ref = cell.getAttribute("r") || "";
       const idx = colIndex(ref);
       while (line.length < idx) line.push("");

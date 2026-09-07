@@ -39,6 +39,7 @@ import {
 } from "@/src/api/endpoints";
 import { ApiError } from "@/src/api/client";
 import { formatMoney } from "@/src/utils/money";
+import { formatProductSize, parseSizeMm } from "@/src/utils/size";
 import { discountFromMrpSelling, sellingFromMrpDiscount } from "@/src/utils/pricing";
 
 export default function AdminCatalog() {
@@ -110,6 +111,9 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   const [fPriceDiscount, setFPriceDiscount] = useState("");
   const [fStock, setFStock] = useState("");
   const [fProductCode, setFProductCode] = useState("");
+  const [fSize, setFSize] = useState("");
+  const [fSizeInch, setFSizeInch] = useState("");
+  const [fLength, setFLength] = useState("");
   const [fCategory, setFCategory] = useState<string>("");
   const [fBrandId, setFBrandId] = useState<string>("");
   const [fAliases, setFAliases] = useState("");
@@ -163,6 +167,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     setFUnit("");
     setFRate("");
      setFMrp(""); setFSellingPrice(""); setFPurchasePrice(""); setFPriceDiscount(""); setFStock(""); setFProductCode("");
+    setFSize(""); setFSizeInch(""); setFLength("");
     setFCategory(cats[0]?.name || "");
     setFBrandId(brands.find((brand) => brand.isActive)?.id || "");
     setFAliases(""); setFLanguages(""); setFSequence("0"); setFRol("0"); setFDiscount("0");
@@ -181,6 +186,9 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
      setFPriceDiscount(it.discount == null ? "" : String(it.discount));
      setFStock(it.stock == null ? "0" : String(it.stock));
      setFProductCode(it.productCode || "");
+     setFSize(it.size || (it.sizeMm == null ? "" : String(it.sizeMm)));
+     setFSizeInch(it.sizeInch || "");
+     setFLength(it.length || "");
     setFCategory(it.category);
     setFBrandId(it.brandId || "");
     setFAliases((it.aliases || []).join(", ")); setFLanguages(JSON.stringify(it.multilingualNames || {}));
@@ -208,6 +216,10 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
         unit: fUnit.trim(),
         standardRate: rate,
         productCode: fProductCode.trim() || undefined,
+        size: fSize.trim() || undefined,
+        sizeMm: fSize.trim() ? parseSizeMm(fSize) : undefined,
+        sizeInch: fSizeInch.trim() || undefined,
+        length: fLength.trim() || undefined,
         mrp: fMrp.trim() ? Number(fMrp) : undefined,
         sellingPrice: fSellingPrice.trim() ? Number(fSellingPrice) : rate,
         purchasePrice: fPurchasePrice.trim() ? Number(fPurchasePrice) : undefined,
@@ -384,6 +396,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           </View>
           <View style={styles.tableHead}>
             <Text style={[styles.th, styles.colProduct]}>Product</Text>
+            <Text style={[styles.th, styles.colSize]}>Size</Text>
             <Text style={[styles.th, styles.colNum]}>MRP</Text>
             <Text style={[styles.th, styles.colNum]}>Discount %</Text>
             <Text style={[styles.th, styles.colNum]}>Selling</Text>
@@ -420,7 +433,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
                 <Text style={styles.rowName} numberOfLines={2}>
                   {item.name}
                 </Text>
-                <Text style={styles.rowMeta}>{item.productCode || "Legacy product"}</Text>
+                <Text style={styles.rowMeta}>{item.productCode || "Legacy product"}{formatProductSize(item) ? ` · ${formatProductSize(item)}` : ""}</Text>
                 <View style={styles.metaRow}>
                   <View style={styles.pill}>
                     <Text style={styles.pillText}>{item.category}</Text>
@@ -464,6 +477,17 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           </View>
           <View style={styles.formCol}>
             <Input testID="item-product-code-input" label="Product code (optional)" value={fProductCode} onChangeText={setFProductCode} autoCapitalize="characters" />
+          </View>
+        </View>
+        <View style={styles.formRow}>
+          <View style={styles.formCol}>
+            <Input testID="item-size-input" label="Size mm" value={fSize} onChangeText={setFSize} placeholder="e.g. 5mm" />
+          </View>
+          <View style={styles.formCol}>
+            <Input testID="item-size-inch-input" label="Size inch" value={fSizeInch} onChangeText={setFSizeInch} placeholder='e.g. 1.2"' />
+          </View>
+          <View style={styles.formCol}>
+            <Input testID="item-length-input" label="Length" value={fLength} onChangeText={setFLength} placeholder="e.g. 3m" />
           </View>
         </View>
         <Text style={styles.sectionTitle}>Pricing and stock</Text>
@@ -759,6 +783,7 @@ function PricingRow(props: {
           </Text>
         </View>
       </View>
+      <Text style={styles.sizeCell} numberOfLines={2}>{formatProductSize(item) || "—"}</Text>
       <TextInput value={mrp} onChangeText={onMrp} keyboardType="decimal-pad" style={styles.tableInput} testID={`mrp-${item.id}`} />
       <TextInput value={discount} onChangeText={onDiscount} keyboardType="decimal-pad" style={styles.tableInput} testID={`discount-${item.id}`} />
       <TextInput value={selling} onChangeText={onSelling} keyboardType="decimal-pad" style={styles.tableInput} testID={`selling-${item.id}`} />
@@ -836,6 +861,8 @@ const styles = StyleSheet.create({
   },
   tableRowDirty: { backgroundColor: "#FFFBEB" },
   colProduct: { flex: 2.4, minWidth: 220 },
+  colSize: { width: 130 },
+  sizeCell: { width: 130, color: colors.textPrimary, fontSize: 13 },
   colNum: { width: 110, textAlign: "right" as const },
   colActions: { width: 140, flexDirection: "row", alignItems: "center", gap: 8, justifyContent: "flex-end" },
   productCell: { flexDirection: "row", alignItems: "center", gap: 10 },

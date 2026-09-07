@@ -69,6 +69,7 @@ export type CatalogItem = {
   productName?: string;
   type?: string;
   productGroup?: string;
+  size?: string;
   sizeMm?: number;
   sizeInch?: string;
   length?: string;
@@ -111,6 +112,7 @@ export type ImportRow = {
   productGroup?: string;
   brand?: string;
   productName?: string;
+  size?: string;
   sizeMm?: number;
   sizeInch?: string;
   productCode?: string;
@@ -273,6 +275,7 @@ export function createCatalogItem(body: {
   productName?: string;
   type?: string;
   productGroup?: string;
+  size?: string;
   sizeMm?: number;
   sizeInch?: string;
   length?: string;
@@ -307,6 +310,7 @@ export function updateCatalogItem(id: string, body: {
   productName?: string;
   type?: string;
   productGroup?: string;
+  size?: string;
   sizeMm?: number;
   sizeInch?: string;
   length?: string;

@@ -14,6 +14,7 @@ export type ImportItem = {
   productGroup?: string;
   brand?: string;
   productName?: string;
+  size?: string;
   sizeMm?: number;
   sizeInch?: string;
   length?: string;
@@ -166,7 +167,9 @@ function clean(value: string): string | undefined {
 }
 
 function numberOrUndefined(value: string): number | undefined {
-  const parsed = parseFloat(value.replace(/[,%\s]/g, ""));
+  const match = value.replace(/,/g, "").match(/[-+]?\d*\.?\d+/);
+  if (!match) return undefined;
+  const parsed = parseFloat(match[0]);
   return Number.isNaN(parsed) ? undefined : parsed;
 }
 
@@ -206,7 +209,8 @@ export function rowsToItems(rows: Record<string, string>[]): {
       type: clean(cell(r, "type")),
       productGroup: clean(cell(r, "product_group", "productgroup", "group")),
       brand: clean(cell(r, "brand")),
-      sizeMm: numberOrUndefined(cell(r, "size_mm", "sizemm")),
+      size: clean(cell(r, "size_mm", "sizemm", "size")),
+      sizeMm: numberOrUndefined(cell(r, "size_mm", "sizemm", "size")),
       sizeInch: clean(cell(r, "size_inch", "sizeinch")),
       productCode: clean(cell(r, "product_code", "productcode", "sku", "code")),
       length: clean(cell(r, "length")),
