@@ -28,29 +28,25 @@ import {
   listCatalog,
   listCategories,
   listBrands,
-  listProductGroups,
   updateCatalogItem,
   updateCatalogPricing,
   applyCatalogPricingBulk,
   type CatalogItem,
   type Category,
   type Brand,
-  type ProductGroup,
 } from "@/src/api/endpoints";
 import { ApiError } from "@/src/api/client";
 import { formatMoney } from "@/src/utils/money";
-import { formatProductSize, parseSizeMm } from "@/src/utils/size";
+import { sizeInchLabel, sizeLengthLabel, sizeMmLabel, parseSizeMm } from "@/src/utils/size";
 import { discountFromMrpSelling, sellingFromMrpDiscount } from "@/src/utils/pricing";
 
 export default function AdminCatalog() {
   const router = useRouter();
   const [cats, setCats] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [groups, setGroups] = useState<ProductGroup[]>([]);
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [selectedCat, setSelectedCat] = useState<string>("All");
   const [search, setSearch] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState("all");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -134,15 +130,14 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
 
   const load = useCallback(async () => {
     try {
-      const [c, b, g, i] = await Promise.all([listCategories(), listBrands(), listProductGroups(), listCatalog(selectedCat, search, selectedGroup === "all" ? undefined : selectedGroup)]);
+      const [c, b, i] = await Promise.all([listCategories(), listBrands(), listCatalog(selectedCat, search)]);
       setCats(c || []);
       setBrands(b || []);
-      setGroups(g || []);
       setItems(i || []);
     } catch (e: any) {
       setErr(e instanceof ApiError ? e.message : "Failed to load catalog");
     }
-  }, [search, selectedCat, selectedGroup]);
+  }, [search, selectedCat]);
 
   useEffect(() => {
     setLoading(true);
@@ -350,7 +345,6 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
               testID={`admin-cat-${c}`}
             />
           ))}
-          {groups.map((group) => <Chip key={group.id} label={`Group: ${group.name}`} selected={selectedGroup === group.id} onPress={() => setSelectedGroup(group.id)} testID={`admin-group-${group.id}`} />)}
         </ScrollView>
       </View>
 
@@ -396,7 +390,9 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           </View>
           <View style={styles.tableHead}>
             <Text style={[styles.th, styles.colProduct]}>Product</Text>
-            <Text style={[styles.th, styles.colSize]}>Size</Text>
+            <Text style={[styles.th, styles.colSize]}>mm</Text>
+            <Text style={[styles.th, styles.colSize]}>Inch</Text>
+            <Text style={[styles.th, styles.colSize]}>Length</Text>
             <Text style={[styles.th, styles.colNum]}>MRP</Text>
             <Text style={[styles.th, styles.colNum]}>Discount %</Text>
             <Text style={[styles.th, styles.colNum]}>Selling</Text>
@@ -433,11 +429,14 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
                 <Text style={styles.rowName} numberOfLines={2}>
                   {item.name}
                 </Text>
-                <Text style={styles.rowMeta}>{item.productCode || "Legacy product"}{formatProductSize(item) ? ` · ${formatProductSize(item)}` : ""}</Text>
+                <Text style={styles.rowMeta}>{item.productCode || "Legacy product"}</Text>
                 <View style={styles.metaRow}>
                   <View style={styles.pill}>
                     <Text style={styles.pillText}>{item.category}</Text>
                   </View>
+                  <Text style={styles.rowMeta}>mm {sizeMmLabel(item) || "—"}</Text>
+                  <Text style={styles.rowMeta}>inch {sizeInchLabel(item) || "—"}</Text>
+                  <Text style={styles.rowMeta}>len {sizeLengthLabel(item) || "—"}</Text>
                   <Text style={styles.rowMeta}>MRP ₹{formatMoney(item.mrp || item.standardRate)}</Text>
                   <Text style={styles.rowMeta}>Sell ₹{formatMoney(item.sellingPrice || item.standardRate)}</Text>
                   <Text style={styles.rowMeta}>Qty {item.stock ?? 0}</Text>
@@ -783,7 +782,9 @@ function PricingRow(props: {
           </Text>
         </View>
       </View>
-      <Text style={styles.sizeCell} numberOfLines={2}>{formatProductSize(item) || "—"}</Text>
+      <Text style={styles.sizeCell} numberOfLines={1}>{sizeMmLabel(item) || "—"}</Text>
+      <Text style={styles.sizeCell} numberOfLines={1}>{sizeInchLabel(item) || "—"}</Text>
+      <Text style={styles.sizeCell} numberOfLines={1}>{sizeLengthLabel(item) || "—"}</Text>
       <TextInput value={mrp} onChangeText={onMrp} keyboardType="decimal-pad" style={styles.tableInput} testID={`mrp-${item.id}`} />
       <TextInput value={discount} onChangeText={onDiscount} keyboardType="decimal-pad" style={styles.tableInput} testID={`discount-${item.id}`} />
       <TextInput value={selling} onChangeText={onSelling} keyboardType="decimal-pad" style={styles.tableInput} testID={`selling-${item.id}`} />
@@ -801,7 +802,7 @@ function PricingRow(props: {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   chipsWrap: {
-    height: 112,
+    height: 104,
     justifyContent: "center",
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -861,8 +862,8 @@ const styles = StyleSheet.create({
   },
   tableRowDirty: { backgroundColor: "#FFFBEB" },
   colProduct: { flex: 2.4, minWidth: 220 },
-  colSize: { width: 130 },
-  sizeCell: { width: 130, color: colors.textPrimary, fontSize: 13 },
+  colSize: { width: 88 },
+  sizeCell: { width: 88, color: colors.textPrimary, fontSize: 13 },
   colNum: { width: 110, textAlign: "right" as const },
   colActions: { width: 140, flexDirection: "row", alignItems: "center", gap: 8, justifyContent: "flex-end" },
   productCell: { flexDirection: "row", alignItems: "center", gap: 10 },

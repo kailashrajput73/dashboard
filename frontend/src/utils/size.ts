@@ -1,15 +1,24 @@
+export function sizeMmLabel(item: { size?: string | null; sizeMm?: number | null }) {
+  if (item.size?.trim()) return item.size.trim();
+  if (item.sizeMm != null) return `${item.sizeMm} mm`;
+  return "";
+}
+
+export function sizeInchLabel(item: { sizeInch?: string | null }) {
+  return item.sizeInch?.trim() || "";
+}
+
+export function sizeLengthLabel(item: { length?: string | null }) {
+  return item.length?.trim() || "";
+}
+
 export function formatProductSize(item: {
   size?: string | null;
   sizeMm?: number | null;
   sizeInch?: string | null;
   length?: string | null;
 }) {
-  const parts = [
-    item.size?.trim() || (item.sizeMm != null && item.sizeMm !== undefined ? `${item.sizeMm} mm` : ""),
-    item.sizeInch?.trim() || "",
-    item.length?.trim() || "",
-  ].filter(Boolean);
-  return parts.join(" · ");
+  return [sizeMmLabel(item), sizeInchLabel(item), sizeLengthLabel(item)].filter(Boolean).join(" · ");
 }
 
 export function parseSizeMm(value: string) {

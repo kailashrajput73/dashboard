@@ -5,13 +5,16 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
+import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
-import { createCategory, listCategories, updateCategory, type Category } from "@/src/api/endpoints";
+import { createCategory, listCatalog, listCategories, updateCategory, type CatalogItem, type Category } from "@/src/api/endpoints";
 import { colors, font, radii, spacing } from "@/src/theme";
 
 export default function AdminCategories() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<CatalogItem[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
   const [loading, setLoading] = useState(true);
@@ -22,7 +25,9 @@ export default function AdminCategories() {
 
   const load = useCallback(async () => {
     try {
-      setCategories((await listCategories()) || []);
+      const [nextCategories, nextProducts] = await Promise.all([listCategories(), listCatalog()]);
+      setCategories(nextCategories || []);
+      setProducts(nextProducts || []);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Failed to load categories");
     }
@@ -40,6 +45,10 @@ export default function AdminCategories() {
     const matchesStatus = status === "all" || (status === "active" ? category.isActive : !category.isActive);
     return matchesQuery && matchesStatus;
   }), [categories, query, status]);
+
+  function productsFor(category: Category) {
+    return products.filter((item) => (item.category || "").toLowerCase() === category.name.toLowerCase());
+  }
 
   function openCreate() {
     setName("");
@@ -99,23 +108,35 @@ export default function AdminCategories() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           ListEmptyComponent={<Text style={styles.empty}>No categories match your search.</Text>}
-          renderItem={({ item }) => (
-            <View style={styles.row} testID={`category-row-${item.id}`}>
-              <View style={styles.rowMain}>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.count}>{item.productCount} product{item.productCount === 1 ? "" : "s"}</Text>
+          renderItem={({ item }) => {
+            const open = openId === item.id;
+            const listed = productsFor(item);
+            return (
+              <View style={styles.card} testID={`category-row-${item.id}`}>
+                <View style={styles.row}>
+                  <View style={styles.rowMain}>
+                    <Text style={styles.name}>{item.name}</Text>
+                    <ProductCountButton
+                      count={listed.length}
+                      selected={open}
+                      onPress={() => setOpenId(open ? null : item.id)}
+                      testID={`category-products-${item.id}`}
+                    />
+                  </View>
+                  <View style={[styles.status, item.isActive ? styles.active : styles.inactive]}>
+                    <Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.textMuted }]}>{item.isActive ? "Active" : "Inactive"}</Text>
+                  </View>
+                  <TouchableOpacity testID={`edit-category-${item.id}`} onPress={() => openEdit(item)} hitSlop={8} style={styles.iconButton}>
+                    <Ionicons name="create-outline" size={19} color={colors.primary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity testID={`toggle-category-${item.id}`} onPress={() => toggle(item)} hitSlop={8} style={styles.iconButton}>
+                    <Ionicons name={item.isActive ? "pause-circle-outline" : "play-circle-outline"} size={21} color={item.isActive ? colors.error : colors.success} />
+                  </TouchableOpacity>
+                </View>
+                {open ? <ProductPeekList products={listed} emptyText={`No products in ${item.name}.`} /> : null}
               </View>
-              <View style={[styles.status, item.isActive ? styles.active : styles.inactive]}>
-                <Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.textMuted }]}>{item.isActive ? "Active" : "Inactive"}</Text>
-              </View>
-              <TouchableOpacity testID={`edit-category-${item.id}`} onPress={() => openEdit(item)} hitSlop={8} style={styles.iconButton}>
-                <Ionicons name="create-outline" size={19} color={colors.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity testID={`toggle-category-${item.id}`} onPress={() => toggle(item)} hitSlop={8} style={styles.iconButton}>
-                <Ionicons name={item.isActive ? "pause-circle-outline" : "play-circle-outline"} size={21} color={item.isActive ? colors.error : colors.success} />
-              </TouchableOpacity>
-            </View>
-          )}
+            );
+          }}
         />
       )}
       <AppModal testID="category-editor" visible={editor !== undefined} onClose={() => setEditor(undefined)} title={editor ? "Edit category" : "New category"}>
@@ -134,10 +155,10 @@ const styles = StyleSheet.create({
   chips: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.sm },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 40 },
-  row: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm, flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  rowMain: { flex: 1 },
+  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm },
+  row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  rowMain: { flex: 1, gap: 8 },
   name: { ...font.title, color: colors.textPrimary },
-  count: { color: colors.textSecondary, fontSize: 12, marginTop: 4 },
   status: { borderRadius: radii.pill, paddingHorizontal: 8, paddingVertical: 4 },
   active: { backgroundColor: colors.successBg },
   inactive: { backgroundColor: colors.border },

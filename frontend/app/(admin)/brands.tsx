@@ -4,13 +4,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
+import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
-import { createBrand, listBrands, updateBrand, type Brand } from "@/src/api/endpoints";
+import { createBrand, listBrands, listCatalog, updateBrand, type Brand, type CatalogItem } from "@/src/api/endpoints";
 import { colors, font, radii, spacing } from "@/src/theme";
 
 export default function AdminBrands() {
   const router = useRouter();
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [products, setProducts] = useState<CatalogItem[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
   const [editor, setEditor] = useState<Brand | null | undefined>(undefined);
@@ -20,8 +23,13 @@ export default function AdminBrands() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    try { setBrands((await listBrands()) || []); }
-    catch (e) { setError(e instanceof ApiError ? e.message : "Failed to load brands"); }
+    try {
+      const [nextBrands, nextProducts] = await Promise.all([listBrands(), listCatalog()]);
+      setBrands(nextBrands || []);
+      setProducts(nextProducts || []);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Failed to load brands");
+    }
   }, []);
   useEffect(() => { setLoading(true); load().finally(() => setLoading(false)); }, [load]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -29,6 +37,11 @@ export default function AdminBrands() {
     const matchesText = brand.name.toLowerCase().includes(query.trim().toLowerCase());
     return matchesText && (filter === "all" || (filter === "active" ? brand.isActive : !brand.isActive));
   }), [brands, filter, query]);
+
+  function productsFor(brand: Brand) {
+    return products.filter((item) => item.brandId === brand.id || (item.brand || "").toLowerCase() === brand.name.toLowerCase());
+  }
+
   function openCreate() { setEditor(null); setName(""); }
   function openEdit(brand: Brand) { setEditor(brand); setName(brand.name); }
   async function save() {
@@ -42,15 +55,70 @@ export default function AdminBrands() {
     try { await updateBrand(brand.id, { name: brand.name, isActive: !brand.isActive }); await load(); }
     catch (e) { setError(e instanceof ApiError ? e.message : "Could not update brand status"); }
   }
-  return <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-    <Header title="Brands" subtitle={`${filtered.length} of ${brands.length}`} onBack={() => router.back()} right={<TouchableOpacity testID="open-add-brand" onPress={openCreate} hitSlop={8}><Ionicons name="add-circle" size={26} color={colors.primary} /></TouchableOpacity>} />
-    <View style={styles.controls}>
-      <Input testID="brand-search" value={query} onChangeText={setQuery} placeholder="Search brands" style={styles.search} />
-      <View style={styles.chips}><Chip label="All" selected={filter === "all"} onPress={() => setFilter("all")} testID="brand-filter-all" /><Chip label="Active" selected={filter === "active"} onPress={() => setFilter("active")} testID="brand-filter-active" /><Chip label="Inactive" selected={filter === "inactive"} onPress={() => setFilter("inactive")} testID="brand-filter-inactive" /></View>
-    </View>
-    {loading ? <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View> : <FlatList data={filtered} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} ListEmptyComponent={<Text style={styles.empty}>No brands match your search.</Text>} renderItem={({ item }) => <View style={styles.row} testID={`brand-row-${item.id}`}><View style={styles.main}><Text style={styles.name}>{item.name}</Text><Text style={styles.count}>{item.productCount} product{item.productCount === 1 ? "" : "s"}</Text></View><View style={[styles.status, item.isActive ? styles.active : styles.inactive]}><Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.textMuted }]}>{item.isActive ? "Active" : "Inactive"}</Text></View><TouchableOpacity testID={`edit-brand-${item.id}`} onPress={() => openEdit(item)} style={styles.icon} hitSlop={8}><Ionicons name="create-outline" size={19} color={colors.primary} /></TouchableOpacity><TouchableOpacity testID={`toggle-brand-${item.id}`} onPress={() => toggle(item)} style={styles.icon} hitSlop={8}><Ionicons name={item.isActive ? "pause-circle-outline" : "play-circle-outline"} size={21} color={item.isActive ? colors.error : colors.success} /></TouchableOpacity></View>} />}
-    <AppModal testID="brand-editor" visible={editor !== undefined} onClose={() => setEditor(undefined)} title={editor ? "Edit brand" : "New brand"}><Input testID="brand-name-input" label="Brand name" value={name} onChangeText={setName} placeholder="e.g. ACME" autoCapitalize="words" /><Button testID="save-brand" title={editor ? "Save changes" : "Create brand"} onPress={save} loading={saving} fullWidth /></AppModal>
-    <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
-  </SafeAreaView>;
+
+  return (
+    <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+      <Header title="Brands" subtitle={`${filtered.length} of ${brands.length}`} onBack={() => router.back()} right={<TouchableOpacity testID="open-add-brand" onPress={openCreate} hitSlop={8}><Ionicons name="add-circle" size={26} color={colors.primary} /></TouchableOpacity>} />
+      <View style={styles.controls}>
+        <Input testID="brand-search" value={query} onChangeText={setQuery} placeholder="Search brands" style={styles.search} />
+        <View style={styles.chips}>
+          <Chip label="All" selected={filter === "all"} onPress={() => setFilter("all")} testID="brand-filter-all" />
+          <Chip label="Active" selected={filter === "active"} onPress={() => setFilter("active")} testID="brand-filter-active" />
+          <Chip label="Inactive" selected={filter === "inactive"} onPress={() => setFilter("inactive")} testID="brand-filter-inactive" />
+        </View>
+      </View>
+      {loading ? <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View> : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          ListEmptyComponent={<Text style={styles.empty}>No brands match your search.</Text>}
+          renderItem={({ item }) => {
+            const open = openId === item.id;
+            const listed = productsFor(item);
+            return (
+              <View style={styles.card} testID={`brand-row-${item.id}`}>
+                <View style={styles.row}>
+                  <View style={styles.main}>
+                    <Text style={styles.name}>{item.name}</Text>
+                    <ProductCountButton count={listed.length} selected={open} onPress={() => setOpenId(open ? null : item.id)} testID={`brand-products-${item.id}`} />
+                  </View>
+                  <View style={[styles.status, item.isActive ? styles.active : styles.inactive]}>
+                    <Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.textMuted }]}>{item.isActive ? "Active" : "Inactive"}</Text>
+                  </View>
+                  <TouchableOpacity testID={`edit-brand-${item.id}`} onPress={() => openEdit(item)} style={styles.icon} hitSlop={8}><Ionicons name="create-outline" size={19} color={colors.primary} /></TouchableOpacity>
+                  <TouchableOpacity testID={`toggle-brand-${item.id}`} onPress={() => toggle(item)} style={styles.icon} hitSlop={8}><Ionicons name={item.isActive ? "pause-circle-outline" : "play-circle-outline"} size={21} color={item.isActive ? colors.error : colors.success} /></TouchableOpacity>
+                </View>
+                {open ? <ProductPeekList products={listed} emptyText={`No products for ${item.name}.`} /> : null}
+              </View>
+            );
+          }}
+        />
+      )}
+      <AppModal testID="brand-editor" visible={editor !== undefined} onClose={() => setEditor(undefined)} title={editor ? "Edit brand" : "New brand"}>
+        <Input testID="brand-name-input" label="Brand name" value={name} onChangeText={setName} placeholder="e.g. ACME" autoCapitalize="words" />
+        <Button testID="save-brand" title={editor ? "Save changes" : "Create brand"} onPress={save} loading={saving} fullWidth />
+      </AppModal>
+      <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
+    </SafeAreaView>
+  );
 }
-const styles = StyleSheet.create({ safe: { flex: 1, backgroundColor: colors.bg }, controls: { paddingHorizontal: spacing.lg, paddingTop: spacing.md }, search: { marginBottom: spacing.sm }, chips: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.sm }, center: { flex: 1, alignItems: "center", justifyContent: "center" }, list: { padding: spacing.lg, paddingTop: spacing.sm }, row: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm, flexDirection: "row", alignItems: "center", gap: spacing.sm }, main: { flex: 1 }, name: { ...font.title, color: colors.textPrimary }, count: { color: colors.textSecondary, fontSize: 12, marginTop: 4 }, status: { borderRadius: radii.pill, paddingHorizontal: 8, paddingVertical: 4 }, active: { backgroundColor: colors.successBg }, inactive: { backgroundColor: colors.border }, statusText: { fontSize: 11, fontWeight: "700" }, icon: { padding: 4 }, empty: { textAlign: "center", color: colors.textSecondary, padding: spacing.xl } });
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.bg },
+  controls: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  search: { marginBottom: spacing.sm },
+  chips: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.sm },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  list: { padding: spacing.lg, paddingTop: spacing.sm },
+  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm },
+  row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  main: { flex: 1, gap: 8 },
+  name: { ...font.title, color: colors.textPrimary },
+  status: { borderRadius: radii.pill, paddingHorizontal: 8, paddingVertical: 4 },
+  active: { backgroundColor: colors.successBg },
+  inactive: { backgroundColor: colors.border },
+  statusText: { fontSize: 11, fontWeight: "700" },
+  icon: { padding: 4 },
+  empty: { textAlign: "center", color: colors.textSecondary, padding: spacing.xl },
+});
