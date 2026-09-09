@@ -390,7 +390,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           </View>
           <View style={styles.tableHead}>
             <Text style={[styles.th, styles.colProduct]}>Product</Text>
-            <Text style={[styles.th, styles.colSize]}>mm</Text>
+            <Text style={[styles.th, styles.colSize]}>cm / mm</Text>
             <Text style={[styles.th, styles.colSize]}>Inch</Text>
             <Text style={[styles.th, styles.colSize]}>Length</Text>
             <Text style={[styles.th, styles.colNum]}>MRP</Text>
@@ -434,7 +434,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
                   <View style={styles.pill}>
                     <Text style={styles.pillText}>{item.category}</Text>
                   </View>
-                  <Text style={styles.rowMeta}>mm {sizeMmLabel(item) || "—"}</Text>
+                  <Text style={styles.rowMeta}>size {sizeMmLabel(item) || "—"}</Text>
                   <Text style={styles.rowMeta}>inch {sizeInchLabel(item) || "—"}</Text>
                   <Text style={styles.rowMeta}>len {sizeLengthLabel(item) || "—"}</Text>
                   <Text style={styles.rowMeta}>MRP ₹{formatMoney(item.mrp || item.standardRate)}</Text>

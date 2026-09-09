@@ -69,10 +69,13 @@ export type CatalogItem = {
   productName?: string;
   type?: string;
   productGroup?: string;
+  subcategory?: string;
   size?: string;
   sizeMm?: number;
+  sizeCm?: number;
   sizeInch?: string;
   length?: string;
+  stdPkg?: number;
   mrp?: number;
   sellingPrice?: number;
   purchasePrice?: number;
@@ -112,11 +115,14 @@ export type ImportRow = {
   productGroup?: string;
   brand?: string;
   productName?: string;
+  subcategory?: string;
   size?: string;
   sizeMm?: number;
+  sizeCm?: number;
   sizeInch?: string;
   productCode?: string;
   length?: string;
+  stdPkg?: number;
   mrp?: number;
   sellingPrice?: number;
   purchasePrice?: number;

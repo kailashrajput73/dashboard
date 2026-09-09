@@ -7,6 +7,7 @@ import { AppModal, Button, ErrorModal, Header, Input } from "@/src/components/UI
 import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
 import { createProductGroup, deleteProductGroup, listCatalog, listProductGroups, updateProductGroup, type CatalogItem, type ProductGroup } from "@/src/api/endpoints";
+import { SHELF_PRICE_BOARD_ENABLED, ShelfPriceBoard } from "@/src/features/shelf-price-board";
 import { colors, font, radii, spacing } from "@/src/theme";
 
 export default function AdminProductGroups() {
@@ -77,7 +78,13 @@ export default function AdminProductGroups() {
                   <TouchableOpacity testID={`edit-product-group-${item.id}`} onPress={() => openEdit(item)} style={styles.icon} hitSlop={8}><Ionicons name="create-outline" size={19} color={colors.primary} /></TouchableOpacity>
                   <TouchableOpacity testID={`delete-product-group-${item.id}`} onPress={() => remove(item)} style={styles.icon} hitSlop={8}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity>
                 </View>
-                {open ? <ProductPeekList products={listed} emptyText={`No products in ${item.name}.`} /> : null}
+                {open ? (
+                  SHELF_PRICE_BOARD_ENABLED ? (
+                    <ShelfPriceBoard title={item.name} products={listed} onSaved={load} />
+                  ) : (
+                    <ProductPeekList products={listed} emptyText={`No products in ${item.name}.`} />
+                  )
+                ) : null}
               </View>
             );
           }}

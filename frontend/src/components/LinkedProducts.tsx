@@ -26,7 +26,7 @@ export function ProductPeekList(props: {
               {item.productCode || "No code"} · {item.brand || "No brand"}
             </Text>
             <Text style={styles.meta} numberOfLines={1}>
-              mm {sizeMmLabel(item) || "—"} · inch {sizeInchLabel(item) || "—"} · length {sizeLengthLabel(item) || "—"}
+              size {sizeMmLabel(item) || "—"} · inch {sizeInchLabel(item) || "—"} · length {sizeLengthLabel(item) || "—"}
             </Text>
           </View>
           <Text style={styles.price}>₹{formatMoney(item.sellingPrice ?? item.standardRate)}</Text>

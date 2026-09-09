@@ -14,11 +14,14 @@ export type ImportItem = {
   productGroup?: string;
   brand?: string;
   productName?: string;
+  subcategory?: string;
   size?: string;
   sizeMm?: number;
+  sizeCm?: number;
   sizeInch?: string;
   length?: string;
   productCode?: string;
+  stdPkg?: number;
   mrp?: number;
   sellingPrice?: number;
   purchasePrice?: number;
@@ -178,6 +181,56 @@ function parseBoolean(value: string): boolean | undefined {
   return !["false", "0", "no", "inactive"].includes(value.trim().toLowerCase());
 }
 
+/** Sheet discount is often 0.25 (= 25%). Older sheets use 25 or 25%. */
+export function discountToPercent(value: number | undefined): number | undefined {
+  if (value == null || Number.isNaN(value)) return undefined;
+  if (value > 0 && value < 1) return Math.round(value * 10000) / 100;
+  return value;
+}
+
+/**
+ * Excel turns 1/2 and 3/4 into dates (Jan 2, Mar 4). Restore inch fractions.
+ */
+export function recoverSizeInch(raw: string): string {
+  const value = String(raw || "").trim();
+  if (!value) return "";
+  if (/[½¼¾⅓⅔⅛⅜⅝⅞]/.test(value) || /\d+\s+\d+\s*\/\s*\d+/.test(value)) return value;
+
+  const iso = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s].*)?$/);
+  if (iso) return `${Number(iso[2])}/${Number(iso[3])}`;
+
+  const serial = Number(value);
+  // Current-year Excel dates are ~40k–60k. Do not treat 1.5 / 2 as dates.
+  if (Number.isFinite(serial) && serial >= 20000 && serial <= 80000 && !value.includes("/")) {
+    const utc = Date.UTC(1899, 11, 30) + Math.round(serial) * 86400000;
+    const d = new Date(utc);
+    return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+  }
+
+  const named = value.match(/^(\d{1,2})[- ](Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/i);
+  if (named) {
+    const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+    const month = months.indexOf(named[2].slice(0, 3).toLowerCase()) + 1;
+    return `${month}/${Number(named[1])}`;
+  }
+  const dated = value.match(/^(\d{1,2})[\/\-](\d{1,2})(?:[\/\-]\d{2,4})?$/);
+  if (dated) return `${Number(dated[1])}/${Number(dated[2])}`;
+  return value;
+}
+
+function displayProductName(productName: string, productGroup: string): string {
+  const name = productName.trim();
+  const group = productGroup.trim();
+  if (!group) return name;
+  if (name.toLowerCase().includes(group.toLowerCase())) return name;
+  return `${name} ${group}`.trim();
+}
+
+function stripCode(value: string): string | undefined {
+  const cleaned = value.replace(/\^+$/g, "").trim();
+  return cleaned || undefined;
+}
+
 export function rowsToItems(rows: Record<string, string>[]): {
   items: ImportItem[];
   invalid: number;
@@ -185,35 +238,54 @@ export function rowsToItems(rows: Record<string, string>[]): {
   const items: ImportItem[] = [];
   let invalid = 0;
   for (const r of rows) {
-    const name = cell(r, "product_name", "name", "item", "item_name");
+    const productName = cell(r, "product_name", "name", "item", "item_name");
+    const productGroup = cell(r, "product_group", "productgroup", "group");
+    const name = displayProductName(productName, productGroup);
     const category = cell(r, "category");
-    const unit = cell(r, "unit", "uom");
-    const sellingRaw = cell(r, "selling_price", "sellingprice", "standard_rate", "standardrate", "rate", "price");
-    const mrp = numberOrUndefined(cell(r, "mrp"));
-    const discount = numberOrUndefined(cell(r, "discount"));
+    const unit = cell(r, "unit", "uom") || "pcs";
+    const subcategory = cell(r, "sub_category", "subcategory", "type");
+    const sellingRaw = cell(
+      r,
+      "selling_price",
+      "sellingprice",
+      "standard_rate",
+      "standardrate",
+      "rate",
+      "price",
+    );
+    const mrp = numberOrUndefined(
+      cell(r, "mrp_rs_per_pc", "mrp_rs_per_pc_", "mrp", "price_rs_per_pc", "price_per_pc"),
+    );
+    const discount = discountToPercent(numberOrUndefined(cell(r, "discount")));
     let rate = numberOrUndefined(sellingRaw);
     if (rate == null && mrp != null) {
       rate = Math.round(mrp * (1 - Math.max(0, discount || 0) / 100) * 100) / 100;
     }
 
-    if (!name || !unit || rate == null) {
+    if (!name || rate == null) {
       invalid++;
       continue;
     }
+    const sizeCm = numberOrUndefined(cell(r, "size_cm", "sizecm"));
+    const sizeMm = numberOrUndefined(cell(r, "size_mm", "sizemm"));
+    const sizeLegacy = clean(cell(r, "size"));
     items.push({
       name,
-      productName: name,
+      productName: productName || name,
       category: category || undefined,
       unit,
       standardRate: rate,
-      type: clean(cell(r, "type")),
-      productGroup: clean(cell(r, "product_group", "productgroup", "group")),
+      type: clean(subcategory) || clean(cell(r, "type")),
+      subcategory: clean(subcategory),
+      productGroup: clean(productGroup),
       brand: clean(cell(r, "brand")),
-      size: clean(cell(r, "size_mm", "sizemm", "size")),
-      sizeMm: numberOrUndefined(cell(r, "size_mm", "sizemm", "size")),
-      sizeInch: clean(cell(r, "size_inch", "sizeinch")),
-      productCode: clean(cell(r, "product_code", "productcode", "sku", "code")),
+      size: sizeCm != null ? `${sizeCm} cm` : sizeMm != null ? `${sizeMm} mm` : sizeLegacy,
+      sizeMm,
+      sizeCm,
+      sizeInch: recoverSizeInch(cell(r, "size_inch", "sizeinch")) || undefined,
+      productCode: stripCode(cell(r, "product_code", "productcode", "sku", "code")),
       length: clean(cell(r, "length")),
+      stdPkg: numberOrUndefined(cell(r, "std_pkg_nos", "std_pkg", "stdpkg", "packing", "pack_qty")),
       mrp,
       sellingPrice: numberOrUndefined(sellingRaw) ?? rate,
       purchasePrice: numberOrUndefined(cell(r, "purchase_price", "purchaseprice")),

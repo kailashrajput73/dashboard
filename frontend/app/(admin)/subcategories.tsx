@@ -6,16 +6,20 @@ import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
 
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
+import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
-import { createSubcategory, deleteSubcategory, importSubcategories, listCategories, listSubcategories, updateSubcategory, type Category, type Subcategory } from "@/src/api/endpoints";
+import { createSubcategory, deleteSubcategory, importSubcategories, listCatalog, listCategories, listSubcategories, updateSubcategory, type CatalogItem, type Category, type Subcategory } from "@/src/api/endpoints";
 import { parseCsvBytes } from "@/src/utils/csv";
 import { readAssetBytes } from "@/src/utils/read-asset-bytes";
+import { SHELF_PRICE_BOARD_ENABLED, ShelfPriceBoard } from "@/src/features/shelf-price-board";
 import { colors, font, radii, spacing } from "@/src/theme";
 
 export default function AdminSubcategories() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Subcategory[]>([]);
+  const [products, setProducts] = useState<CatalogItem[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [parent, setParent] = useState("all");
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -31,9 +35,10 @@ export default function AdminSubcategories() {
 
   const load = useCallback(async () => {
     try {
-      const [cats, subs] = await Promise.all([listCategories(), listSubcategories()]);
+      const [cats, subs, catalog] = await Promise.all([listCategories(), listSubcategories(), listCatalog()]);
       setCategories(cats || []);
       setItems(subs || []);
+      setProducts(catalog || []);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Failed to load subcategories");
     }
@@ -47,6 +52,30 @@ export default function AdminSubcategories() {
     const text = `${item.name} ${item.category}`.toLowerCase();
     return matchesParent && text.includes(query.trim().toLowerCase());
   }), [items, parent, query]);
+
+  function productsFor(sub: Subcategory) {
+    const name = (sub.name || "").toLowerCase();
+    const category = (sub.category || "").toLowerCase();
+    return products.filter((item) => {
+      if (item.subcategoryId && item.subcategoryId === sub.id) return true;
+      const sameCategory = (item.category || "").toLowerCase() === category;
+      const sameSub =
+        (item.subcategory || "").toLowerCase() === name ||
+        (item.type || "").toLowerCase() === name;
+      return sameCategory && sameSub;
+    });
+  }
+
+  function boardsFor(listed: CatalogItem[]) {
+    const map = new Map<string, CatalogItem[]>();
+    for (const item of listed) {
+      const key = (item.productGroup || "Ungrouped").trim() || "Ungrouped";
+      const list = map.get(key) || [];
+      list.push(item);
+      map.set(key, list);
+    }
+    return [...map.entries()];
+  }
 
   function openCreate() {
     setEditor(null);
@@ -138,11 +167,42 @@ export default function AdminSubcategories() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           ListEmptyComponent={<Text style={styles.empty}>No subcategories match your search.</Text>}
-          renderItem={({ item }) => <View style={styles.row} testID={`subcategory-row-${item.id}`}>
-            <View style={styles.rowMain}><Text style={styles.name}>{item.name}</Text><Text style={styles.parent}>{item.category}</Text></View>
-            <TouchableOpacity testID={`edit-subcategory-${item.id}`} onPress={() => openEdit(item)} hitSlop={8} style={styles.icon}><Ionicons name="create-outline" size={19} color={colors.primary} /></TouchableOpacity>
-            <TouchableOpacity testID={`delete-subcategory-${item.id}`} onPress={() => remove(item)} hitSlop={8} style={styles.icon}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity>
-          </View>}
+          renderItem={({ item }) => {
+            const open = openId === item.id;
+            const listed = productsFor(item);
+            return (
+              <View style={styles.card} testID={`subcategory-row-${item.id}`}>
+                <View style={styles.row}>
+                  <View style={styles.rowMain}>
+                    <Text style={styles.name}>{item.name}</Text>
+                    <Text style={styles.parent}>{item.category}</Text>
+                    <ProductCountButton
+                      count={listed.length || item.productCount || 0}
+                      selected={open}
+                      onPress={() => setOpenId(open ? null : item.id)}
+                      testID={`subcategory-products-${item.id}`}
+                    />
+                  </View>
+                  <TouchableOpacity testID={`edit-subcategory-${item.id}`} onPress={() => openEdit(item)} hitSlop={8} style={styles.icon}><Ionicons name="create-outline" size={19} color={colors.primary} /></TouchableOpacity>
+                  <TouchableOpacity testID={`delete-subcategory-${item.id}`} onPress={() => remove(item)} hitSlop={8} style={styles.icon}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity>
+                </View>
+                {open ? (
+                  SHELF_PRICE_BOARD_ENABLED && listed.length ? (
+                    boardsFor(listed).map(([groupName, groupItems]) => (
+                      <ShelfPriceBoard
+                        key={groupName}
+                        title={groupName}
+                        products={groupItems}
+                        onSaved={load}
+                      />
+                    ))
+                  ) : (
+                    <ProductPeekList products={listed} emptyText={`No products in ${item.name}.`} />
+                  )
+                ) : null}
+              </View>
+            );
+          }}
         />
       )}
       <View style={styles.importBar}><Button testID="import-subcategories" title="Bulk import CSV" icon="cloud-upload-outline" onPress={pickImport} size="sm" /></View>
@@ -177,8 +237,9 @@ const styles = StyleSheet.create({
   chips: { gap: spacing.sm, paddingBottom: spacing.sm },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 82 },
-  row: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm, flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  rowMain: { flex: 1 },
+  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm },
+  row: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
+  rowMain: { flex: 1, gap: 8 },
   name: { ...font.title, color: colors.textPrimary },
   parent: { color: colors.textSecondary, fontSize: 12, marginTop: 4 },
   icon: { padding: 5 },

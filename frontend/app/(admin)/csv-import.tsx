@@ -190,12 +190,13 @@ export default function CsvImport() {
         <Card>
           <Text style={styles.title}>Step 1 — pick your file</Text>
           <Text style={styles.hint}>
-            Required headers: <Text style={styles.mono}>category, type, product_group, brand, product_name, size_mm, size_inch, product_code, length, unit, mrp, selling_price, purchase_price, stock_qty, discount, image_url, is_active</Text>.{" "}
+            Required headers (current sheet): <Text style={styles.mono}>Category, Sub-Category, Brand, Product Name, Product Group, Length, Size (cm), Size (inch), Product Code, Std. Pkg (Nos.), MRP (Rs) per pc, discount, selling_price, image_url</Text>.{" "}
+            Older sheets still work if they use <Text style={styles.mono}>type, size_mm, unit, stock_qty, is_active</Text>.{" "}
             <Text style={styles.mono}>product_code</Text> updates existing products instead of creating duplicates. Encodings auto-detected:
             UTF-8, UTF-8 BOM, UTF-16 LE/BE. You can also upload the same columns as <Text style={styles.mono}>.xlsx</Text>.
           </Text>
           <Text style={styles.hint}>
-            Brand, product_code, product_group, type, and image_url are saved on each product — they are not optional extras. For photos, put a publicly reachable image URL in <Text style={styles.mono}>image_url</Text>. Discount can be <Text style={styles.mono}>25</Text> or <Text style={styles.mono}>25%</Text>. After import, change MRP, discount, and stock on Products — you do not need to upload again.
+            Brand, product_code, product_group, Sub-Category, and image_url are saved on each product. Excel often turns Size (inch) 1/2 into a date — import restores 1/2 and 3/4. Discount can be <Text style={styles.mono}>0.25</Text> (25%), <Text style={styles.mono}>25</Text>, or <Text style={styles.mono}>25%</Text>. Std. Pkg is packing quantity, not stock. After import, change MRP and discount on Products, Subcategories, or Product Groups.
           </Text>
           <View style={{ height: spacing.md }} />
           <Button
@@ -228,7 +229,7 @@ export default function CsvImport() {
             <Card style={{ padding: 0 }}>
               <View style={styles.previewHead}>
                 <Text style={[styles.previewCell, { flex: 2 }]}>Product</Text>
-                <Text style={styles.previewCell}>Category</Text>
+                <Text style={styles.previewCell}>Cat / sub</Text>
                 <Text style={styles.previewCell}>Brand</Text>
                 <Text style={styles.previewCell}>Code</Text>
                 <Text style={styles.previewCell}>Size</Text>
@@ -236,7 +237,7 @@ export default function CsvImport() {
                 <Text style={[styles.previewCell, { textAlign: "right" }]}>MRP</Text>
                 <Text style={[styles.previewCell, { textAlign: "right" }]}>Disc</Text>
                 <Text style={[styles.previewCell, { textAlign: "right" }]}>Sell</Text>
-                <Text style={[styles.previewCell, { textAlign: "right" }]}>Qty</Text>
+                <Text style={[styles.previewCell, { textAlign: "right" }]}>Pkg</Text>
               </View>
               {items.slice(0, 30).map((it, idx) => (
                 <View key={`${it.name}-${idx}`} style={styles.previewRow}>
@@ -247,7 +248,7 @@ export default function CsvImport() {
                     {it.name}
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
-                    {it.category || "—"}
+                    {it.category || "—"}{it.subcategory || it.type ? ` / ${it.subcategory || it.type}` : ""}
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
                     {it.brand || "—"}
@@ -256,7 +257,7 @@ export default function CsvImport() {
                     {it.productCode || "—"}
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
-                    {[it.size, it.sizeInch, it.length].filter(Boolean).join(" · ") || "—"}
+                    {[it.sizeCm != null ? `${it.sizeCm} cm` : it.size, it.sizeInch, it.length].filter(Boolean).join(" · ") || "—"}
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
                     {it.imageUrl ? "Yes" : "—"}
@@ -271,7 +272,7 @@ export default function CsvImport() {
                     ₹{it.sellingPrice ?? it.standardRate}
                   </Text>
                   <Text style={[styles.previewCellBody, { textAlign: "right" }]}>
-                    {it.stock ?? 0}
+                    {it.stdPkg ?? "—"}
                   </Text>
                 </View>
               ))}

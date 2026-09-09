@@ -183,9 +183,11 @@ class CatalogItemIn(BaseModel):
     size: Optional[str] = None
     sizeMm: Optional[float] = None
     sizeInch: Optional[str] = None
+    sizeCm: Optional[float] = None
     length: Optional[str] = None
     brand: Optional[str] = None
     brandId: Optional[str] = None
+    subcategory: Optional[str] = None
     subcategoryId: Optional[str] = None
     aliases: List[str] = []
     multilingualNames: dict[str, str] = {}
@@ -195,6 +197,7 @@ class CatalogItemIn(BaseModel):
     productGroupIds: List[str] = []
     imageUrl: Optional[str] = None
     imageName: Optional[str] = None
+    stdPkg: Optional[float] = None
     mrp: Optional[float] = None
     sellingPrice: Optional[float] = None
     purchasePrice: Optional[float] = None
@@ -202,7 +205,7 @@ class CatalogItemIn(BaseModel):
     stock: Optional[float] = None
     isActive: bool = True
 
-    @field_validator("sizeMm", mode="before")
+    @field_validator("sizeMm", "sizeCm", mode="before")
     @classmethod
     def coerce_size_mm(cls, value):
         return parse_size_mm(value)
@@ -315,11 +318,14 @@ class ImportItem(BaseModel):
     productGroup: Optional[str] = None
     brand: Optional[str] = None
     productName: Optional[str] = None
+    subcategory: Optional[str] = None
     size: Optional[str] = None
     sizeMm: Optional[float] = None
+    sizeCm: Optional[float] = None
     sizeInch: Optional[str] = None
     productCode: Optional[str] = None
     length: Optional[str] = None
+    stdPkg: Optional[float] = None
     mrp: Optional[float] = None
     sellingPrice: Optional[float] = None
     purchasePrice: Optional[float] = None
@@ -328,10 +334,23 @@ class ImportItem(BaseModel):
     imageUrl: Optional[str] = None
     isActive: bool = True
 
-    @field_validator("sizeMm", mode="before")
+    @field_validator("sizeMm", "sizeCm", mode="before")
     @classmethod
     def coerce_import_size_mm(cls, value):
         return parse_size_mm(value)
+
+    @field_validator("discount", mode="before")
+    @classmethod
+    def coerce_import_discount_percent(cls, value):
+        if value is None or value == "":
+            return None
+        try:
+            n = float(value)
+        except (TypeError, ValueError):
+            return value
+        if 0 < n < 1:
+            return round(n * 100, 4)
+        return n
 
 
 class CatalogPricingIn(BaseModel):
@@ -1034,7 +1053,20 @@ async def list_subcategories(category_id: Optional[str] = None):
     cursor = db.subcategories.find(query, {"_id": 0}).sort("name", 1)
     items = []
     async for subcategory in cursor:
-        items.append(subcategory_response(subcategory))
+        count = await db.catalog.count_documents({
+            "$or": [
+                {"subcategoryId": subcategory.get("id")},
+                {
+                    "category": {"$regex": f"^{re.escape(subcategory.get('category') or '')}$", "$options": "i"},
+                    "subcategory": {"$regex": f"^{re.escape(subcategory.get('name') or '')}$", "$options": "i"},
+                },
+                {
+                    "category": {"$regex": f"^{re.escape(subcategory.get('category') or '')}$", "$options": "i"},
+                    "type": {"$regex": f"^{re.escape(subcategory.get('name') or '')}$", "$options": "i"},
+                },
+            ]
+        })
+        items.append(subcategory_response(subcategory, count))
     return envelope(items)
 
 
@@ -1209,8 +1241,11 @@ async def create_catalog(body: CatalogItemIn):
         "productName": body.productName or body.name.strip(),
         "type": body.type,
         "productGroup": body.productGroup,
-        "size": body.size or (f"{body.sizeMm} mm" if body.sizeMm is not None else None),
+        "subcategory": body.subcategory,
+        "subcategoryId": body.subcategoryId,
+        "size": body.size or (str(body.sizeCm) if body.sizeCm is not None else (f"{body.sizeMm} mm" if body.sizeMm is not None else None)),
         "sizeMm": body.sizeMm,
+        "sizeCm": body.sizeCm,
         "sizeInch": body.sizeInch,
         "length": body.length,
         "aliases": [alias.strip() for alias in body.aliases if alias.strip()],
@@ -1222,6 +1257,7 @@ async def create_catalog(body: CatalogItemIn):
         "productGroupIds": body.productGroupIds,
         "imageUrl": body.imageUrl,
         "imageName": body.imageName,
+        "stdPkg": body.stdPkg,
         "isActive": body.isActive,
         "createdAt": now_iso(),
         "updatedAt": now_iso(),
@@ -1242,7 +1278,12 @@ async def update_catalog(item_id: str, body: CatalogItemIn):
         brand = await db.brands.find_one({"name": {"$regex": f"^{re.escape(body.brand.strip())}$", "$options": "i"}})
     if body.brandId and not brand:
         return JSONResponse(status_code=400, content=envelope(None, False, "Brand not found"))
+    existing = await db.catalog.find_one({"id": item_id})
+    if not existing:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Item not found"))
     selling = selling_from(body.mrp, body.discount, body.sellingPrice, body.standardRate)
+    def keep(value, key):
+        return value if value is not None else existing.get(key)
     updates = {
         "name": body.name.strip(),
         "category": body.category.strip(),
@@ -1255,21 +1296,27 @@ async def update_catalog(item_id: str, body: CatalogItemIn):
         "brandId": brand["id"] if brand else None,
         "brand": brand["name"] if brand else None,
         "productName": body.productName or body.name.strip(),
-        "type": body.type,
-        "productGroup": body.productGroup,
-        "size": body.size or (f"{body.sizeMm} mm" if body.sizeMm is not None else None),
-        "sizeMm": body.sizeMm,
-        "sizeInch": body.sizeInch,
-        "length": body.length,
+        "type": keep(body.type, "type"),
+        "productGroup": keep(body.productGroup, "productGroup"),
+        "subcategory": keep(body.subcategory, "subcategory"),
+        "subcategoryId": keep(body.subcategoryId, "subcategoryId"),
+        "size": body.size or (
+            f"{keep(body.sizeCm, 'sizeCm')} cm" if keep(body.sizeCm, "sizeCm") is not None
+            else (f"{body.sizeMm} mm" if body.sizeMm is not None else existing.get("size"))
+        ),
+        "sizeMm": keep(body.sizeMm, "sizeMm"),
+        "sizeCm": keep(body.sizeCm, "sizeCm"),
+        "sizeInch": keep(body.sizeInch, "sizeInch"),
+        "length": keep(body.length, "length"),
         "aliases": [alias.strip() for alias in body.aliases if alias.strip()],
         "multilingualNames": body.multilingualNames,
         "displaySequence": body.displaySequence,
         "reorderLevel": body.reorderLevel,
         "regularDiscount": body.regularDiscount,
-        "subcategoryId": body.subcategoryId,
-        "productGroupIds": body.productGroupIds,
+        "productGroupIds": body.productGroupIds or existing.get("productGroupIds") or [],
         "imageUrl": body.imageUrl,
         "imageName": body.imageName,
+        "stdPkg": keep(body.stdPkg, "stdPkg"),
         "isActive": body.isActive,
         "updatedAt": now_iso(),
     }
@@ -1392,6 +1439,7 @@ async def import_catalog(body: CatalogImportIn):
     updated = 0
     group_cache: dict = {}
     brand_cache: dict = {}
+    subcategory_cache: dict = {}
     for it in body.items:
         # Determine final category
         if mode == "overrideExisting":
@@ -1430,6 +1478,32 @@ async def import_catalog(body: CatalogImportIn):
                 group_cache[group_key] = group
             if group["id"] not in group_ids:
                 group_ids.append(group["id"])
+        sub_name = (it.subcategory or it.type or "").strip()
+        subcategory_doc = None
+        if sub_name:
+            sub_key = f"{cat.lower()}::{sub_name.lower()}"
+            subcategory_doc = subcategory_cache.get(sub_key)
+            if not subcategory_doc:
+                parent_cat = await db.categories.find_one({"name": {"$regex": f"^{re.escape(cat)}$", "$options": "i"}})
+                if not parent_cat:
+                    parent_cat = {"id": new_id(), "name": cat, "isDefault": False, "isActive": True}
+                    await db.categories.insert_one(parent_cat.copy())
+                    categories_created.add(cat)
+                subcategory_doc = await db.subcategories.find_one({
+                    "categoryId": parent_cat["id"],
+                    "name": {"$regex": f"^{re.escape(sub_name)}$", "$options": "i"},
+                })
+                if not subcategory_doc:
+                    subcategory_doc = {
+                        "id": new_id(),
+                        "name": sub_name,
+                        "categoryId": parent_cat["id"],
+                        "category": parent_cat["name"],
+                        "createdAt": now_iso(),
+                        "updatedAt": now_iso(),
+                    }
+                    await db.subcategories.insert_one(subcategory_doc.copy())
+                subcategory_cache[sub_key] = subcategory_doc
         doc = {
             "id": existing.get("id") if existing else new_id(),
             "name": it.name.strip(),
@@ -1444,14 +1518,18 @@ async def import_catalog(body: CatalogImportIn):
             "stock": stock,
             "brandId": brand["id"] if brand else (existing.get("brandId") if existing else None),
             "brand": brand["name"] if brand else (existing.get("brand") if existing else None),
-            "productCode": product_code or (existing.get("productCode") if existing else f"PRD-{uuid.uuid4().hex[:10].upper()}"),
-            "type": it.type,
+            "productCode": (product_code or (existing.get("productCode") if existing else f"PRD-{uuid.uuid4().hex[:10].upper()}")).rstrip("^"),
+            "type": it.type or it.subcategory,
+            "subcategory": subcategory_doc["name"] if subcategory_doc else (existing.get("subcategory") if existing else None),
+            "subcategoryId": subcategory_doc["id"] if subcategory_doc else (existing.get("subcategoryId") if existing else None),
             "productGroup": it.productGroup,
             "productGroupIds": group_ids,
-            "size": it.size or (str(it.sizeMm) if it.sizeMm is not None else None),
+            "size": it.size or (f"{it.sizeCm} cm" if it.sizeCm is not None else (str(it.sizeMm) if it.sizeMm is not None else None)),
             "sizeMm": it.sizeMm,
+            "sizeCm": it.sizeCm,
             "sizeInch": it.sizeInch,
             "length": it.length,
+            "stdPkg": it.stdPkg if it.stdPkg is not None else (existing.get("stdPkg") if existing else None),
             "imageUrl": (it.imageUrl or "").strip() or None,
             "isActive": True if it.isActive is None else it.isActive,
             "createdAt": existing.get("createdAt") if existing else now_iso(),

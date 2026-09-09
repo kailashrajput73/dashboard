@@ -1,4 +1,5 @@
-export function sizeMmLabel(item: { size?: string | null; sizeMm?: number | null }) {
+export function sizeMmLabel(item: { size?: string | null; sizeMm?: number | null; sizeCm?: number | null }) {
+  if (item.sizeCm != null) return `${item.sizeCm} cm`;
   if (item.size?.trim()) return item.size.trim();
   if (item.sizeMm != null) return `${item.sizeMm} mm`;
   return "";
@@ -15,6 +16,7 @@ export function sizeLengthLabel(item: { length?: string | null }) {
 export function formatProductSize(item: {
   size?: string | null;
   sizeMm?: number | null;
+  sizeCm?: number | null;
   sizeInch?: string | null;
   length?: string | null;
 }) {
