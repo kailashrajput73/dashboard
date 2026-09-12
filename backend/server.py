@@ -578,19 +578,38 @@ async def update_team_user(user_id: str, body: TeamUserUpdateIn):
 
 # ---------- Categories ----------
 
-DEFAULT_CATEGORIES = ["General", "Materials", "Labor", "Services", "Equipment"]
+DEFAULT_CATEGORIES = []
 
 
 async def ensure_default_categories():
-    count = await db.categories.count_documents({})
-    if count == 0:
-        for name in DEFAULT_CATEGORIES:
-            await db.categories.insert_one({
-                "id": new_id(),
-                "name": name,
-                "isDefault": True,
-                "isActive": True,
-            })
+    return
+
+
+async def reset_catalog_tree():
+    """Wipe products and the tree the sheet rebuilds: categories, subcategories, groups, prices."""
+    catalog = await db.catalog.delete_many({})
+    categories = await db.categories.delete_many({})
+    subcategories = await db.subcategories.delete_many({})
+    groups = await db.product_groups.delete_many({})
+    pricing = await db.pricing.delete_many({})
+    history = await db.pricing_history.delete_many({})
+    async for rack in db.racks.find({}):
+        slots = rack.get("slots") or []
+        dirty = False
+        for slot in slots:
+            if slot.get("productId"):
+                slot["productId"] = None
+                dirty = True
+        if dirty:
+            await db.racks.update_one({"id": rack["id"]}, {"$set": {"slots": slots}})
+    return {
+        "catalog": catalog.deleted_count,
+        "categories": categories.deleted_count,
+        "subcategories": subcategories.deleted_count,
+        "productGroups": groups.deleted_count,
+        "pricing": pricing.deleted_count,
+        "pricingHistory": history.deleted_count,
+    }
 
 
 @api.get("/categories")
@@ -643,6 +662,16 @@ async def update_category(category_id: str, body: CategoryUpdateIn):
     category.setdefault("isActive", True)
     category["productCount"] = await db.catalog.count_documents({"category": category["name"]})
     return envelope(category)
+
+
+@api.delete("/categories/{category_id}")
+async def delete_category(category_id: str):
+    current = await db.categories.find_one({"id": category_id})
+    if not current:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Category not found"))
+    await db.subcategories.delete_many({"categoryId": category_id})
+    result = await db.categories.delete_one({"id": category_id})
+    return envelope({"deleted": True, "id": category_id, "name": current.get("name")})
 
 
 # ---------- Brands ----------
@@ -1412,25 +1441,14 @@ async def delete_catalog(item_id: str):
 
 @api.delete("/catalog")
 async def clear_catalog():
-    result = await db.catalog.delete_many({})
-    async for rack in db.racks.find({}):
-        slots = rack.get("slots") or []
-        dirty = False
-        for slot in slots:
-            if slot.get("productId"):
-                slot["productId"] = None
-                dirty = True
-        if dirty:
-            await db.racks.update_one({"id": rack["id"]}, {"$set": {"slots": slots}})
-    await db.product_groups.update_many({}, {"$set": {"productIds": [], "productCount": 0}})
-    return envelope({"deleted": result.deleted_count})
+    deleted = await reset_catalog_tree()
+    return envelope({"deleted": deleted["catalog"], **deleted})
 
 
 @api.post("/catalog/import")
 async def import_catalog(body: CatalogImportIn):
     if body.replaceExisting:
-        await db.catalog.delete_many({})
-        await db.product_groups.update_many({}, {"$set": {"productIds": [], "productCount": 0}})
+        await reset_catalog_tree()
     mode = body.categoryMode
     override = (body.overrideCategory or "").strip()
     inserted = 0

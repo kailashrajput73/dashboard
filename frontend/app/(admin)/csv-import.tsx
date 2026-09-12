@@ -172,13 +172,13 @@ export default function CsvImport() {
           <Text style={styles.title}>Current catalog</Text>
           <Text style={styles.hint}>
             {catalogCount === 0
-              ? "Catalog is empty. Import will add a clean product list."
-              : `${catalogCount} product(s) are in the live catalog. A normal import only adds rows — it does not replace the messy ones. Clear first, or turn on “Replace catalog” when you import.`}
+              ? "Catalog is empty. Import will add a clean product list from the sheet (category → subcategory → product group)."
+              : `${catalogCount} product(s) are in the live catalog, mixed with old categories. Clear first so Sub-Category from the sheet can rebuild the tree, or turn on “Replace catalog” when you import.`}
           </Text>
           <View style={{ height: spacing.md }} />
           <Button
             testID="clear-catalog-btn"
-            title={catalogCount === 0 ? "Catalog already empty" : `Clear all ${catalogCount} products`}
+            title={catalogCount === 0 ? "Catalog already empty" : `Clear products, categories, subcategories, and groups`}
             icon="trash-outline"
             variant="danger"
             onPress={() => setClearOpen(true)}
@@ -360,7 +360,7 @@ export default function CsvImport() {
               Replace catalog with this CSV
             </Text>
             <Text style={styles.modeSub}>
-              Deletes every existing product first, then imports. Use this after a bad import.
+              Deletes products, categories, subcategories, and product groups first, then imports. Use this after a messy catalog. Users and brands stay.
             </Text>
           </View>
           <Ionicons
@@ -394,12 +394,12 @@ export default function CsvImport() {
         title="Clear entire catalog?"
       >
         <Text style={styles.hint}>
-          This deletes all {catalogCount} products from the live catalog. Categories, brands, and partners stay. This cannot be undone.
+          This deletes products, categories, subcategories, and product groups. Brands, users, and orders stay. Then import the sheet so Sub-Category can rebuild. This cannot be undone.
         </Text>
         <View style={{ height: spacing.md }} />
         <Button
           testID="confirm-clear-catalog"
-          title={clearing ? "Clearing…" : "Yes, delete all products"}
+          title={clearing ? "Clearing…" : "Yes, clear catalog tree"}
           variant="danger"
           onPress={runClear}
           loading={clearing}
