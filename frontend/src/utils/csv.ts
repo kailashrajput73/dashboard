@@ -11,6 +11,7 @@ export type ImportItem = {
   unit: string;
   standardRate: number;
   type?: string;
+  productClass?: string;
   productGroup?: string;
   brand?: string;
   productName?: string;
@@ -226,9 +227,35 @@ function displayProductName(productName: string, productGroup: string): string {
   return `${name} ${group}`.trim();
 }
 
+export function inferProductClass(item: { productClass?: string; name?: string; productName?: string }): string {
+  const explicit = (item.productClass || "").trim();
+  if (explicit) return explicit;
+  const blob = `${item.name || ""} ${item.productName || ""}`;
+  const match = blob.match(/SDR\s*13\.?5|SDR\s*11|Sch(?:edule)?\s*80|Sch(?:edule)?\s*40/i);
+  if (!match) return "";
+  const token = match[0].replace(/\s+/g, " ").trim();
+  if (/13/i.test(token)) return "SDR13.5";
+  if (/11/i.test(token)) return "SDR11";
+  if (/80/.test(token)) return "Sch 80";
+  if (/40/.test(token)) return "Sch 40";
+  return token;
+}
+
 function stripCode(value: string): string | undefined {
   const cleaned = value.replace(/\^+$/g, "").trim();
   return cleaned || undefined;
+}
+
+/** Size cell like `15 MM (½")` — keep full label, split mm / inch when present. */
+export function parseSizeCell(raw: string): { size?: string; sizeMm?: number; sizeInch?: string } {
+  const size = raw.trim();
+  if (!size) return {};
+  const inchMatch = size.match(/\(([^)]+)\)/);
+  let sizeInch = inchMatch ? inchMatch[1].replace(/["”″]/g, "").trim() : undefined;
+  if (sizeInch) sizeInch = recoverSizeInch(sizeInch) || sizeInch;
+  const mmMatch = size.match(/(\d+(?:\.\d+)?)\s*mm/i);
+  const sizeMm = mmMatch ? parseFloat(mmMatch[1]) : numberOrUndefined(size.includes("(") ? size.slice(0, size.indexOf("(")) : size);
+  return { size, sizeMm, sizeInch };
 }
 
 export function rowsToItems(rows: Record<string, string>[]): {
@@ -239,11 +266,13 @@ export function rowsToItems(rows: Record<string, string>[]): {
   let invalid = 0;
   for (const r of rows) {
     const productName = cell(r, "product_name", "name", "item", "item_name");
-    const productGroup = cell(r, "product_group", "productgroup", "group");
+    const productGroup = cell(r, "product_group", "productgroup");
     const name = displayProductName(productName, productGroup);
     const category = cell(r, "category");
     const unit = cell(r, "unit", "uom") || "pcs";
-    const subcategory = cell(r, "sub_category", "subcategory", "type");
+    const type = cell(r, "type");
+    const subcategory = cell(r, "sub_category", "subcategory");
+    const productClass = cell(r, "class", "product_class", "productclass");
     const sellingRaw = cell(
       r,
       "selling_price",
@@ -254,9 +283,11 @@ export function rowsToItems(rows: Record<string, string>[]): {
       "price",
     );
     const mrp = numberOrUndefined(
-      cell(r, "mrp_rs_per_pc", "mrp_rs_per_pc_", "mrp", "price_rs_per_pc", "price_per_pc"),
+      cell(r, "mrp_rs_per_nos", "mrp_rs_per_pc", "mrp_rs_per_pc_", "mrp", "price_rs_per_pc", "price_per_pc"),
     );
-    const discount = discountToPercent(numberOrUndefined(cell(r, "discount")));
+    const discount = discountToPercent(
+      numberOrUndefined(cell(r, "discount", "discount_percent", "discount_")),
+    );
     let rate = numberOrUndefined(sellingRaw);
     if (rate == null && mrp != null) {
       rate = Math.round(mrp * (1 - Math.max(0, discount || 0) / 100) * 100) / 100;
@@ -266,23 +297,27 @@ export function rowsToItems(rows: Record<string, string>[]): {
       invalid++;
       continue;
     }
-    const sizeCm = numberOrUndefined(cell(r, "size_cm", "sizecm"));
-    const sizeMm = numberOrUndefined(cell(r, "size_mm", "sizemm"));
-    const sizeLegacy = clean(cell(r, "size"));
+    const sizeParsed = parseSizeCell(
+      cell(r, "size_cm", "sizecm", "size_mm", "sizemm", "size", "size_inch", "sizeinch"),
+    );
+    const sizeMm = sizeParsed.sizeMm ?? numberOrUndefined(cell(r, "size_mm", "sizemm"));
     items.push({
       name,
       productName: productName || name,
       category: category || undefined,
       unit,
       standardRate: rate,
-      type: clean(subcategory) || clean(cell(r, "type")),
+      type: clean(type),
       subcategory: clean(subcategory),
+      productClass: clean(productClass) || inferProductClass({ name, productName, productClass }),
       productGroup: clean(productGroup),
       brand: clean(cell(r, "brand")),
-      size: sizeCm != null ? `${sizeCm} cm` : sizeMm != null ? `${sizeMm} mm` : sizeLegacy,
+      size: sizeParsed.size,
       sizeMm,
-      sizeCm,
-      sizeInch: recoverSizeInch(cell(r, "size_inch", "sizeinch")) || undefined,
+      sizeCm: numberOrUndefined(cell(r, "size_cm", "sizecm")) && !/\(/u.test(cell(r, "size_cm"))
+        ? numberOrUndefined(cell(r, "size_cm", "sizecm"))
+        : undefined,
+      sizeInch: sizeParsed.sizeInch || recoverSizeInch(cell(r, "size_inch", "sizeinch")) || undefined,
       productCode: stripCode(cell(r, "product_code", "productcode", "sku", "code")),
       length: clean(cell(r, "length")),
       stdPkg: numberOrUndefined(cell(r, "std_pkg_nos", "std_pkg", "stdpkg", "packing", "pack_qty")),

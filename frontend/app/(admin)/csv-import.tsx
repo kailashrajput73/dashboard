@@ -190,13 +190,14 @@ export default function CsvImport() {
         <Card>
           <Text style={styles.title}>Step 1 — pick your file</Text>
           <Text style={styles.hint}>
-            Required headers (current sheet): <Text style={styles.mono}>Category, Sub-Category, Brand, Product Name, Product Group, Length, Size (cm), Size (inch), Product Code, Std. Pkg (Nos.), MRP (Rs) per pc, discount, selling_price, image_url</Text>.{" "}
+            Required headers (current sheet): <Text style={styles.mono}>Category, Type, Sub-Category, Class, Brand, Product Name, Product_group, Length, Size (cm), MRP (Rs) per nos, Discount %, Selling price, Image_url</Text>.{" "}
+            Product Code is optional — the server creates a stable code from brand + type + class + size + length. Product_group is the SOW bundle, not Class.{" "}
             Older sheets still work if they use <Text style={styles.mono}>type, size_mm, unit, stock_qty, is_active</Text>.{" "}
             <Text style={styles.mono}>product_code</Text> updates existing products instead of creating duplicates. Encodings auto-detected:
             UTF-8, UTF-8 BOM, UTF-16 LE/BE. You can also upload the same columns as <Text style={styles.mono}>.xlsx</Text>.
           </Text>
           <Text style={styles.hint}>
-            Brand, product_code, product_group, Sub-Category, and image_url are saved on each product. Excel often turns Size (inch) 1/2 into a date — import restores 1/2 and 3/4. Discount can be <Text style={styles.mono}>0.25</Text> (25%), <Text style={styles.mono}>25</Text>, or <Text style={styles.mono}>25%</Text>. Std. Pkg is packing quantity, not stock. After import, change MRP and discount on Products, Subcategories, or Product Groups.
+            Brand, Type, Sub-Category, Class, and image_url are saved on each product. Size may be <Text style={styles.mono}>15 MM (½")</Text>. Discount can be <Text style={styles.mono}>0.25</Text> (25%), <Text style={styles.mono}>25</Text>, or <Text style={styles.mono}>25%</Text>. After import, change MRP and discount on Products, Subcategories, or Product Groups.
           </Text>
           <View style={{ height: spacing.md }} />
           <Button
@@ -248,16 +249,16 @@ export default function CsvImport() {
                     {it.name}
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
-                    {it.category || "—"}{it.subcategory || it.type ? ` / ${it.subcategory || it.type}` : ""}
+                    {it.category || "—"}{[it.type, it.subcategory, it.productClass].filter(Boolean).length ? ` / ${[it.type, it.subcategory, it.productClass].filter(Boolean).join(" / ")}` : ""}
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
                     {it.brand || "—"}
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
-                    {it.productCode || "—"}
+                    {it.productCode || "auto"}
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
-                    {[it.sizeCm != null ? `${it.sizeCm} cm` : it.size, it.sizeInch, it.length].filter(Boolean).join(" · ") || "—"}
+                    {[it.size, it.sizeInch, it.length].filter(Boolean).join(" · ") || "—"}
                   </Text>
                   <Text numberOfLines={1} style={styles.previewCellBody}>
                     {it.imageUrl ? "Yes" : "—"}

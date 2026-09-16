@@ -68,6 +68,7 @@ export type CatalogItem = {
   imageName?: string;
   productName?: string;
   type?: string;
+  productClass?: string;
   productGroup?: string;
   subcategory?: string;
   size?: string;
@@ -112,6 +113,7 @@ export type ImportRow = {
   unit: string;
   standardRate: number;
   type?: string;
+  productClass?: string;
   productGroup?: string;
   brand?: string;
   productName?: string;
@@ -246,6 +248,8 @@ export function listCatalog(category?: string, search?: string, groupId?: string
   type?: string;
   brand?: string;
   productGroup?: string;
+  subcategory?: string;
+  productClass?: string;
   sizeMm?: number;
 }) {
   return apiRequest<CatalogItem[]>("/catalog", {
@@ -256,6 +260,8 @@ export function listCatalog(category?: string, search?: string, groupId?: string
       type: filters?.type,
       brand: filters?.brand,
       product_group: filters?.productGroup,
+      subcategory: filters?.subcategory,
+      product_class: filters?.productClass,
       size_mm: filters?.sizeMm,
     },
   });

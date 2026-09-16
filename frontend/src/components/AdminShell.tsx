@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, font, isWeb, pointer, spacing } from "@/src/theme";
 import { fullSignOut, getAdmin } from "@/src/state/session";
+import { getTaxonomyTabs, type TaxonomyTabs } from "@/src/features/catalog-taxonomy/settings";
 
 type NavItem = {
   href: string;
@@ -15,48 +16,61 @@ type NavItem = {
 
 type NavSection = { title: string; items: NavItem[] };
 
-const NAV: NavSection[] = [
-  {
-    title: "Overview",
-    items: [
-      { href: "/dashboard", label: "Dashboard", icon: "grid-outline", testID: "sidebar-dashboard" },
-    ],
-  },
-  {
-    title: "Catalog",
-    items: [
-      { href: "/catalog", label: "Products", icon: "cube-outline", testID: "sidebar-catalog" },
-      { href: "/categories", label: "Categories", icon: "pricetags-outline", testID: "sidebar-categories" },
-      { href: "/subcategories", label: "Subcategories", icon: "git-branch-outline", testID: "sidebar-subcategories" },
-      { href: "/brands", label: "Brands", icon: "ribbon-outline", testID: "sidebar-brands" },
-      { href: "/product-groups", label: "Product groups", icon: "layers-outline", testID: "sidebar-product-groups" },
-      { href: "/csv-import", label: "CSV import", icon: "cloud-upload-outline", testID: "sidebar-csv-import" },
-    ],
-  },
-  {
-    title: "Warehouse",
-    items: [
-      { href: "/racks", label: "Racks", icon: "grid-outline", testID: "sidebar-racks" },
-      { href: "/purchases", label: "Purchases", icon: "cart-outline", testID: "sidebar-purchases" },
-      { href: "/inventory", label: "Inventory", icon: "bar-chart-outline", testID: "sidebar-inventory" },
-    ],
-  },
-  {
-    title: "Sales",
-    items: [
-      { href: "/rfqs", label: "RFQs", icon: "document-text-outline", testID: "sidebar-rfqs" },
-      { href: "/partners", label: "Partners", icon: "people-outline", testID: "sidebar-partners" },
-      { href: "/dispatches", label: "Dispatch", icon: "barcode-outline", testID: "sidebar-dispatches" },
-      { href: "/money-config", label: "Money config", icon: "cash-outline", testID: "sidebar-money-config" },
-    ],
-  },
-  {
-    title: "Admin",
-    items: [
-      { href: "/team", label: "Team", icon: "shield-outline", testID: "sidebar-team" },
-    ],
-  },
-];
+function catalogNav(tabs: TaxonomyTabs): NavItem[] {
+  const items: NavItem[] = [
+    { href: "/catalog", label: "Products", icon: "cube-outline", testID: "sidebar-catalog" },
+    { href: "/categories", label: "Categories", icon: "pricetags-outline", testID: "sidebar-categories" },
+  ];
+  if (tabs.showProductType) {
+    items.push({ href: "/product-types", label: "Product type", icon: "funnel-outline", testID: "sidebar-product-types" });
+  }
+  items.push({ href: "/subcategories", label: "Subcategories", icon: "git-branch-outline", testID: "sidebar-subcategories" });
+  if (tabs.showProductClass) {
+    items.push({ href: "/product-classes", label: "Product class", icon: "filter-outline", testID: "sidebar-product-classes" });
+  }
+  items.push(
+    { href: "/brands", label: "Brands", icon: "ribbon-outline", testID: "sidebar-brands" },
+    { href: "/product-groups", label: "Product groups", icon: "layers-outline", testID: "sidebar-product-groups" },
+    { href: "/csv-import", label: "CSV import", icon: "cloud-upload-outline", testID: "sidebar-csv-import" },
+  );
+  return items;
+}
+
+function buildNav(tabs: TaxonomyTabs): NavSection[] {
+  return [
+    {
+      title: "Overview",
+      items: [
+        { href: "/dashboard", label: "Dashboard", icon: "grid-outline", testID: "sidebar-dashboard" },
+      ],
+    },
+    { title: "Catalog", items: catalogNav(tabs) },
+    {
+      title: "Warehouse",
+      items: [
+        { href: "/racks", label: "Racks", icon: "grid-outline", testID: "sidebar-racks" },
+        { href: "/purchases", label: "Purchases", icon: "cart-outline", testID: "sidebar-purchases" },
+        { href: "/inventory", label: "Inventory", icon: "bar-chart-outline", testID: "sidebar-inventory" },
+      ],
+    },
+    {
+      title: "Sales",
+      items: [
+        { href: "/rfqs", label: "RFQs", icon: "document-text-outline", testID: "sidebar-rfqs" },
+        { href: "/partners", label: "Partners", icon: "people-outline", testID: "sidebar-partners" },
+        { href: "/dispatches", label: "Dispatch", icon: "barcode-outline", testID: "sidebar-dispatches" },
+        { href: "/money-config", label: "Money config", icon: "cash-outline", testID: "sidebar-money-config" },
+      ],
+    },
+    {
+      title: "Admin",
+      items: [
+        { href: "/settings", label: "Settings", icon: "settings-outline", testID: "sidebar-settings" },
+        { href: "/team", label: "Team", icon: "shield-outline", testID: "sidebar-team" },
+      ],
+    },
+  ];
+}
 
 const AUTH_PATHS = ["/login", "/register"];
 
@@ -72,9 +86,12 @@ export function AdminShell({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [company, setCompany] = useState("");
+  const [tabs, setTabs] = useState<TaxonomyTabs>({ showProductType: true, showProductClass: true });
+  const nav = useMemo(() => buildNav(tabs), [tabs]);
 
   useEffect(() => {
     getAdmin().then((a) => setCompany(a?.companyName || ""));
+    getTaxonomyTabs().then(setTabs);
   }, [pathname]);
 
   const signOut = useCallback(async () => {
@@ -96,7 +113,7 @@ export function AdminShell({ children }: { children?: React.ReactNode }) {
           </Text>
         </View>
         <ScrollView style={styles.navScroll} contentContainerStyle={styles.navContent}>
-          {NAV.map((section) => (
+          {nav.map((section) => (
             <View key={section.title} style={styles.section}>
               <Text style={styles.sectionTitle}>{section.title}</Text>
               {section.items.map((item) => {

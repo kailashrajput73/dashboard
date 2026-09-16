@@ -38,7 +38,7 @@ import {
 import { ApiError } from "@/src/api/client";
 import { formatMoney } from "@/src/utils/money";
 import { sizeInchLabel, sizeLengthLabel, sizeMmLabel, parseSizeMm } from "@/src/utils/size";
-import { discountFromMrpSelling, sellingFromMrpDiscount } from "@/src/utils/pricing";
+import { inferProductClass } from "@/src/utils/csv";
 
 export default function AdminCatalog() {
   const router = useRouter();
@@ -46,6 +46,9 @@ export default function AdminCatalog() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [selectedCat, setSelectedCat] = useState<string>("All");
+  const [selectedType, setSelectedType] = useState<string>("All");
+  const [selectedClass, setSelectedClass] = useState<string>("All");
+  const [selectedBrand, setSelectedBrand] = useState<string>("All");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,14 +133,14 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
 
   const load = useCallback(async () => {
     try {
-      const [c, b, i] = await Promise.all([listCategories(), listBrands(), listCatalog(selectedCat, search)]);
+      const [c, b, i] = await Promise.all([listCategories(), listBrands(), listCatalog()]);
       setCats(c || []);
       setBrands(b || []);
       setItems(i || []);
     } catch (e: any) {
       setErr(e instanceof ApiError ? e.message : "Failed to load catalog");
     }
-  }, [search, selectedCat]);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -276,7 +279,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   }
 
   async function applyListed(kind: "discount" | "stock") {
-    if (items.length === 0) return;
+    if (listed.length === 0) return;
     const discount = parseFloat(bulkDiscount);
     const stock = parseFloat(bulkStock);
     if (kind === "discount" && Number.isNaN(discount)) {
@@ -290,7 +293,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     setBulkSaving(true);
     try {
       const res = await applyCatalogPricingBulk(
-        items,
+        listed,
         kind === "discount" ? { discount } : { stock },
       );
       await load();
@@ -315,12 +318,47 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   }
 
   const chipCats = useMemo(() => ["All", ...cats.map((c) => c.name)], [cats]);
+  const listed = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return items.filter((item) => {
+      if (selectedCat !== "All" && (item.category || "") !== selectedCat) return false;
+      if (selectedType !== "All" && (item.type || "").toLowerCase() !== selectedType.toLowerCase()) return false;
+      const className = inferProductClass(item);
+      if (selectedClass !== "All" && className.toLowerCase() !== selectedClass.toLowerCase()) return false;
+      if (selectedBrand !== "All" && (item.brand || "").toLowerCase() !== selectedBrand.toLowerCase()) return false;
+      if (!q) return true;
+      return `${item.name} ${item.productCode || ""} ${item.brand || ""} ${(item.aliases || []).join(" ")}`.toLowerCase().includes(q);
+    });
+  }, [items, search, selectedCat, selectedType, selectedClass, selectedBrand]);
+  const typeChips = useMemo(() => {
+    const pool = items.filter((item) => selectedCat === "All" || (item.category || "") === selectedCat);
+    return ["All", ...[...new Set(pool.map((item) => (item.type || "").trim()).filter(Boolean))].sort()];
+  }, [items, selectedCat]);
+  const classChips = useMemo(() => {
+    const pool = items.filter((item) => {
+      if (selectedCat !== "All" && (item.category || "") !== selectedCat) return false;
+      if (selectedType !== "All" && (item.type || "").toLowerCase() !== selectedType.toLowerCase()) return false;
+      return true;
+    });
+    return ["All", ...[...new Set(pool.map((item) => inferProductClass(item)).filter(Boolean))].sort()];
+  }, [items, selectedCat, selectedType]);
+  const brandChips = useMemo(() => {
+    const pool = listed.length && (selectedClass !== "All" || selectedType !== "All")
+      ? items.filter((item) => {
+        if (selectedCat !== "All" && (item.category || "") !== selectedCat) return false;
+        if (selectedType !== "All" && (item.type || "").toLowerCase() !== selectedType.toLowerCase()) return false;
+        if (selectedClass !== "All" && inferProductClass(item).toLowerCase() !== selectedClass.toLowerCase()) return false;
+        return true;
+      })
+      : items.filter((item) => selectedCat === "All" || (item.category || "") === selectedCat);
+    return ["All", ...[...new Set(pool.map((item) => (item.brand || "").trim()).filter(Boolean))].sort()];
+  }, [items, selectedCat, selectedType, selectedClass]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header
         title="Manage Catalog"
-        subtitle={`${items.length} item${items.length === 1 ? "" : "s"} · edit MRP, discount, and stock without re-uploading`}
+        subtitle={`${listed.length} of ${items.length} item${items.length === 1 ? "" : "s"} · pick type / class / brand like a store filter`}
         onBack={() => router.back()}
         right={
           <Pressable onPress={openAdd} testID="open-add-item" hitSlop={8} accessibilityRole="button" style={pointer}>
@@ -331,18 +369,51 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
 
       <View style={styles.chipsWrap}>
         <Input testID="product-search" value={search} onChangeText={setSearch} placeholder="Search code, name, alias, or brand" style={styles.search} />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsRow}
-        >
+        <Text style={styles.filterLabel}>Category</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
           {chipCats.map((c) => (
             <Chip
-              key={c}
+              key={`cat-${c}`}
               label={c}
               selected={selectedCat === c}
-              onPress={() => setSelectedCat(c)}
+              onPress={() => { setSelectedCat(c); setSelectedType("All"); setSelectedClass("All"); setSelectedBrand("All"); }}
               testID={`admin-cat-${c}`}
+            />
+          ))}
+        </ScrollView>
+        <Text style={styles.filterLabel}>Product type</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+          {typeChips.map((c) => (
+            <Chip
+              key={`type-${c}`}
+              label={c}
+              selected={selectedType === c}
+              onPress={() => { setSelectedType(c); setSelectedClass("All"); setSelectedBrand("All"); }}
+              testID={`admin-type-${c}`}
+            />
+          ))}
+        </ScrollView>
+        <Text style={styles.filterLabel}>Product class</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+          {classChips.map((c) => (
+            <Chip
+              key={`class-${c}`}
+              label={c}
+              selected={selectedClass === c}
+              onPress={() => { setSelectedClass(c); setSelectedBrand("All"); }}
+              testID={`admin-class-${c}`}
+            />
+          ))}
+        </ScrollView>
+        <Text style={styles.filterLabel}>Brand</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+          {brandChips.map((c) => (
+            <Chip
+              key={`brand-${c}`}
+              label={c}
+              selected={selectedBrand === c}
+              onPress={() => setSelectedBrand(c)}
+              testID={`admin-brand-${c}`}
             />
           ))}
         </ScrollView>
@@ -352,7 +423,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
-      ) : items.length === 0 ? (
+      ) : listed.length === 0 ? (
         <EmptyState
           icon="cube-outline"
           title="No items yet"
@@ -368,7 +439,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
             Day-to-day work: change MRP, discount %, or stock on a row, then Save. Selling price updates from MRP and discount.
           </Text>
           <View style={styles.bulkBar}>
-            <Text style={styles.bulkLabel}>Apply to {items.length} listed product{items.length === 1 ? "" : "s"}</Text>
+            <Text style={styles.bulkLabel}>Apply to {listed.length} listed product{listed.length === 1 ? "" : "s"}</Text>
             <TextInput
               value={bulkDiscount}
               onChangeText={setBulkDiscount}
@@ -399,7 +470,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
             <Text style={[styles.th, styles.colNum]}>Stock</Text>
             <Text style={[styles.th, styles.colActions]}> </Text>
           </View>
-          {items.map((item) => (
+          {listed.map((item) => (
             <PricingRow
               key={item.id}
               item={item}
@@ -411,7 +482,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
         </ScrollView>
       ) : (
         <FlatList
-          data={items}
+          data={listed}
           keyExtractor={(it) => it.id}
           contentContainerStyle={styles.list}
           refreshControl={
@@ -802,11 +873,20 @@ function PricingRow(props: {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   chipsWrap: {
-    height: 104,
-    justifyContent: "center",
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.bg,
+    paddingBottom: spacing.sm,
+  },
+  filterLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+    marginLeft: spacing.lg,
+    marginTop: 8,
+    marginBottom: 4,
   },
   search: { marginHorizontal: spacing.lg, marginTop: spacing.sm, marginBottom: 0 },
   tableWrap: { padding: spacing.lg, paddingBottom: 48 },

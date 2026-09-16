@@ -100,6 +100,28 @@ def parse_size_mm(value):
     return float(match.group(0)) if match else None
 
 
+def slug_product_code(*parts) -> str:
+    raw = "-".join(str(p).strip() for p in parts if p and str(p).strip())
+    raw = re.sub(r"[^A-Za-z0-9]+", "-", raw).strip("-").upper()
+    return raw[:48]
+
+
+def infer_product_class(*texts) -> Optional[str]:
+    blob = " ".join(str(t) for t in texts if t)
+    if not blob.strip():
+        return None
+    patterns = [
+        (r"SDR\s*13\.?5", "SDR13.5"),
+        (r"SDR\s*11", "SDR11"),
+        (r"SCH(?:EDULE)?\s*80", "Sch 80"),
+        (r"SCH(?:EDULE)?\s*40", "Sch 40"),
+    ]
+    for pattern, label in patterns:
+        if re.search(pattern, blob, re.I):
+            return label
+    return None
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -179,6 +201,7 @@ class CatalogItemIn(BaseModel):
     productCode: Optional[str] = None
     productName: Optional[str] = None
     type: Optional[str] = None
+    productClass: Optional[str] = None
     productGroup: Optional[str] = None
     size: Optional[str] = None
     sizeMm: Optional[float] = None
@@ -315,6 +338,7 @@ class ImportItem(BaseModel):
     unit: str
     standardRate: float
     type: Optional[str] = None
+    productClass: Optional[str] = None
     productGroup: Optional[str] = None
     brand: Optional[str] = None
     productName: Optional[str] = None
@@ -591,6 +615,7 @@ async def reset_catalog_tree():
     categories = await db.categories.delete_many({})
     subcategories = await db.subcategories.delete_many({})
     groups = await db.product_groups.delete_many({})
+    brands = await db.brands.delete_many({})
     pricing = await db.pricing.delete_many({})
     history = await db.pricing_history.delete_many({})
     async for rack in db.racks.find({}):
@@ -607,6 +632,7 @@ async def reset_catalog_tree():
         "categories": categories.deleted_count,
         "subcategories": subcategories.deleted_count,
         "productGroups": groups.deleted_count,
+        "brands": brands.deleted_count,
         "pricing": pricing.deleted_count,
         "pricingHistory": history.deleted_count,
     }
@@ -1197,6 +1223,8 @@ async def list_catalog(
     type: Optional[str] = None,
     brand: Optional[str] = None,
     product_group: Optional[str] = None,
+    subcategory: Optional[str] = None,
+    product_class: Optional[str] = None,
     size_mm: Optional[float] = None,
 ):
     q: dict = {}
@@ -1213,11 +1241,15 @@ async def list_catalog(
     if group_id:
         q["productGroupIds"] = group_id
     if type:
-        q["type"] = type
+        q["type"] = {"$regex": f"^{re.escape(type.strip())}$", "$options": "i"}
     if brand:
-        q["brand"] = brand
+        q["brand"] = {"$regex": f"^{re.escape(brand.strip())}$", "$options": "i"}
     if product_group:
         q["productGroup"] = product_group
+    if subcategory:
+        q["subcategory"] = {"$regex": f"^{re.escape(subcategory.strip())}$", "$options": "i"}
+    if product_class:
+        q["productClass"] = {"$regex": f"^{re.escape(product_class.strip())}$", "$options": "i"}
     if size_mm is not None:
         q["sizeMm"] = size_mm
     brand_names = {b["id"]: b["name"] async for b in db.brands.find({}, {"_id": 0, "id": 1, "name": 1})}
@@ -1227,6 +1259,10 @@ async def list_catalog(
         item = dict(catalog_item)
         if not item.get("brand"):
             item["brand"] = brand_names.get(item.get("brandId"))
+        inferred_class = infer_product_class(item.get("productClass"), item.get("name"), item.get("productName"))
+        if inferred_class and item.get("productClass") != inferred_class:
+            item["productClass"] = inferred_class
+            await db.catalog.update_one({"id": item.get("id")}, {"$set": {"productClass": inferred_class}})
         pricing = await db.pricing.find_one({"productCode": item.get("productCode")}, {"_id": 0})
         if pricing:
             item.update({
@@ -1269,6 +1305,7 @@ async def create_catalog(body: CatalogItemIn):
         "productCode": product_code,
         "productName": body.productName or body.name.strip(),
         "type": body.type,
+        "productClass": body.productClass,
         "productGroup": body.productGroup,
         "subcategory": body.subcategory,
         "subcategoryId": body.subcategoryId,
@@ -1326,6 +1363,7 @@ async def update_catalog(item_id: str, body: CatalogItemIn):
         "brand": brand["name"] if brand else None,
         "productName": body.productName or body.name.strip(),
         "type": keep(body.type, "type"),
+        "productClass": keep(body.productClass, "productClass"),
         "productGroup": keep(body.productGroup, "productGroup"),
         "subcategory": keep(body.subcategory, "subcategory"),
         "subcategoryId": keep(body.subcategoryId, "subcategoryId"),
@@ -1470,7 +1508,7 @@ async def import_catalog(body: CatalogImportIn):
         if not it.name or not it.unit:
             skipped += 1
             continue
-        product_code = (it.productCode or "").strip()
+        product_code = (it.productCode or "").strip().rstrip("^")
         brand = None
         if it.brand and it.brand.strip():
             brand_key = it.brand.strip().lower()
@@ -1481,6 +1519,14 @@ async def import_catalog(body: CatalogImportIn):
                     brand = {"id": new_id(), "name": it.brand.strip(), "isActive": True, "createdAt": now_iso(), "updatedAt": now_iso()}
                     await db.brands.insert_one(brand.copy())
                 brand_cache[brand_key] = brand
+        if not product_code:
+            product_code = slug_product_code(
+                it.brand,
+                it.type,
+                it.productClass,
+                it.size or it.sizeInch or it.sizeCm or it.sizeMm,
+                it.length,
+            ) or f"PRD-{uuid.uuid4().hex[:10].upper()}"
         existing = await db.catalog.find_one({"productCode": product_code}) if product_code else None
         selling = selling_from(it.mrp, it.discount, it.sellingPrice, it.standardRate or 0)
         stock = it.stock if it.stock is not None else (existing.get("stock") if existing else 0)
@@ -1496,7 +1542,7 @@ async def import_catalog(body: CatalogImportIn):
                 group_cache[group_key] = group
             if group["id"] not in group_ids:
                 group_ids.append(group["id"])
-        sub_name = (it.subcategory or it.type or "").strip()
+        sub_name = (it.subcategory or "").strip()
         subcategory_doc = None
         if sub_name:
             sub_key = f"{cat.lower()}::{sub_name.lower()}"
@@ -1536,8 +1582,9 @@ async def import_catalog(body: CatalogImportIn):
             "stock": stock,
             "brandId": brand["id"] if brand else (existing.get("brandId") if existing else None),
             "brand": brand["name"] if brand else (existing.get("brand") if existing else None),
-            "productCode": (product_code or (existing.get("productCode") if existing else f"PRD-{uuid.uuid4().hex[:10].upper()}")).rstrip("^"),
-            "type": it.type or it.subcategory,
+            "productCode": product_code or (existing.get("productCode") if existing else f"PRD-{uuid.uuid4().hex[:10].upper()}"),
+            "type": it.type,
+            "productClass": (it.productClass or "").strip() or infer_product_class(it.productClass, it.name, it.productName),
             "subcategory": subcategory_doc["name"] if subcategory_doc else (existing.get("subcategory") if existing else None),
             "subcategoryId": subcategory_doc["id"] if subcategory_doc else (existing.get("subcategoryId") if existing else None),
             "productGroup": it.productGroup,

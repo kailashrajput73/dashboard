@@ -8,6 +8,7 @@ import { Header } from "@/src/components/UI";
 import { colors, spacing, radii, shadow, font, isWeb, pointer } from "@/src/theme";
 import { fullSignOut, getAdmin } from "@/src/state/session";
 import { listCatalog, listCategories } from "@/src/api/endpoints";
+import { getTaxonomyTabs } from "@/src/features/catalog-taxonomy/settings";
 
 type IonName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -16,14 +17,18 @@ export default function AdminDashboard() {
   const [company, setCompany] = useState<string>("");
   const [catalogCount, setCatalogCount] = useState<number>(0);
   const [categoryCount, setCategoryCount] = useState<number>(0);
+  const [showProductType, setShowProductType] = useState(true);
+  const [showProductClass, setShowProductClass] = useState(true);
 
   const load = useCallback(async () => {
     const a = await getAdmin();
     setCompany(a?.companyName || "");
     try {
-      const [items, cats] = await Promise.all([listCatalog(), listCategories()]);
+      const [items, cats, tabs] = await Promise.all([listCatalog(), listCategories(), getTaxonomyTabs()]);
       setCatalogCount(items?.length || 0);
       setCategoryCount(cats?.length || 0);
+      setShowProductType(tabs.showProductType);
+      setShowProductClass(tabs.showProductClass);
     } catch {}
   }, []);
 
@@ -95,6 +100,15 @@ export default function AdminDashboard() {
             icon="pricetags-outline"
             onPress={() => router.push("/(admin)/categories")}
           />
+          {showProductType ? (
+            <ActionRow
+              testID="nav-product-type-manage"
+              title="Product type"
+              subtitle="CPVC, PVC, UPVC and products in each type"
+              icon="funnel-outline"
+              onPress={() => router.push("/(admin)/product-types")}
+            />
+          ) : null}
           <ActionRow
             testID="nav-subcategory-manage"
             title="Manage Subcategories"
@@ -102,6 +116,15 @@ export default function AdminDashboard() {
             icon="git-branch-outline"
             onPress={() => router.push("/(admin)/subcategories")}
           />
+          {showProductClass ? (
+            <ActionRow
+              testID="nav-product-class-manage"
+              title="Product class"
+              subtitle="SDR11, Sch 40 and products in each class"
+              icon="filter-outline"
+              onPress={() => router.push("/(admin)/product-classes")}
+            />
+          ) : null}
           <ActionRow
             testID="nav-brand-manage"
             title="Manage Brands"
@@ -178,6 +201,13 @@ export default function AdminDashboard() {
             subtitle="Discounts, GST & visibility"
             icon="cash-outline"
             onPress={() => router.push("/(admin)/money-config")}
+          />
+          <ActionRow
+            testID="nav-settings"
+            title="Settings"
+            subtitle="Show or hide Product type and Product class tabs"
+            icon="settings-outline"
+            onPress={() => router.push("/(admin)/settings")}
           />
         </View>
       </ScrollView>
