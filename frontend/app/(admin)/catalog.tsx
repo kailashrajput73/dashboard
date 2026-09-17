@@ -49,6 +49,10 @@ export default function AdminCatalog() {
   const [selectedType, setSelectedType] = useState<string>("All");
   const [selectedClass, setSelectedClass] = useState<string>("All");
   const [selectedBrand, setSelectedBrand] = useState<string>("All");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [draftType, setDraftType] = useState("All");
+  const [draftClass, setDraftClass] = useState("All");
+  const [draftBrand, setDraftBrand] = useState("All");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -335,30 +339,32 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     return ["All", ...[...new Set(pool.map((item) => (item.type || "").trim()).filter(Boolean))].sort()];
   }, [items, selectedCat]);
   const classChips = useMemo(() => {
+    const typeFilter = filterOpen ? draftType : selectedType;
     const pool = items.filter((item) => {
       if (selectedCat !== "All" && (item.category || "") !== selectedCat) return false;
-      if (selectedType !== "All" && (item.type || "").toLowerCase() !== selectedType.toLowerCase()) return false;
+      if (typeFilter !== "All" && (item.type || "").toLowerCase() !== typeFilter.toLowerCase()) return false;
       return true;
     });
     return ["All", ...[...new Set(pool.map((item) => inferProductClass(item)).filter(Boolean))].sort()];
-  }, [items, selectedCat, selectedType]);
+  }, [items, selectedCat, selectedType, filterOpen, draftType]);
   const brandChips = useMemo(() => {
-    const pool = listed.length && (selectedClass !== "All" || selectedType !== "All")
-      ? items.filter((item) => {
-        if (selectedCat !== "All" && (item.category || "") !== selectedCat) return false;
-        if (selectedType !== "All" && (item.type || "").toLowerCase() !== selectedType.toLowerCase()) return false;
-        if (selectedClass !== "All" && inferProductClass(item).toLowerCase() !== selectedClass.toLowerCase()) return false;
-        return true;
-      })
-      : items.filter((item) => selectedCat === "All" || (item.category || "") === selectedCat);
+    const typeFilter = filterOpen ? draftType : selectedType;
+    const classFilter = filterOpen ? draftClass : selectedClass;
+    const pool = items.filter((item) => {
+      if (selectedCat !== "All" && (item.category || "") !== selectedCat) return false;
+      if (typeFilter !== "All" && (item.type || "").toLowerCase() !== typeFilter.toLowerCase()) return false;
+      if (classFilter !== "All" && inferProductClass(item).toLowerCase() !== classFilter.toLowerCase()) return false;
+      return true;
+    });
     return ["All", ...[...new Set(pool.map((item) => (item.brand || "").trim()).filter(Boolean))].sort()];
-  }, [items, selectedCat, selectedType, selectedClass]);
+  }, [items, selectedCat, selectedType, selectedClass, filterOpen, draftType, draftClass]);
+  const extraFilterCount = [selectedType, selectedClass, selectedBrand].filter((value) => value !== "All").length;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header
         title="Manage Catalog"
-        subtitle={`${listed.length} of ${items.length} item${items.length === 1 ? "" : "s"} · pick type / class / brand like a store filter`}
+        subtitle={`${listed.length} of ${items.length} item${items.length === 1 ? "" : "s"} · edit MRP, discount, and stock without re-uploading`}
         onBack={() => router.back()}
         right={
           <Pressable onPress={openAdd} testID="open-add-item" hitSlop={8} accessibilityRole="button" style={pointer}>
@@ -369,54 +375,41 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
 
       <View style={styles.chipsWrap}>
         <Input testID="product-search" value={search} onChangeText={setSearch} placeholder="Search code, name, alias, or brand" style={styles.search} />
-        <Text style={styles.filterLabel}>Category</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-          {chipCats.map((c) => (
-            <Chip
-              key={`cat-${c}`}
-              label={c}
-              selected={selectedCat === c}
-              onPress={() => { setSelectedCat(c); setSelectedType("All"); setSelectedClass("All"); setSelectedBrand("All"); }}
-              testID={`admin-cat-${c}`}
-            />
-          ))}
-        </ScrollView>
-        <Text style={styles.filterLabel}>Product type</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-          {typeChips.map((c) => (
-            <Chip
-              key={`type-${c}`}
-              label={c}
-              selected={selectedType === c}
-              onPress={() => { setSelectedType(c); setSelectedClass("All"); setSelectedBrand("All"); }}
-              testID={`admin-type-${c}`}
-            />
-          ))}
-        </ScrollView>
-        <Text style={styles.filterLabel}>Product class</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-          {classChips.map((c) => (
-            <Chip
-              key={`class-${c}`}
-              label={c}
-              selected={selectedClass === c}
-              onPress={() => { setSelectedClass(c); setSelectedBrand("All"); }}
-              testID={`admin-class-${c}`}
-            />
-          ))}
-        </ScrollView>
-        <Text style={styles.filterLabel}>Brand</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-          {brandChips.map((c) => (
-            <Chip
-              key={`brand-${c}`}
-              label={c}
-              selected={selectedBrand === c}
-              onPress={() => setSelectedBrand(c)}
-              testID={`admin-brand-${c}`}
-            />
-          ))}
-        </ScrollView>
+        <Text style={styles.categoryLabel}>Category</Text>
+        <View style={styles.catRow}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow} style={{ flex: 1 }}>
+            {chipCats.map((c) => (
+              <Chip
+                key={`cat-${c}`}
+                label={c}
+                selected={selectedCat === c}
+                onPress={() => { setSelectedCat(c); setSelectedType("All"); setSelectedClass("All"); setSelectedBrand("All"); }}
+                testID={`admin-cat-${c}`}
+              />
+            ))}
+          </ScrollView>
+          <Pressable
+            testID="open-catalog-filter"
+            accessibilityRole="button"
+            onPress={() => {
+              setDraftType(selectedType);
+              setDraftClass(selectedClass);
+              setDraftBrand(selectedBrand);
+              setFilterOpen(true);
+            }}
+            style={({ hovered, pressed }) => [
+              styles.filterBtn,
+              pointer,
+              extraFilterCount > 0 && styles.filterBtnActive,
+              (hovered || pressed) && { opacity: 0.9 },
+            ]}
+          >
+            <Ionicons name="options-outline" size={18} color={extraFilterCount > 0 ? "#FFFFFF" : colors.primary} />
+            <Text style={[styles.filterBtnText, extraFilterCount > 0 && styles.filterBtnTextActive]}>
+              Filter{extraFilterCount ? ` (${extraFilterCount})` : ""}
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       {loading ? (
@@ -518,6 +511,74 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           )}
         />
       )}
+
+      <AppModal testID="catalog-filter-modal" visible={filterOpen} onClose={() => setFilterOpen(false)} title="Filter products">
+        <Text style={styles.filterHint}>Pick product type, class, and brand, then Apply. Category stays on the main page.</Text>
+        <Text style={styles.filterLabel}>Product type</Text>
+        <View style={styles.filterChipWrap}>
+          {typeChips.map((c) => (
+            <Chip
+              key={`type-${c}`}
+              label={c}
+              selected={draftType === c}
+              onPress={() => { setDraftType(c); setDraftClass("All"); setDraftBrand("All"); }}
+              testID={`admin-type-${c}`}
+            />
+          ))}
+        </View>
+        <Text style={styles.filterLabel}>Product class</Text>
+        <View style={styles.filterChipWrap}>
+          {classChips.map((c) => (
+            <Chip
+              key={`class-${c}`}
+              label={c}
+              selected={draftClass === c}
+              onPress={() => { setDraftClass(c); setDraftBrand("All"); }}
+              testID={`admin-class-${c}`}
+            />
+          ))}
+        </View>
+        <Text style={styles.filterLabel}>Brand</Text>
+        <View style={styles.filterChipWrap}>
+          {brandChips.map((c) => (
+            <Chip
+              key={`brand-${c}`}
+              label={c}
+              selected={draftBrand === c}
+              onPress={() => setDraftBrand(c)}
+              testID={`admin-brand-${c}`}
+            />
+          ))}
+        </View>
+        <View style={{ height: spacing.md }} />
+        <Button
+          testID="apply-catalog-filter"
+          title="Apply filters"
+          onPress={() => {
+            setSelectedType(draftType);
+            setSelectedClass(draftClass);
+            setSelectedBrand(draftBrand);
+            setFilterOpen(false);
+          }}
+          fullWidth
+        />
+        <View style={{ height: spacing.sm }} />
+        <Button
+          testID="clear-catalog-filter"
+          title="Clear type, class, and brand"
+          variant="ghost"
+          onPress={() => {
+            setDraftType("All");
+            setDraftClass("All");
+            setDraftBrand("All");
+            setSelectedType("All");
+            setSelectedClass("All");
+            setSelectedBrand("All");
+            setFilterOpen(false);
+          }}
+          fullWidth
+        />
+      </AppModal>
 
       {/* Add / Edit modal */}
       <AppModal
@@ -878,7 +939,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     paddingBottom: spacing.sm,
   },
-  filterLabel: {
+  categoryLabel: {
     color: colors.textMuted,
     fontSize: 11,
     fontWeight: "700",
@@ -887,6 +948,36 @@ const styles = StyleSheet.create({
     marginLeft: spacing.lg,
     marginTop: 8,
     marginBottom: 4,
+  },
+  catRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: spacing.md,
+    gap: spacing.sm,
+  },
+  filterBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    height: 36,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
+  },
+  filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  filterBtnText: { color: colors.primary, fontSize: 13, fontWeight: "700" },
+  filterBtnTextActive: { color: "#FFFFFF" },
+  filterHint: { color: colors.textSecondary, lineHeight: 20, marginBottom: spacing.md },
+  filterChipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: spacing.md },
+  filterLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+    marginBottom: 8,
   },
   search: { marginHorizontal: spacing.lg, marginTop: spacing.sm, marginBottom: 0 },
   tableWrap: { padding: spacing.lg, paddingBottom: 48 },
