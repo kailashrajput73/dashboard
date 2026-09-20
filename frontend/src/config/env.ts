@@ -28,7 +28,8 @@
 //   * MongoDB must be reachable from the backend
 //   * CORS must allow_origins=["*"] (or the mobile origin) for cross-device use
 // ============================================================================
-const USE_CLOUD_PREVIEW = true;
+// Set false while testing split imports (master / pricing / stock) — deploy backend first for cloud.
+const USE_CLOUD_PREVIEW = false;
 const CLOUD_PREVIEW_URL = process.env.EXPO_PUBLIC_BACKEND_URL || "https://python-api-6aft.onrender.com";
 
 // Flip this to `false` to force API_BASE_URL to LOCAL_BACKEND_URL below when
@@ -39,7 +40,7 @@ const CLOUD_PREVIEW_URL = process.env.EXPO_PUBLIC_BACKEND_URL || "https://python
 //   "http://10.0.2.2:8000"             (Android Emulator)
 //   "http://localhost:8000"            (web or iOS simulator on same laptop)
 //   "http://192.168.1.42:8000"        (physical phone via Expo Go on same WiFi)
-const LOCAL_BACKEND_URL = "http://10.0.2.2:8001";
+const LOCAL_BACKEND_URL = "http://localhost:8001";
 
 export const API_BASE_URL: string = USE_CLOUD_PREVIEW && CLOUD_PREVIEW_URL
   ? CLOUD_PREVIEW_URL

@@ -459,8 +459,8 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
             <Text style={[styles.th, styles.colSize]}>Length</Text>
             <Text style={[styles.th, styles.colNum]}>MRP</Text>
             <Text style={[styles.th, styles.colNum]}>Discount %</Text>
-            <Text style={[styles.th, styles.colNum]}>Selling</Text>
-            <Text style={[styles.th, styles.colNum]}>Stock</Text>
+            <Text style={[styles.th, styles.colNum, styles.colMetric]}>Selling</Text>
+            <Text style={[styles.th, styles.colNum, styles.colMetric]}>Stock</Text>
             <Text style={[styles.th, styles.colActions]}> </Text>
           </View>
           {listed.map((item) => (
@@ -919,8 +919,14 @@ function PricingRow(props: {
       <Text style={styles.sizeCell} numberOfLines={1}>{sizeLengthLabel(item) || "—"}</Text>
       <TextInput value={mrp} onChangeText={onMrp} keyboardType="decimal-pad" style={styles.tableInput} testID={`mrp-${item.id}`} />
       <TextInput value={discount} onChangeText={onDiscount} keyboardType="decimal-pad" style={styles.tableInput} testID={`discount-${item.id}`} />
-      <TextInput value={selling} onChangeText={onSelling} keyboardType="decimal-pad" style={styles.tableInput} testID={`selling-${item.id}`} />
-      <TextInput value={stock} onChangeText={setStock} keyboardType="decimal-pad" style={styles.tableInput} testID={`stock-${item.id}`} />
+      <View style={styles.metricCell}>
+        <Text style={styles.metricLabel}>Sell</Text>
+        <TextInput value={selling} onChangeText={onSelling} keyboardType="decimal-pad" style={styles.tableInputMetric} testID={`selling-${item.id}`} />
+      </View>
+      <View style={[styles.metricCell, styles.stockMetricCell]}>
+        <Text style={[styles.metricLabel, styles.stockMetricLabel]}>Qty</Text>
+        <TextInput value={stock} onChangeText={setStock} keyboardType="decimal-pad" style={[styles.tableInputMetric, styles.stockInput]} testID={`stock-${item.id}`} />
+      </View>
       <View style={styles.colActions}>
         <Button title={saving ? "Saving" : dirty ? "Save" : "Saved"} size="sm" onPress={save} loading={saving} disabled={!dirty} testID={`save-price-${item.id}`} />
         <Pressable onPress={props.onEdit} accessibilityRole="button" style={pointer} testID={`edit-item-${item.id}`}>
@@ -1036,6 +1042,38 @@ const styles = StyleSheet.create({
   colSize: { width: 88 },
   sizeCell: { width: 88, color: colors.textPrimary, fontSize: 13 },
   colNum: { width: 110, textAlign: "right" as const },
+  colMetric: { width: 118 },
+  metricCell: {
+    width: 118,
+    backgroundColor: "#F0FDF4",
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  metricLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#15803D",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    marginBottom: 2,
+  },
+  tableInputMetric: {
+    width: "100%",
+    height: 36,
+    borderWidth: 0,
+    paddingHorizontal: 4,
+    color: colors.textPrimary,
+    backgroundColor: "transparent",
+    fontSize: 15,
+    fontWeight: "700",
+    ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : {}),
+  },
+  stockInput: { color: "#0F766E" },
+  stockMetricCell: { backgroundColor: "#F0FDFA", borderColor: "#99F6E4" },
+  stockMetricLabel: { color: "#0F766E" },
   colActions: { width: 140, flexDirection: "row", alignItems: "center", gap: 8, justifyContent: "flex-end" },
   productCell: { flexDirection: "row", alignItems: "center", gap: 10 },
   tableThumb: { width: 40, height: 40, borderRadius: 8, backgroundColor: colors.bg },

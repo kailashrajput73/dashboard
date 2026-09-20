@@ -332,3 +332,126 @@ export function rowsToItems(rows: Record<string, string>[]): {
   }
   return { items, invalid };
 }
+
+export type MasterImportItem = {
+  name: string;
+  category?: string;
+  unit: string;
+  type?: string;
+  productClass?: string;
+  productGroup?: string;
+  brand?: string;
+  productName?: string;
+  subcategory?: string;
+  size?: string;
+  sizeMm?: number;
+  sizeCm?: number;
+  sizeInch?: string;
+  length?: string;
+  productCode?: string;
+  imageUrl?: string;
+  isActive?: boolean;
+};
+
+export type PricingImportItem = {
+  productCode: string;
+  mrp?: number;
+  discount?: number;
+  sellingPrice?: number;
+};
+
+export type StockImportItem = {
+  productCode: string;
+  stock: number;
+};
+
+export function rowsToMasterItems(rows: Record<string, string>[]): {
+  items: MasterImportItem[];
+  invalid: number;
+} {
+  const items: MasterImportItem[] = [];
+  let invalid = 0;
+  for (const r of rows) {
+    const productName = cell(r, "product_name", "name", "item", "item_name");
+    const productGroup = cell(r, "product_group", "productgroup");
+    const name = displayProductName(productName, productGroup);
+    if (!name) {
+      invalid++;
+      continue;
+    }
+    const sizeParsed = parseSizeCell(
+      cell(r, "size_cm", "sizecm", "size_mm", "sizemm", "size", "size_inch", "sizeinch"),
+    );
+    const sizeMm = sizeParsed.sizeMm ?? numberOrUndefined(cell(r, "size_mm", "sizemm"));
+    items.push({
+      name,
+      productName: productName || name,
+      category: clean(cell(r, "category")),
+      unit: cell(r, "unit", "uom") || "pcs",
+      type: clean(cell(r, "type")),
+      subcategory: clean(cell(r, "sub_category", "subcategory")),
+      productClass: clean(cell(r, "class", "product_class", "productclass")) || inferProductClass({ name, productName }),
+      productGroup: clean(productGroup),
+      brand: clean(cell(r, "brand")),
+      size: sizeParsed.size,
+      sizeMm,
+      sizeCm: numberOrUndefined(cell(r, "size_cm", "sizecm")) && !/\(/u.test(cell(r, "size_cm"))
+        ? numberOrUndefined(cell(r, "size_cm", "sizecm"))
+        : undefined,
+      sizeInch: sizeParsed.sizeInch || recoverSizeInch(cell(r, "size_inch", "sizeinch")) || undefined,
+      productCode: stripCode(cell(r, "product_code", "productcode", "sku", "code")),
+      length: clean(cell(r, "length")),
+      imageUrl: clean(cell(r, "image_url", "imageurl", "image", "photo")),
+      isActive: parseBoolean(cell(r, "is_active", "isactive")),
+    });
+  }
+  return { items, invalid };
+}
+
+export function rowsToPricingItems(rows: Record<string, string>[]): {
+  items: PricingImportItem[];
+  invalid: number;
+} {
+  const items: PricingImportItem[] = [];
+  let invalid = 0;
+  for (const r of rows) {
+    const productCode = stripCode(cell(r, "product_code", "productcode", "sku", "code"));
+    if (!productCode) {
+      invalid++;
+      continue;
+    }
+    const mrp = numberOrUndefined(
+      cell(r, "mrp_rs_per_nos", "mrp_rs_per_pc", "mrp_rs_per_pc_", "mrp", "price_rs_per_pc", "price_per_pc"),
+    );
+    const discount = discountToPercent(
+      numberOrUndefined(cell(r, "discount", "discount_percent", "discount_")),
+    );
+    const sellingPrice = numberOrUndefined(
+      cell(r, "selling_price", "sellingprice", "standard_rate", "standardrate", "rate", "price"),
+    );
+    if (mrp == null && discount == null && sellingPrice == null) {
+      invalid++;
+      continue;
+    }
+    items.push({ productCode, mrp, discount, sellingPrice });
+  }
+  return { items, invalid };
+}
+
+export function rowsToStockItems(rows: Record<string, string>[]): {
+  items: StockImportItem[];
+  invalid: number;
+} {
+  const items: StockImportItem[] = [];
+  let invalid = 0;
+  for (const r of rows) {
+    const productCode = stripCode(cell(r, "product_code", "productcode", "sku", "code"));
+    const stock = numberOrUndefined(cell(r, "stock_qty", "stockqty", "stock", "qty", "quantity"));
+    if (!productCode || stock == null) {
+      invalid++;
+      continue;
+    }
+    items.push({ productCode, stock });
+  }
+  return { items, invalid };
+}

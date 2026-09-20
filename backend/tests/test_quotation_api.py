@@ -399,6 +399,58 @@ class TestCatalog:
         names = {x["name"] for x in _env_ok(r2)["data"]}
         assert "TEST_CSV_2" in names
 
+    def test_split_import_master_pricing_stock(self, api_client):
+        brand = api_client.post(f"{API}/brands", json={"name": f"TEST_SplitBrand_{uuid.uuid4().hex[:6]}"}).json()["data"]
+        code = f"SPLIT-{uuid.uuid4().hex[:8].upper()}"
+        create = api_client.post(f"{API}/catalog", json={
+            "name": "Split Import Product",
+            "category": "General",
+            "unit": "pcs",
+            "standardRate": 100,
+            "brandId": brand["id"],
+            "productCode": code,
+            "mrp": 100,
+            "discount": 10,
+            "stock": 42,
+        })
+        assert create.status_code == 200, create.text
+
+        master = api_client.post(f"{API}/catalog/import/master", json={
+            "categoryMode": "fromCsv",
+            "overrideCategory": "",
+            "items": [{
+                "name": "Split Import Product Updated",
+                "unit": "pcs",
+                "category": "General",
+                "productCode": code,
+                "brand": "TESTBRAND",
+            }],
+        })
+        assert master.status_code == 200, master.text
+        d = _env_ok(master)["data"]
+        assert d["updated"] == 1
+
+        row = next(x for x in _env_ok(api_client.get(f"{API}/catalog"))["data"] if x.get("productCode") == code)
+        assert row["name"] == "Split Import Product Updated"
+        assert float(row["stock"]) == 42
+        assert float(row["standardRate"]) == 100
+
+        pricing = api_client.post(f"{API}/catalog/import/pricing", json={
+            "items": [{"productCode": code, "mrp": 200, "discount": 5}],
+        })
+        assert pricing.status_code == 200, pricing.text
+        row = next(x for x in _env_ok(api_client.get(f"{API}/catalog"))["data"] if x.get("productCode") == code)
+        assert float(row["mrp"]) == 200
+        assert float(row["discount"]) == 5
+        assert float(row["standardRate"]) == 190
+
+        stock = api_client.post(f"{API}/catalog/import/stock", json={
+            "items": [{"productCode": code, "stock": 7}],
+        })
+        assert stock.status_code == 200, stock.text
+        row = next(x for x in _env_ok(api_client.get(f"{API}/catalog"))["data"] if x.get("productCode") == code)
+        assert float(row["stock"]) == 7
+
 
 # ---------- Money Config ----------
 

@@ -433,6 +433,57 @@ export function importCatalog(body: {
   return apiRequest<ImportResult>("/catalog/import", { method: "POST", body });
 }
 
+export type MasterImportRow = {
+  name: string;
+  unit?: string;
+  category?: string;
+  type?: string;
+  productClass?: string;
+  productGroup?: string;
+  brand?: string;
+  productName?: string;
+  subcategory?: string;
+  size?: string;
+  sizeMm?: number;
+  sizeCm?: number;
+  sizeInch?: string;
+  productCode?: string;
+  length?: string;
+  imageUrl?: string;
+  isActive?: boolean;
+};
+
+export function importCatalogMaster(body: {
+  items: MasterImportRow[];
+  categoryMode?: "fromCsv" | "overrideExisting" | "overrideNew";
+  overrideCategory?: string;
+}) {
+  return apiRequest<ImportResult>("/catalog/import/master", {
+    method: "POST",
+    body: {
+      categoryMode: body.categoryMode ?? "fromCsv",
+      overrideCategory: body.overrideCategory ?? "",
+      items: body.items,
+    },
+  });
+}
+
+export function importCatalogPricing(body: {
+  items: { productCode: string; mrp?: number; discount?: number; sellingPrice?: number }[];
+}) {
+  return apiRequest<{ updated: number; skipped: number; warnings?: string[] }>(
+    "/catalog/import/pricing",
+    { method: "POST", body },
+  );
+}
+
+export function importCatalogStock(body: { items: { productCode: string; stock: number }[] }) {
+  return apiRequest<{ updated: number; skipped: number }>("/catalog/import/stock", {
+    method: "POST",
+    body,
+  });
+}
+
 // ---------- Money Config ----------
 
 // NOTE (DB): reads `money_config` by adminId. Auto-creates defaults if missing.

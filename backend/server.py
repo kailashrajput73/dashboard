@@ -399,6 +399,70 @@ class CatalogImportIn(BaseModel):
     replaceExisting: bool = False
 
 
+class MasterImportRow(BaseModel):
+    name: str
+    unit: str = "pcs"
+    category: Optional[str] = None
+    type: Optional[str] = None
+    productClass: Optional[str] = None
+    productGroup: Optional[str] = None
+    brand: Optional[str] = None
+    productName: Optional[str] = None
+    subcategory: Optional[str] = None
+    size: Optional[str] = None
+    sizeMm: Optional[float] = None
+    sizeCm: Optional[float] = None
+    sizeInch: Optional[str] = None
+    productCode: Optional[str] = None
+    length: Optional[str] = None
+    imageUrl: Optional[str] = None
+    isActive: bool = True
+
+    @field_validator("sizeMm", "sizeCm", mode="before")
+    @classmethod
+    def coerce_master_size(cls, value):
+        return parse_size_mm(value)
+
+
+class CatalogMasterImportIn(BaseModel):
+    items: List[MasterImportRow]
+    categoryMode: str = Field(default="fromCsv", pattern="^(fromCsv|overrideExisting|overrideNew)$")
+    overrideCategory: Optional[str] = ""
+
+
+class PricingImportRow(BaseModel):
+    productCode: str
+    mrp: Optional[float] = None
+    discount: Optional[float] = None
+    sellingPrice: Optional[float] = None
+
+    @field_validator("discount", mode="before")
+    @classmethod
+    def coerce_pricing_discount(cls, value):
+        if value is None or value == "":
+            return None
+        try:
+            n = float(value)
+        except (TypeError, ValueError):
+            return value
+        if 0 < n < 1:
+            return round(n * 100, 4)
+        return n
+
+
+class CatalogPricingImportIn(BaseModel):
+    items: List[PricingImportRow]
+
+
+class StockImportRow(BaseModel):
+    productCode: str
+    stock: float
+
+
+class CatalogStockImportIn(BaseModel):
+    items: List[StockImportRow]
+
+
 class MoneyConfigIn(BaseModel):
     discountPercent: float = 0
     gstPercent: float = 0
@@ -1529,7 +1593,10 @@ async def import_catalog(body: CatalogImportIn):
             ) or f"PRD-{uuid.uuid4().hex[:10].upper()}"
         existing = await db.catalog.find_one({"productCode": product_code}) if product_code else None
         selling = selling_from(it.mrp, it.discount, it.sellingPrice, it.standardRate or 0)
-        stock = it.stock if it.stock is not None else (existing.get("stock") if existing else 0)
+        if existing:
+            stock = float(existing.get("stock", 0))
+        else:
+            stock = it.stock if it.stock is not None else 0
         group_ids = list((existing or {}).get("productGroupIds") or [])
         if it.productGroup and it.productGroup.strip():
             group_key = it.productGroup.strip().lower()
@@ -1623,6 +1690,225 @@ async def import_catalog(body: CatalogImportIn):
         await db.product_groups.update_one({"id": group["id"]}, {"$set": {"productIds": ids, "productCount": len(ids)}})
 
     return envelope({"inserted": inserted, "updated": updated, "skipped": skipped, "categoryMode": mode})
+
+
+async def _run_master_catalog_import(body: CatalogMasterImportIn):
+    mode = body.categoryMode
+    override = (body.overrideCategory or "").strip()
+    inserted = 0
+    skipped = 0
+    categories_created: set = set()
+    updated = 0
+    group_cache: dict = {}
+    brand_cache: dict = {}
+    subcategory_cache: dict = {}
+    for it in body.items:
+        if mode == "overrideExisting":
+            cat = override or "General"
+        elif mode == "overrideNew":
+            cat = override if not (it.category and it.category.strip()) else it.category.strip()
+        else:
+            cat = (it.category or "").strip() or "General"
+
+        if not it.name or not it.name.strip():
+            skipped += 1
+            continue
+        product_code = (it.productCode or "").strip().rstrip("^")
+        brand = None
+        if it.brand and it.brand.strip():
+            brand_key = it.brand.strip().lower()
+            brand = brand_cache.get(brand_key)
+            if not brand:
+                brand = await db.brands.find_one({"name": {"$regex": f"^{re.escape(it.brand.strip())}$", "$options": "i"}})
+                if not brand:
+                    brand = {"id": new_id(), "name": it.brand.strip(), "isActive": True, "createdAt": now_iso(), "updatedAt": now_iso()}
+                    await db.brands.insert_one(brand.copy())
+                brand_cache[brand_key] = brand
+        if not product_code:
+            product_code = slug_product_code(
+                it.brand,
+                it.type,
+                it.productClass,
+                it.size or it.sizeInch or it.sizeCm or it.sizeMm,
+                it.length,
+            ) or f"PRD-{uuid.uuid4().hex[:10].upper()}"
+        existing = await db.catalog.find_one({"productCode": product_code}) if product_code else None
+        if existing:
+            selling = float(existing.get("standardRate") or existing.get("sellingPrice") or 0)
+            mrp = existing.get("mrp")
+            discount = existing.get("discount")
+            stock = float(existing.get("stock", 0))
+            purchase_price = existing.get("purchasePrice")
+        else:
+            selling = 0.0
+            mrp = None
+            discount = None
+            stock = 0.0
+            purchase_price = None
+        group_ids = list((existing or {}).get("productGroupIds") or [])
+        if it.productGroup and it.productGroup.strip():
+            group_key = it.productGroup.strip().lower()
+            group = group_cache.get(group_key)
+            if not group:
+                group = await db.product_groups.find_one({"name": {"$regex": f"^{re.escape(it.productGroup.strip())}$", "$options": "i"}})
+                if not group:
+                    group = {"id": new_id(), "name": it.productGroup.strip(), "productIds": [], "productCount": 0}
+                    await db.product_groups.insert_one(group.copy())
+                group_cache[group_key] = group
+            if group["id"] not in group_ids:
+                group_ids.append(group["id"])
+        sub_name = (it.subcategory or "").strip()
+        subcategory_doc = None
+        if sub_name:
+            sub_key = f"{cat.lower()}::{sub_name.lower()}"
+            subcategory_doc = subcategory_cache.get(sub_key)
+            if not subcategory_doc:
+                parent_cat = await db.categories.find_one({"name": {"$regex": f"^{re.escape(cat)}$", "$options": "i"}})
+                if not parent_cat:
+                    parent_cat = {"id": new_id(), "name": cat, "isDefault": False, "isActive": True}
+                    await db.categories.insert_one(parent_cat.copy())
+                    categories_created.add(cat)
+                subcategory_doc = await db.subcategories.find_one({
+                    "categoryId": parent_cat["id"],
+                    "name": {"$regex": f"^{re.escape(sub_name)}$", "$options": "i"},
+                })
+                if not subcategory_doc:
+                    subcategory_doc = {
+                        "id": new_id(),
+                        "name": sub_name,
+                        "categoryId": parent_cat["id"],
+                        "category": parent_cat["name"],
+                        "createdAt": now_iso(),
+                        "updatedAt": now_iso(),
+                    }
+                    await db.subcategories.insert_one(subcategory_doc.copy())
+                subcategory_cache[sub_key] = subcategory_doc
+        doc = {
+            "id": existing.get("id") if existing else new_id(),
+            "name": it.name.strip(),
+            "productName": it.productName or it.name.strip(),
+            "category": cat,
+            "unit": (it.unit or "pcs").strip(),
+            "standardRate": selling,
+            "mrp": mrp,
+            "sellingPrice": selling,
+            "purchasePrice": purchase_price,
+            "discount": discount,
+            "stock": stock,
+            "brandId": brand["id"] if brand else (existing.get("brandId") if existing else None),
+            "brand": brand["name"] if brand else (existing.get("brand") if existing else None),
+            "productCode": product_code,
+            "type": it.type,
+            "productClass": (it.productClass or "").strip() or infer_product_class(it.productClass, it.name, it.productName),
+            "subcategory": subcategory_doc["name"] if subcategory_doc else (existing.get("subcategory") if existing else None),
+            "subcategoryId": subcategory_doc["id"] if subcategory_doc else (existing.get("subcategoryId") if existing else None),
+            "productGroup": it.productGroup,
+            "productGroupIds": group_ids,
+            "size": it.size or (f"{it.sizeCm} cm" if it.sizeCm is not None else (str(it.sizeMm) if it.sizeMm is not None else None)),
+            "sizeMm": it.sizeMm,
+            "sizeCm": it.sizeCm,
+            "sizeInch": it.sizeInch,
+            "length": it.length,
+            "stdPkg": existing.get("stdPkg") if existing else None,
+            "imageUrl": (it.imageUrl or "").strip() or (existing.get("imageUrl") if existing else None),
+            "isActive": True if it.isActive is None else it.isActive,
+            "createdAt": existing.get("createdAt") if existing else now_iso(),
+            "updatedAt": now_iso(),
+        }
+        doc["qrCode"] = doc["productCode"]
+        if existing:
+            await db.catalog.replace_one({"id": existing["id"]}, {**existing, **doc, "id": existing["id"]})
+            updated += 1
+        else:
+            await db.catalog.insert_one(doc.copy())
+            inserted += 1
+            await upsert_pricing(doc["productCode"], None, 0, None, None)
+        if it.productGroup and it.productGroup.strip():
+            group = group_cache[it.productGroup.strip().lower()]
+            ids = list(group.get("productIds") or [])
+            if doc["id"] not in ids:
+                ids.append(doc["id"])
+                group["productIds"] = ids
+        if cat not in categories_created and not await db.categories.find_one({"name": cat}):
+            await db.categories.insert_one({"id": new_id(), "name": cat, "isDefault": False, "isActive": True})
+            categories_created.add(cat)
+
+    for group in group_cache.values():
+        ids = list(dict.fromkeys(group.get("productIds") or []))
+        await db.product_groups.update_one({"id": group["id"]}, {"$set": {"productIds": ids, "productCount": len(ids)}})
+
+    return {"inserted": inserted, "updated": updated, "skipped": skipped, "categoryMode": mode}
+
+
+@api.post("/catalog/import/master")
+async def import_catalog_master(body: CatalogMasterImportIn):
+    result = await _run_master_catalog_import(body)
+    return envelope(result)
+
+
+@api.post("/catalog/import/pricing")
+async def import_catalog_pricing(body: CatalogPricingImportIn):
+    updated = 0
+    skipped = 0
+    warnings: List[str] = []
+    for index, row in enumerate(body.items, start=1):
+        code = (row.productCode or "").strip().rstrip("^")
+        if not code:
+            skipped += 1
+            continue
+        current = await db.catalog.find_one({"productCode": code}, {"_id": 0})
+        if not current:
+            skipped += 1
+            continue
+        mrp = row.mrp if row.mrp is not None else current.get("mrp")
+        discount = row.discount if row.discount is not None else current.get("discount")
+        if mrp is None and discount is None and row.sellingPrice is None:
+            skipped += 1
+            continue
+        selling = selling_from(mrp, discount, row.sellingPrice, current.get("standardRate") or 0)
+        if row.mrp is not None and row.discount is not None and row.sellingPrice is not None:
+            expected = selling_from(mrp, discount, None, 0)
+            if abs(float(row.sellingPrice) - expected) > 0.02:
+                warnings.append(f"Row {index} ({code}): selling price adjusted to {expected} from MRP and discount")
+                selling = expected
+        elif row.mrp is not None and row.discount is not None:
+            selling = selling_from(mrp, discount, None, 0)
+        updates = {
+            "mrp": mrp,
+            "discount": discount,
+            "sellingPrice": selling,
+            "standardRate": selling,
+            "updatedAt": now_iso(),
+        }
+        await db.catalog.update_one({"id": current["id"]}, {"$set": updates})
+        await upsert_pricing(code, mrp, selling, current.get("purchasePrice"), discount)
+        updated += 1
+    return envelope({"updated": updated, "skipped": skipped, "warnings": warnings[:50]})
+
+
+@api.post("/catalog/import/stock")
+async def import_catalog_stock(body: CatalogStockImportIn):
+    updated = 0
+    skipped = 0
+    for row in body.items:
+        code = (row.productCode or "").strip().rstrip("^")
+        if not code or row.stock is None:
+            skipped += 1
+            continue
+        try:
+            qty = float(row.stock)
+        except (TypeError, ValueError):
+            skipped += 1
+            continue
+        if qty < 0:
+            skipped += 1
+            continue
+        result = await db.catalog.update_one({"productCode": code}, {"$set": {"stock": qty, "updatedAt": now_iso()}})
+        if result.matched_count:
+            updated += 1
+        else:
+            skipped += 1
+    return envelope({"updated": updated, "skipped": skipped})
 
 
 # ---------- Money Config ----------

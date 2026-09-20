@@ -31,7 +31,7 @@ function catalogNav(tabs: TaxonomyTabs): NavItem[] {
   items.push(
     { href: "/brands", label: "Brands", icon: "ribbon-outline", testID: "sidebar-brands" },
     { href: "/product-groups", label: "Product groups", icon: "layers-outline", testID: "sidebar-product-groups" },
-    { href: "/csv-import", label: "CSV import", icon: "cloud-upload-outline", testID: "sidebar-csv-import" },
+    { href: "/csv-import", label: "Spreadsheet imports", icon: "cloud-upload-outline", testID: "sidebar-csv-import" },
   );
   return items;
 }

@@ -190,8 +190,8 @@ export default function AdminDashboard() {
           />
           <ActionRow
             testID="nav-csv-import"
-            title="Import CSV"
-            subtitle="Bulk-add items from a spreadsheet"
+            title="Spreadsheet imports"
+            subtitle="Product master, prices, stock — separate files"
             icon="cloud-upload-outline"
             onPress={() => router.push("/(admin)/csv-import")}
           />
