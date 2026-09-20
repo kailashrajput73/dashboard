@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,29 +7,34 @@ import { Ionicons } from "@expo/vector-icons";
 import { Header } from "@/src/components/UI";
 import { colors, spacing, radii, shadow, font, isWeb, pointer } from "@/src/theme";
 import { fullSignOut, getAdmin } from "@/src/state/session";
-import { listCatalog, listCategories } from "@/src/api/endpoints";
+import { getDashboardSnapshot, type DashboardSnapshot } from "@/src/api/endpoints";
 import { getTaxonomyTabs } from "@/src/features/catalog-taxonomy/settings";
+import { formatMoney } from "@/src/utils/money";
 
 type IonName = React.ComponentProps<typeof Ionicons>["name"];
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [company, setCompany] = useState<string>("");
-  const [catalogCount, setCatalogCount] = useState<number>(0);
-  const [categoryCount, setCategoryCount] = useState<number>(0);
+  const [snap, setSnap] = useState<DashboardSnapshot | null>(null);
+  const [loadingSnap, setLoadingSnap] = useState(true);
   const [showProductType, setShowProductType] = useState(true);
   const [showProductClass, setShowProductClass] = useState(true);
 
   const load = useCallback(async () => {
     const a = await getAdmin();
     setCompany(a?.companyName || "");
+    setLoadingSnap(true);
     try {
-      const [items, cats, tabs] = await Promise.all([listCatalog(), listCategories(), getTaxonomyTabs()]);
-      setCatalogCount(items?.length || 0);
-      setCategoryCount(cats?.length || 0);
+      const [snapshot, tabs] = await Promise.all([getDashboardSnapshot(), getTaxonomyTabs()]);
+      setSnap(snapshot);
       setShowProductType(tabs.showProductType);
       setShowProductClass(tabs.showProductClass);
-    } catch {}
+    } catch {
+      setSnap(null);
+    } finally {
+      setLoadingSnap(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -47,11 +52,13 @@ export default function AdminDashboard() {
     router.replace("/(admin)/login");
   }
 
+  const rfq = snap?.rfqCounts || {};
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header
         title="Overview"
-        subtitle={company || "Manage your business"}
+        subtitle={company || "Live ops snapshot"}
         right={
           isWeb ? null : (
             <Pressable
@@ -67,24 +74,133 @@ export default function AdminDashboard() {
         }
       />
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.statsRow}>
-          <StatCard
-            testID="stat-catalog"
-            label="Catalog items"
-            value={String(catalogCount)}
-            icon="cube-outline"
-            tint={colors.primary}
-          />
-          <StatCard
-            testID="stat-categories"
-            label="Categories"
-            value={String(categoryCount)}
-            icon="pricetags-outline"
-            tint={colors.secondary}
-          />
-        </View>
+        <Text style={styles.sectionTitle}>Operations snapshot</Text>
+        <Text style={styles.sectionHint}>
+          Stock, RFQs, partners, and dispatch sales from live data — not full monthly analytics.
+        </Text>
+        {loadingSnap ? (
+          <ActivityIndicator size="large" color={colors.primary} style={{ marginVertical: spacing.lg }} />
+        ) : snap ? (
+          <>
+            <View style={styles.statsRow}>
+              <StatCard
+                testID="stat-catalog"
+                label="SKUs"
+                value={String(snap.catalogCount)}
+                icon="cube-outline"
+                tint={colors.primary}
+                onPress={() => router.push("/(admin)/catalog")}
+              />
+              <StatCard
+                testID="stat-stock-units"
+                label="Units in stock"
+                value={formatQty(snap.totalStockUnits)}
+                icon="layers-outline"
+                tint={colors.secondary}
+                onPress={() => router.push("/(admin)/inventory")}
+              />
+              <StatCard
+                testID="stat-low-stock"
+                label="Low stock (ROL)"
+                value={String(snap.lowStockCount)}
+                icon="warning-outline"
+                tint={colors.warning}
+                onPress={() => router.push("/(admin)/inventory")}
+              />
+              <StatCard
+                testID="stat-rfq-pending"
+                label="RFQ pending"
+                value={String(rfq.pending || 0)}
+                icon="time-outline"
+                tint={colors.warning}
+                onPress={() => router.push("/(admin)/rfqs")}
+              />
+              <StatCard
+                testID="stat-rfq-approved"
+                label="RFQ approved"
+                value={String(rfq.approved || 0)}
+                icon="checkmark-circle-outline"
+                tint={colors.success}
+                onPress={() => router.push("/(admin)/rfqs")}
+              />
+              <StatCard
+                testID="stat-rfq-dispatched"
+                label="RFQ dispatched"
+                value={String(rfq.dispatched || 0)}
+                icon="send-outline"
+                tint={colors.primary}
+                onPress={() => router.push("/(admin)/rfqs")}
+              />
+              <StatCard
+                testID="stat-partners"
+                label="Partners (KYC OK)"
+                value={`${snap.partnersKycApproved}/${snap.partnersTotal}`}
+                icon="people-outline"
+                tint={colors.secondary}
+                onPress={() => router.push("/(admin)/partners")}
+              />
+              <StatCard
+                testID="stat-sales-7d"
+                label="Dispatch value (7d)"
+                value={snap.dispatchCount7d ? formatMoney(snap.dispatchValue7d) : "—"}
+                icon="cash-outline"
+                tint={colors.success}
+                subtitle={snap.dispatchCount7d ? `${snap.dispatchCount7d} bill${snap.dispatchCount7d === 1 ? "" : "s"}` : "No dispatches yet"}
+                onPress={() => router.push("/(admin)/dispatches")}
+              />
+            </View>
 
-        <Text style={styles.sectionTitle}>Modules</Text>
+            {snap.pendingRfqs?.length ? (
+              <View style={styles.panel} testID="panel-pending-rfqs">
+                <Text style={styles.panelTitle}>Needs review</Text>
+                {snap.pendingRfqs.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    style={({ pressed }) => [styles.listRow, pointer, pressed && { opacity: 0.85 }]}
+                    onPress={() => router.push("/(admin)/rfqs")}
+                    testID={`pending-rfq-${item.id}`}
+                  >
+                    <Text style={styles.rowTitle}>Partner {item.partnerId}</Text>
+                    <Text style={styles.rowMeta}>{item.lineCount} line{item.lineCount === 1 ? "" : "s"} · Pending</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+
+            <View style={styles.twoCol}>
+              <View style={[styles.panel, styles.halfPanel]} testID="panel-top-moving">
+                <Text style={styles.panelTitle}>Moving fast ({snap.salesWindowDays}d)</Text>
+                {snap.topMovingProducts?.length ? (
+                  snap.topMovingProducts.map((item) => (
+                    <View key={item.productCode} style={styles.listRow}>
+                      <Text style={styles.rowTitle} numberOfLines={1}>{item.name}</Text>
+                      <Text style={styles.rowMeta}>{item.productCode} · Qty out {formatQty(item.dispatchQty)}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.emptyHint}>No dispatch movement in window yet.</Text>
+                )}
+              </View>
+              <View style={[styles.panel, styles.halfPanel]} testID="panel-slow-moving">
+                <Text style={styles.panelTitle}>In stock, not moving ({snap.salesWindowDays}d)</Text>
+                {snap.slowMovingProducts?.length ? (
+                  snap.slowMovingProducts.map((item) => (
+                    <View key={item.productCode} style={styles.listRow}>
+                      <Text style={styles.rowTitle} numberOfLines={1}>{item.name}</Text>
+                      <Text style={styles.rowMeta}>{item.productCode} · Stock {formatQty(item.stock)}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.emptyHint}>All stocked SKUs had some dispatch activity — or no stock data.</Text>
+                )}
+              </View>
+            </View>
+          </>
+        ) : (
+          <Text style={styles.emptyHint}>Could not load snapshot. Deploy latest API or check connection.</Text>
+        )}
+
+        <Text style={[styles.sectionTitle, { marginTop: spacing.lg }]}>Modules</Text>
         <View style={styles.actionGrid}>
           <ActionRow
             testID="nav-catalog-manage"
@@ -215,20 +331,49 @@ export default function AdminDashboard() {
   );
 }
 
+function formatQty(value: number) {
+  if (!Number.isFinite(value)) return "0";
+  return value % 1 === 0 ? String(value) : value.toFixed(1);
+}
+
 function StatCard(props: {
   label: string;
   value: string;
   icon: IonName;
   tint: string;
   testID?: string;
+  subtitle?: string;
+  onPress?: () => void;
 }) {
-  return (
-    <View style={styles.statCard} testID={props.testID}>
+  const inner = (
+    <>
       <View style={[styles.statIcon, { backgroundColor: props.tint + "22" }]}>
         <Ionicons name={props.icon} size={20} color={props.tint} />
       </View>
       <Text style={styles.statValue}>{props.value}</Text>
       <Text style={styles.statLabel}>{props.label}</Text>
+      {props.subtitle ? <Text style={styles.statSub}>{props.subtitle}</Text> : null}
+    </>
+  );
+  if (props.onPress) {
+    return (
+      <Pressable
+        testID={props.testID}
+        onPress={props.onPress}
+        style={({ hovered, pressed }) => [
+          styles.statCard,
+          pointer,
+          hovered && { borderColor: props.tint },
+          pressed && { opacity: 0.92 },
+        ]}
+      >
+        {inner}
+      </Pressable>
+    );
+  }
+  return (
+    <View style={styles.statCard} testID={props.testID}>
+      {inner}
     </View>
   );
 }
@@ -267,11 +412,13 @@ function ActionRow(props: {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   container: { padding: isWeb ? spacing.xl : spacing.lg, paddingBottom: 40 },
+  sectionHint: { color: colors.textSecondary, fontSize: 12, marginBottom: spacing.md, marginTop: -4 },
   statsRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginBottom: spacing.lg },
   statCard: {
     flexGrow: 1,
-    flexBasis: isWeb ? 220 : undefined,
-    flex: isWeb ? undefined : 1,
+    flexBasis: isWeb ? 200 : "47%",
+    flex: isWeb ? undefined : undefined,
+    minWidth: isWeb ? 180 : undefined,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
@@ -287,14 +434,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 8,
   },
-  statValue: { ...font.h2, color: colors.textPrimary },
-  statLabel: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
+  statValue: { ...font.h2, color: colors.textPrimary, fontSize: isWeb ? 22 : 20 },
+  statLabel: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
+  statSub: { color: colors.textMuted, fontSize: 10, marginTop: 2 },
   sectionTitle: {
     ...font.title,
     color: colors.textPrimary,
     marginBottom: spacing.sm,
     marginTop: spacing.xs,
   },
+  panel: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    ...shadow.card,
+  },
+  panelTitle: { ...font.title, color: colors.textPrimary, marginBottom: spacing.sm },
+  listRow: { paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
+  rowTitle: { ...font.title, fontSize: 14, color: colors.textPrimary },
+  rowMeta: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
+  emptyHint: { color: colors.textMuted, fontSize: 12, fontStyle: "italic" },
+  twoCol: { flexDirection: isWeb ? "row" : "column", gap: spacing.md },
+  halfPanel: { flex: isWeb ? 1 : undefined },
   actionGrid: {
     flexDirection: "row",
     flexWrap: "wrap",

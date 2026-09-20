@@ -34,6 +34,22 @@ export type Partner = { id: string; name: string; phone: string; address?: strin
 export type RewardWallet = { balance: number; entries: { id: string; requesterId: string; quotationId: string; points: number; type: string; createdAt: string }[] };
 export type TeamUser = { id: string; name: string; contactNumber: string; role: "admin" | "store_manager" | "staff"; permissions: string[]; isActive: boolean; createdAt?: string };
 
+export type DashboardSnapshot = {
+  catalogCount: number;
+  categoryCount: number;
+  totalStockUnits: number;
+  lowStockCount: number;
+  rfqCounts: Record<string, number>;
+  pendingRfqs: { id: string; partnerId: string; lineCount: number; createdAt?: string }[];
+  partnersTotal: number;
+  partnersKycApproved: number;
+  dispatchValue7d: number;
+  dispatchCount7d: number;
+  salesWindowDays: number;
+  topMovingProducts: { productCode: string; name: string; dispatchQty: number }[];
+  slowMovingProducts: { productCode: string; name: string; stock: number }[];
+};
+
 export type Subcategory = {
   id: string;
   name: string;
@@ -167,6 +183,10 @@ export function loginAdmin(body: { contactNumber: string; passcode: string }) {
 }
 
 // ---------- Categories ----------
+
+export function getDashboardSnapshot() {
+  return apiRequest<DashboardSnapshot>("/dashboard/snapshot");
+}
 
 // NOTE (DB): reads `categories` collection. Default set seeded on first use.
 export function listCategories() {

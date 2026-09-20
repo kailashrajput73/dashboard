@@ -7,5 +7,6 @@ Use these before a client demo or handoff. Each file is a **single release or fe
 | [2026-09-20-01-split-catalog-imports.md](./2026-09-20-01-split-catalog-imports.md) | Master / price / stock imports |
 | [2026-09-20-02-secured-delete-wipe.md](./2026-09-20-02-secured-delete-wipe.md) | Passcode deletes + catalog wipe |
 | [2026-09-20-03-rfq-admin-and-catalog-exports.md](./2026-09-20-03-rfq-admin-and-catalog-exports.md) | RFQ edit/scan/dispatch + CSV exports |
+| [2026-09-20-04-overview-snapshot.md](./2026-09-20-04-overview-snapshot.md) | Overview KPIs + moving / slow products |
 
 **Deploy reminder:** With `USE_CLOUD_PREVIEW = true` in `frontend/src/config/env.ts`, Render must run the same `backend/server.py` as local or new routes fail with 404.
