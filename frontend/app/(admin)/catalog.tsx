@@ -11,6 +11,7 @@ import {
   Platform,
   Pressable,
   TextInput,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -373,6 +374,34 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   }, [items, selectedCat, selectedType, selectedClass, filterOpen, draftType, draftClass]);
   const extraFilterCount = [selectedType, selectedClass, selectedBrand].filter((value) => value !== "All").length;
 
+  async function exportCatalogCsv() {
+    const header = "productCode,name,category,type,subcategory,class,brand,unit,mrp,sellingPrice,discount,stock,imageUrl";
+    const cell = (v: string | number | undefined) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = listed.map((item) =>
+      [
+        item.productCode,
+        item.name,
+        item.category,
+        item.type,
+        item.subcategory,
+        inferProductClass(item),
+        item.brand,
+        item.unit,
+        item.mrp,
+        item.sellingPrice ?? item.standardRate,
+        item.discount,
+        item.stock,
+        item.imageUrl ? "(url)" : "",
+      ].map(cell).join(","),
+    );
+    const csv = [header, ...rows].join("\n");
+    try {
+      await Linking.openURL(`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`);
+    } catch {
+      setErr("Could not export catalog CSV.");
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header
@@ -380,9 +409,14 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
         subtitle={`${listed.length} of ${items.length} item${items.length === 1 ? "" : "s"} · edit MRP, discount, and stock without re-uploading`}
         onBack={() => router.back()}
         right={
-          <Pressable onPress={openAdd} testID="open-add-item" hitSlop={8} accessibilityRole="button" style={pointer}>
-            <Ionicons name="add-circle" size={26} color={colors.primary} />
-          </Pressable>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <Pressable onPress={exportCatalogCsv} testID="export-catalog-csv" hitSlop={8} accessibilityRole="button" style={pointer}>
+              <Ionicons name="download-outline" size={23} color={colors.primary} />
+            </Pressable>
+            <Pressable onPress={openAdd} testID="open-add-item" hitSlop={8} accessibilityRole="button" style={pointer}>
+              <Ionicons name="add-circle" size={26} color={colors.primary} />
+            </Pressable>
+          </View>
         }
       />
 

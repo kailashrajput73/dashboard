@@ -3,14 +3,17 @@ import { ActivityIndicator, FlatList, Linking, StyleSheet, Text, TouchableOpacit
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
 
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
 import { PasscodeConfirmModal } from "@/src/components/PasscodeConfirmModal";
 import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
-import { createSubcategory, deleteSubcategoryCascade, listCatalog, listCategories, listSubcategories, updateSubcategory, type CatalogItem, type Category, type Subcategory } from "@/src/api/endpoints";
+import { createSubcategory, deleteSubcategoryCascade, importSubcategories, listCatalog, listCategories, listSubcategories, updateSubcategory, type CatalogItem, type Category, type Subcategory } from "@/src/api/endpoints";
 import { SHELF_PRICE_BOARD_ENABLED, ShelfPriceBoard } from "@/src/features/shelf-price-board";
 import { colors, font, radii, spacing } from "@/src/theme";
+import { parseCsvBytes } from "@/src/utils/csv";
+import { readAssetBytes } from "@/src/utils/read-asset-bytes";
 
 export default function AdminSubcategories() {
   const router = useRouter();
@@ -124,10 +127,35 @@ export default function AdminSubcategories() {
     } catch { setError("Could not open the CSV export."); }
   }
 
+  async function importCsv() {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: ["text/csv", "text/plain", "*/*"], copyToCacheDirectory: true });
+      if (result.canceled || !result.assets?.[0]) return;
+      const parsed = parseCsvBytes(await readAssetBytes(result.assets[0]));
+      if (!parsed.ok) { setError(parsed.error); return; }
+      const payload = parsed.rows
+        .map((row) => ({
+          name: (row.name || row.subcategory || "").trim(),
+          category: (row.category || row["parent category"] || "").trim(),
+        }))
+        .filter((row) => row.name && row.category);
+      if (!payload.length) { setError("CSV needs name and category columns."); return; }
+      setSaving(true);
+      const res = await importSubcategories(payload);
+      await load();
+      setError(`Subcategory import: ${res.inserted} added, ${res.skipped} skipped.`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Subcategory import failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header title="Subcategories" subtitle={`${filtered.length} of ${items.length}`} onBack={() => router.back()} right={
         <View style={styles.headerActions}>
+          <TouchableOpacity testID="import-subcategories" onPress={importCsv} hitSlop={8}><Ionicons name="cloud-upload-outline" size={23} color={colors.primary} /></TouchableOpacity>
           <TouchableOpacity testID="export-subcategories" onPress={exportCsv} hitSlop={8}><Ionicons name="download-outline" size={23} color={colors.primary} /></TouchableOpacity>
           <TouchableOpacity testID="open-add-subcategory" onPress={openCreate} hitSlop={8}><Ionicons name="add-circle" size={26} color={colors.primary} /></TouchableOpacity>
         </View>

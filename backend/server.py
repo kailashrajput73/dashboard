@@ -1118,8 +1118,9 @@ async def update_rfq(rfq_id: str, body: RfqIn):
     if current.get("status") in {"dispatched", "cancelled"}: return JSONResponse(status_code=409, content=envelope(None, False, "RFQ is no longer editable"))
     errors, lines = await prepare_rfq_lines(body.lines)
     if errors or not lines: return JSONResponse(status_code=400, content=envelope({"errors": errors or ["At least one valid line is required"]}, False, "RFQ validation failed"))
+    grand_total = sum(line["quantity"] * line["unitPrice"] for line in lines)
     history = current.get("history", []) + [rfq_event("updated", "admin", {"previousLines": current.get("lines", []), "newLines": lines})]
-    await db.rfqs.update_one({"id": rfq_id}, {"$set": {"partnerId": body.partnerId.strip(), "lines": lines, "deliveryMode": body.deliveryMode, "scheduledAt": body.scheduledAt, "updatedAt": now_iso(), "history": history}})
+    await db.rfqs.update_one({"id": rfq_id}, {"$set": {"partnerId": body.partnerId.strip(), "lines": lines, "deliveryMode": body.deliveryMode, "scheduledAt": body.scheduledAt, "grandTotal": grand_total, "updatedAt": now_iso(), "history": history}})
     return envelope(await db.rfqs.find_one({"id": rfq_id}, {"_id": 0}))
 
 
@@ -1425,6 +1426,9 @@ async def list_catalog(
     items = []
     async for catalog_item in cursor:
         item = dict(catalog_item)
+        pc = item.get("productCode")
+        if pc and not item.get("qrCode"):
+            item["qrCode"] = pc
         if not item.get("brand"):
             item["brand"] = brand_names.get(item.get("brandId"))
         inferred_class = infer_product_class(item.get("productClass"), item.get("name"), item.get("productName"))
