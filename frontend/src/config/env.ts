@@ -29,7 +29,7 @@
 //   * CORS must allow_origins=["*"] (or the mobile origin) for cross-device use
 // ============================================================================
 // Set false while testing split imports (master / pricing / stock) — deploy backend first for cloud.
-const USE_CLOUD_PREVIEW = false;
+const USE_CLOUD_PREVIEW = true;
 const CLOUD_PREVIEW_URL = process.env.EXPO_PUBLIC_BACKEND_URL || "https://python-api-6aft.onrender.com";
 
 // Flip this to `false` to force API_BASE_URL to LOCAL_BACKEND_URL below when

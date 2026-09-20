@@ -19,12 +19,14 @@ import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 
 import { Header, Chip, Input, Button, AppModal, ErrorModal, EmptyState } from "@/src/components/UI";
+import { PasscodeConfirmModal } from "@/src/components/PasscodeConfirmModal";
 import { colors, spacing, radii, shadow, font, isWeb, pointer } from "@/src/theme";
 import { RemoteImage } from "@/src/components/RemoteImage";
 import {
   createCatalogItem,
   createCategory,
   deleteCatalogItem,
+  deleteCatalogItemSecured,
   listCatalog,
   listCategories,
   listBrands,
@@ -103,6 +105,8 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<CatalogItem | null>(null);
   const [actionSheet, setActionSheet] = useState<CatalogItem | null>(null);
+  const [deletePasscodeOpen, setDeletePasscodeOpen] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState(false);
 
   // form state
   const [fName, setFName] = useState("");
@@ -309,15 +313,24 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     }
   }
 
-  async function confirmDelete() {
+  function requestDelete() {
+    if (!actionSheet) return;
+    setDeletePasscodeOpen(true);
+  }
+
+  async function confirmDeleteSecured(credentials: { contactNumber: string; passcode: string }) {
     if (!actionSheet) return;
     const id = actionSheet.id;
-    setActionSheet(null);
+    setDeletingProduct(true);
     try {
-      await deleteCatalogItem(id);
+      await deleteCatalogItemSecured(id, credentials);
+      setDeletePasscodeOpen(false);
+      setActionSheet(null);
       await load();
     } catch (e: any) {
       setErr(e instanceof ApiError ? e.message : "Failed to delete item");
+    } finally {
+      setDeletingProduct(false);
     }
   }
 
@@ -809,10 +822,20 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           title="Delete Item"
           icon="trash-outline"
           variant="danger"
-          onPress={confirmDelete}
+          onPress={requestDelete}
           fullWidth
         />
       </AppModal>
+
+      <PasscodeConfirmModal
+        visible={deletePasscodeOpen}
+        title="Delete product"
+        message={`Remove ${actionSheet?.name || "this item"} permanently.`}
+        confirmLabel="Delete product"
+        loading={deletingProduct}
+        onClose={() => setDeletePasscodeOpen(false)}
+        onConfirm={confirmDeleteSecured}
+      />
 
       <ErrorModal
         visible={!!err}

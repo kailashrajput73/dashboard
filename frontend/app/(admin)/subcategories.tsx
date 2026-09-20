@@ -2,15 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
-import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
 
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
+import { PasscodeConfirmModal } from "@/src/components/PasscodeConfirmModal";
 import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
-import { createSubcategory, deleteSubcategory, importSubcategories, listCatalog, listCategories, listSubcategories, updateSubcategory, type CatalogItem, type Category, type Subcategory } from "@/src/api/endpoints";
-import { parseCsvBytes } from "@/src/utils/csv";
-import { readAssetBytes } from "@/src/utils/read-asset-bytes";
+import { createSubcategory, deleteSubcategoryCascade, listCatalog, listCategories, listSubcategories, updateSubcategory, type CatalogItem, type Category, type Subcategory } from "@/src/api/endpoints";
 import { SHELF_PRICE_BOARD_ENABLED, ShelfPriceBoard } from "@/src/features/shelf-price-board";
 import { colors, font, radii, spacing } from "@/src/theme";
 
@@ -29,9 +27,8 @@ export default function AdminSubcategories() {
   const [categoryId, setCategoryId] = useState("");
   const [saving, setSaving] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
-  const [importRows, setImportRows] = useState<{ name: string; category?: string }[]>([]);
-  const [importing, setImporting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Subcategory | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -105,41 +102,19 @@ export default function AdminSubcategories() {
     } finally { setSaving(false); }
   }
 
-  async function remove(item: Subcategory) {
+  async function confirmDeleteSubcategory(credentials: { contactNumber: string; passcode: string }) {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await deleteSubcategory(item.id);
+      const res = await deleteSubcategoryCascade(deleteTarget.id, credentials);
+      setDeleteTarget(null);
       await load();
-    } catch (e) { setError(e instanceof ApiError ? e.message : "Could not delete subcategory"); }
-  }
-
-  async function pickImport() {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({ type: ["text/csv", "text/plain", "*/*"], copyToCacheDirectory: true, multiple: false });
-      if (result.canceled || !result.assets?.[0]) return;
-      const asset = result.assets[0];
-      const parsed = parseCsvBytes(await readAssetBytes(asset));
-      if (!parsed.ok) { setError(parsed.error); return; }
-      const rows = parsed.rows.map((row) => ({
-        name: (row.name || row.subcategory || row["sub category"] || "").trim(),
-        category: (row.category || row.categoryname || "").trim() || undefined,
-      }));
-      const valid = rows.filter((row) => row.name && row.category);
-      if (!valid.length) { setError("CSV needs name and category headers with at least one valid row."); return; }
-      setImportRows(valid);
-      setImportOpen(true);
-    } catch (e: any) { setError(e?.message || "Could not read the CSV file"); }
-  }
-
-  async function runImport() {
-    setImporting(true);
-    try {
-      const result = await importSubcategories(importRows);
-      setImportOpen(false);
-      setImportRows([]);
-      await load();
-      setError(`Imported ${result.inserted} subcategor${result.inserted === 1 ? "y" : "ies"}.`);
-    } catch (e) { setError(e instanceof ApiError ? e.message : "Import validation failed"); }
-    finally { setImporting(false); }
+      setError(`Deleted ${deleteTarget.name} and ${res.productsRemoved} product(s).`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not delete subcategory");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   async function exportCsv() {
@@ -184,7 +159,7 @@ export default function AdminSubcategories() {
                     />
                   </View>
                   <TouchableOpacity testID={`edit-subcategory-${item.id}`} onPress={() => openEdit(item)} hitSlop={8} style={styles.icon}><Ionicons name="create-outline" size={19} color={colors.primary} /></TouchableOpacity>
-                  <TouchableOpacity testID={`delete-subcategory-${item.id}`} onPress={() => remove(item)} hitSlop={8} style={styles.icon}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity>
+                  <TouchableOpacity testID={`delete-subcategory-${item.id}`} onPress={() => setDeleteTarget(item)} hitSlop={8} style={styles.icon}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity>
                 </View>
                 {open ? (
                   SHELF_PRICE_BOARD_ENABLED && listed.length ? (
@@ -205,7 +180,16 @@ export default function AdminSubcategories() {
           }}
         />
       )}
-      <View style={styles.importBar}><Button testID="import-subcategories" title="Bulk import CSV" icon="cloud-upload-outline" onPress={pickImport} size="sm" /></View>
+      <View style={styles.importBar}>
+        <Button
+          testID="nav-batch-product-import"
+          title="Import products (batch sheet)"
+          icon="cloud-upload-outline"
+          onPress={() => router.push("/(admin)/import-products-batch")}
+          size="sm"
+          fullWidth
+        />
+      </View>
 
       <AppModal testID="subcategory-editor" visible={editor !== undefined} onClose={() => setEditor(undefined)} title={editor ? "Edit subcategory" : "New subcategory"}>
         <Input testID="subcategory-name-input" label="Subcategory name" value={name} onChangeText={setName} placeholder="e.g. Cement" autoCapitalize="words" />
@@ -216,12 +200,15 @@ export default function AdminSubcategories() {
       <AppModal testID="subcategory-parent-modal" visible={pickerOpen} onClose={() => setPickerOpen(false)} title="Select parent category">
         {categories.filter((category) => category.isActive).map((category) => <TouchableOpacity key={category.id} style={styles.option} onPress={() => { setCategoryId(category.id); setPickerOpen(false); }} testID={`pick-parent-${category.id}`}><Text style={styles.selectText}>{category.name}</Text>{category.id === categoryId && <Ionicons name="checkmark" size={18} color={colors.primary} />}</TouchableOpacity>)}
       </AppModal>
-      <AppModal testID="subcategory-import-modal" visible={importOpen} onClose={() => setImportOpen(false)} title="Review bulk import">
-        <Text style={styles.hint}>{importRows.length} valid row{importRows.length === 1 ? "" : "s"}. Required columns: name, category.</Text>
-        {importRows.slice(0, 20).map((row, index) => <View key={`${row.name}-${index}`} style={styles.preview}><Text style={styles.previewName}>{row.name}</Text><Text style={styles.parent}>{row.category}</Text></View>)}
-        {importRows.length > 20 && <Text style={styles.hint}>And {importRows.length - 20} more rows</Text>}
-        <View style={{ height: spacing.md }} /><Button testID="run-subcategory-import" title="Validate and import" onPress={runImport} loading={importing} fullWidth />
-      </AppModal>
+      <PasscodeConfirmModal
+        visible={!!deleteTarget}
+        title={`Delete ${deleteTarget?.name || "subcategory"}`}
+        message="Deletes this subcategory and every product matched to it."
+        confirmLabel="Delete subcategory and products"
+        loading={deleting}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteSubcategory}
+      />
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
     </SafeAreaView>
   );

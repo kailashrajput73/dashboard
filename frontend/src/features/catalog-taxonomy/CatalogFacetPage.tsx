@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 import { ErrorModal, Header, Input } from "@/src/components/UI";
+import { PasscodeConfirmModal } from "@/src/components/PasscodeConfirmModal";
 import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { inferProductClass } from "@/src/utils/csv";
-import { listCatalog, type CatalogItem } from "@/src/api/endpoints";
+import { listCatalog, purgeCatalogByField, type CatalogItem } from "@/src/api/endpoints";
+import { ApiError } from "@/src/api/client";
 import { colors, font, radii, spacing } from "@/src/theme";
 
 export type CatalogFacet = { id: string; name: string; count: number };
@@ -34,6 +37,7 @@ export function CatalogFacetPage(props: {
   searchPlaceholder: string;
   emptyText: string;
   valueOf: (item: CatalogItem) => string | undefined;
+  purgeField?: "type" | "productClass";
   testID: string;
 }) {
   const router = useRouter();
@@ -42,6 +46,8 @@ export function CatalogFacetPage(props: {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CatalogFacet | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -68,6 +74,25 @@ export function CatalogFacetPage(props: {
       const value = (props.valueOf(item) || inferProductClass(item) || "").toLowerCase();
       return value === facet.id;
     });
+  }
+
+  async function confirmPurge(credentials: { contactNumber: string; passcode: string }) {
+    if (!deleteTarget || !props.purgeField) return;
+    setDeleting(true);
+    try {
+      const res = await purgeCatalogByField({
+        ...credentials,
+        field: props.purgeField,
+        value: deleteTarget.name,
+      });
+      setDeleteTarget(null);
+      await load();
+      setError(`Removed ${res.productsRemoved} product(s) for ${deleteTarget.name}.`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not delete products");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -109,6 +134,16 @@ export function CatalogFacetPage(props: {
                       testID={`${props.testID}-products-${item.id}`}
                     />
                   </View>
+                  {props.purgeField ? (
+                    <TouchableOpacity
+                      testID={`${props.testID}-delete-${item.id}`}
+                      onPress={() => setDeleteTarget(item)}
+                      hitSlop={8}
+                      style={styles.icon}
+                    >
+                      <Ionicons name="trash-outline" size={19} color={colors.error} />
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
                 {open ? <ProductPeekList products={listed} emptyText={`No products in ${item.name}.`} /> : null}
               </View>
@@ -116,6 +151,15 @@ export function CatalogFacetPage(props: {
           }}
         />
       )}
+      <PasscodeConfirmModal
+        visible={!!deleteTarget}
+        title={`Delete all ${deleteTarget?.name || ""} products`}
+        message="Removes every product with this value. Requires admin passcode."
+        confirmLabel="Delete products"
+        loading={deleting}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmPurge}
+      />
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
     </SafeAreaView>
   );
@@ -131,5 +175,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   rowMain: { flex: 1, gap: 8 },
   name: { ...font.title, color: colors.textPrimary },
+  icon: { padding: 4 },
   empty: { textAlign: "center", color: colors.textSecondary, padding: spacing.xl },
 });

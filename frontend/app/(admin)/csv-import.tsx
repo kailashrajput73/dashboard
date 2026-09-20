@@ -19,22 +19,15 @@ const IMPORTS: { href: string; title: string; sub: string; icon: IonName; testID
     testID: "nav-import-products",
   },
   {
-    href: "/(admin)/import-products-batch",
-    title: "2 — Product master (batch)",
-    sub: "Same format for one sub-category or brand",
-    icon: "layers-outline",
-    testID: "nav-import-products-batch",
-  },
-  {
     href: "/(admin)/import-prices",
-    title: "3 — Prices & discount",
+    title: "2 — Prices & discount",
     sub: "product_code, MRP, discount % — merge only",
     icon: "pricetag-outline",
     testID: "nav-import-prices",
   },
   {
     href: "/(admin)/import-stock",
-    title: "4 — Stock quantities",
+    title: "3 — Stock quantities",
     sub: "product_code + qty — or use Purchases for goods in",
     icon: "bar-chart-outline",
     testID: "nav-import-stock",
@@ -48,14 +41,13 @@ export default function CsvImportHub() {
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header
         title="Spreadsheet imports"
-        subtitle="Four separate uploads — merge by product_code, never wipe the catalog"
+        subtitle="Three separate uploads — merge by product_code"
         onBack={() => router.back()}
       />
       <ScrollView contentContainerStyle={styles.scroll}>
         <Card style={styles.note}>
           <Text style={styles.noteText}>
-            Use Purchases → Bulk CSV when stock arrives from a supplier. Use import 4 for opening counts or stocktake.
-            Every product_code gets a QR in the database for scanning at the counter.
+            Batch master import lives under Subcategories → Import products (batch sheet). Use Purchases → Bulk CSV when stock arrives from a supplier.
           </Text>
         </Card>
         {IMPORTS.map((row) => (

@@ -552,6 +552,30 @@ async def admin_login(body: AdminLoginIn):
     })
 
 
+class AdminPasscodeIn(BaseModel):
+    contactNumber: str
+    passcode: str
+
+
+async def verify_admin_passcode(body: AdminPasscodeIn) -> bool:
+    user = await db.users.find_one({"role": "admin", "contactNumber": body.contactNumber.strip()})
+    if not user or not user.get("passcodeHash"):
+        return False
+    try:
+        return bcrypt.checkpw(body.passcode.encode(), user["passcodeHash"].encode())
+    except ValueError:
+        return False
+
+
+def passcode_denied():
+    return JSONResponse(status_code=401, content=envelope(None, False, "Invalid admin contact or passcode"))
+
+
+class CatalogFieldPurgeIn(AdminPasscodeIn):
+    field: str = Field(..., pattern="^(type|productClass|productGroup)$")
+    value: str
+
+
 # ---------- Referral Partners and KYC ----------
 
 def public_partner(partner: dict) -> dict:
@@ -764,6 +788,20 @@ async def delete_category(category_id: str):
     return envelope({"deleted": True, "id": category_id, "name": current.get("name")})
 
 
+@api.post("/categories/{category_id}/delete-cascade")
+async def delete_category_cascade(category_id: str, body: AdminPasscodeIn):
+    if not await verify_admin_passcode(body):
+        return passcode_denied()
+    current = await db.categories.find_one({"id": category_id})
+    if not current:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Category not found"))
+    cat_name = current.get("name")
+    products = await db.catalog.delete_many({"category": cat_name})
+    await db.subcategories.delete_many({"categoryId": category_id})
+    await db.categories.delete_one({"id": category_id})
+    return envelope({"deleted": True, "id": category_id, "productsRemoved": products.deleted_count})
+
+
 # ---------- Brands ----------
 
 @api.get("/brands")
@@ -810,6 +848,24 @@ async def update_brand(brand_id: str, body: BrandUpdateIn):
     brand = await db.brands.find_one({"id": brand_id}, {"_id": 0})
     brand["productCount"] = await db.catalog.count_documents({"brandId": brand_id})
     return envelope(brand)
+
+
+@api.post("/brands/{brand_id}/delete-cascade")
+async def delete_brand_cascade(brand_id: str, body: AdminPasscodeIn):
+    if not await verify_admin_passcode(body):
+        return passcode_denied()
+    current = await db.brands.find_one({"id": brand_id})
+    if not current:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Brand not found"))
+    name = current.get("name")
+    removed = await db.catalog.delete_many({
+        "$or": [
+            {"brandId": brand_id},
+            {"brand": {"$regex": f"^{re.escape(name)}$", "$options": "i"}},
+        ]
+    })
+    await db.brands.delete_one({"id": brand_id})
+    return envelope({"deleted": True, "id": brand_id, "productsRemoved": removed.deleted_count})
 
 
 # ---------- Product Groups ----------
@@ -872,6 +928,29 @@ async def delete_product_group(group_id: str):
         return JSONResponse(status_code=404, content=envelope(None, False, "Product group not found"))
     await db.catalog.update_many({"productGroupIds": group_id}, {"$pull": {"productGroupIds": group_id}})
     return envelope({"deleted": True, "id": group_id})
+
+
+@api.post("/product-groups/{group_id}/delete-cascade")
+async def delete_product_group_cascade(group_id: str, body: AdminPasscodeIn):
+    if not await verify_admin_passcode(body):
+        return passcode_denied()
+    group = await db.product_groups.find_one({"id": group_id})
+    if not group:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Product group not found"))
+    name = (group.get("name") or "").strip()
+    ids = list(group.get("productIds") or [])
+    or_clauses: List[Any] = []
+    if ids:
+        or_clauses.append({"id": {"$in": ids}})
+    if name:
+        or_clauses.append({"productGroup": {"$regex": f"^{re.escape(name)}$", "$options": "i"}})
+    removed_count = 0
+    if or_clauses:
+        removed = await db.catalog.delete_many({"$or": or_clauses})
+        removed_count = removed.deleted_count
+    await db.catalog.update_many({"productGroupIds": group_id}, {"$pull": {"productGroupIds": group_id}})
+    await db.product_groups.delete_one({"id": group_id})
+    return envelope({"deleted": True, "id": group_id, "productsRemoved": removed_count})
 
 
 # ---------- Rack Locations ----------
@@ -1248,6 +1327,31 @@ async def delete_subcategory(subcategory_id: str):
     return envelope({"deleted": True, "id": subcategory_id})
 
 
+@api.post("/subcategories/{subcategory_id}/delete-cascade")
+async def delete_subcategory_cascade(subcategory_id: str, body: AdminPasscodeIn):
+    if not await verify_admin_passcode(body):
+        return passcode_denied()
+    sub = await db.subcategories.find_one({"id": subcategory_id})
+    if not sub:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Subcategory not found"))
+    sub_name = sub.get("name")
+    cat_name = sub.get("category")
+    removed = await db.catalog.delete_many({
+        "$or": [
+            {"subcategoryId": subcategory_id},
+            {"$and": [
+                {"category": cat_name},
+                {"$or": [
+                    {"subcategory": sub_name},
+                    {"type": sub_name},
+                ]},
+            ]},
+        ]
+    })
+    await db.subcategories.delete_one({"id": subcategory_id})
+    return envelope({"deleted": True, "id": subcategory_id, "productsRemoved": removed.deleted_count})
+
+
 @api.post("/subcategories/import")
 async def import_subcategories(body: SubcategoryImportIn):
     errors = []
@@ -1541,10 +1645,44 @@ async def delete_catalog(item_id: str):
     return envelope({"deleted": True, "id": item_id})
 
 
+@api.post("/catalog/{item_id}/delete-secured")
+async def delete_catalog_secured(item_id: str, body: AdminPasscodeIn):
+    if not await verify_admin_passcode(body):
+        return passcode_denied()
+    result = await db.catalog.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Item not found"))
+    return envelope({"deleted": True, "id": item_id})
+
+
+@api.post("/catalog/purge-by-field")
+async def purge_catalog_by_field(body: CatalogFieldPurgeIn):
+    if not await verify_admin_passcode(body):
+        return passcode_denied()
+    value = body.value.strip()
+    if not value:
+        return JSONResponse(status_code=400, content=envelope(None, False, "Value is required"))
+    if body.field == "type":
+        result = await db.catalog.delete_many({"type": {"$regex": f"^{re.escape(value)}$", "$options": "i"}})
+    elif body.field == "productClass":
+        result = await db.catalog.delete_many({"productClass": {"$regex": f"^{re.escape(value)}$", "$options": "i"}})
+    else:
+        result = await db.catalog.delete_many({"productGroup": {"$regex": f"^{re.escape(value)}$", "$options": "i"}})
+    return envelope({"productsRemoved": result.deleted_count, "field": body.field, "value": value})
+
+
 @api.delete("/catalog")
 async def clear_catalog():
     deleted = await reset_catalog_tree()
     return envelope({"deleted": deleted["catalog"], **deleted})
+
+
+@api.post("/catalog/wipe-all")
+async def wipe_catalog_all(body: AdminPasscodeIn):
+    if not await verify_admin_passcode(body):
+        return passcode_denied()
+    deleted = await reset_catalog_tree()
+    return envelope(deleted)
 
 
 @api.post("/catalog/import")

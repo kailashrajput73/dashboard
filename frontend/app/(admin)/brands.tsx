@@ -6,7 +6,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
 import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
-import { createBrand, listBrands, listCatalog, updateBrand, type Brand, type CatalogItem } from "@/src/api/endpoints";
+import { createBrand, deleteBrandCascade, listBrands, listCatalog, updateBrand, type Brand, type CatalogItem } from "@/src/api/endpoints";
+import { PasscodeConfirmModal } from "@/src/components/PasscodeConfirmModal";
 import { colors, font, radii, spacing } from "@/src/theme";
 
 export default function AdminBrands() {
@@ -21,6 +22,8 @@ export default function AdminBrands() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<Brand | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -56,6 +59,21 @@ export default function AdminBrands() {
     catch (e) { setError(e instanceof ApiError ? e.message : "Could not update brand status"); }
   }
 
+  async function confirmDeleteBrand(credentials: { contactNumber: string; passcode: string }) {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await deleteBrandCascade(deleteTarget.id, credentials);
+      setDeleteTarget(null);
+      await load();
+      setError(`Deleted ${deleteTarget.name} and ${res.productsRemoved} product(s).`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not delete brand");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header title="Brands" subtitle={`${filtered.length} of ${brands.length}`} onBack={() => router.back()} right={<TouchableOpacity testID="open-add-brand" onPress={openCreate} hitSlop={8}><Ionicons name="add-circle" size={26} color={colors.primary} /></TouchableOpacity>} />
@@ -87,6 +105,7 @@ export default function AdminBrands() {
                     <Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.textMuted }]}>{item.isActive ? "Active" : "Inactive"}</Text>
                   </View>
                   <TouchableOpacity testID={`edit-brand-${item.id}`} onPress={() => openEdit(item)} style={styles.icon} hitSlop={8}><Ionicons name="create-outline" size={19} color={colors.primary} /></TouchableOpacity>
+                  <TouchableOpacity testID={`delete-brand-${item.id}`} onPress={() => setDeleteTarget(item)} style={styles.icon} hitSlop={8}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity>
                   <TouchableOpacity testID={`toggle-brand-${item.id}`} onPress={() => toggle(item)} style={styles.icon} hitSlop={8}><Ionicons name={item.isActive ? "pause-circle-outline" : "play-circle-outline"} size={21} color={item.isActive ? colors.error : colors.success} /></TouchableOpacity>
                 </View>
                 {open ? <ProductPeekList products={listed} emptyText={`No products for ${item.name}.`} /> : null}
@@ -99,6 +118,15 @@ export default function AdminBrands() {
         <Input testID="brand-name-input" label="Brand name" value={name} onChangeText={setName} placeholder="e.g. ACME" autoCapitalize="words" />
         <Button testID="save-brand" title={editor ? "Save changes" : "Create brand"} onPress={save} loading={saving} fullWidth />
       </AppModal>
+      <PasscodeConfirmModal
+        visible={!!deleteTarget}
+        title={`Delete ${deleteTarget?.name || "brand"}`}
+        message="Deletes this brand and every product linked to it."
+        confirmLabel="Delete brand and products"
+        loading={deleting}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteBrand}
+      />
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
     </SafeAreaView>
   );

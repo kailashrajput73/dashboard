@@ -9,6 +9,7 @@ export default function AdminProductClasses() {
       searchPlaceholder="Search product classes"
       emptyText="No product classes yet. Import a sheet with a Class column (SDR11, Sch 40)."
       valueOf={valueOf}
+      purgeField="productClass"
       testID="product-class"
     />
   );

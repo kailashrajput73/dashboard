@@ -6,7 +6,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppModal, Button, ErrorModal, Header, Input } from "@/src/components/UI";
 import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
-import { createProductGroup, deleteProductGroup, listCatalog, listProductGroups, updateProductGroup, type CatalogItem, type ProductGroup } from "@/src/api/endpoints";
+import { createProductGroup, deleteProductGroupCascade, listCatalog, listProductGroups, updateProductGroup, type CatalogItem, type ProductGroup } from "@/src/api/endpoints";
+import { PasscodeConfirmModal } from "@/src/components/PasscodeConfirmModal";
 import { SHELF_PRICE_BOARD_ENABLED, ShelfPriceBoard } from "@/src/features/shelf-price-board";
 import { colors, font, radii, spacing } from "@/src/theme";
 
@@ -23,6 +24,8 @@ export default function AdminProductGroups() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProductGroup | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -52,7 +55,20 @@ export default function AdminProductGroups() {
     catch (e) { setError(e instanceof ApiError ? e.message : "Could not save product group"); }
     finally { setSaving(false); }
   }
-  async function remove(group: ProductGroup) { try { await deleteProductGroup(group.id); await load(); } catch (e) { setError(e instanceof ApiError ? e.message : "Could not delete product group"); } }
+  async function confirmDeleteGroup(credentials: { contactNumber: string; passcode: string }) {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await deleteProductGroupCascade(deleteTarget.id, credentials);
+      setDeleteTarget(null);
+      await load();
+      setError(`Deleted group and ${res.productsRemoved} product(s).`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not delete product group");
+    } finally {
+      setDeleting(false);
+    }
+  }
   function toggleProduct(id: string) { setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); }
 
   return (
@@ -76,7 +92,7 @@ export default function AdminProductGroups() {
                     <ProductCountButton count={listed.length} selected={open} onPress={() => setOpenId(open ? null : item.id)} testID={`group-products-${item.id}`} />
                   </View>
                   <TouchableOpacity testID={`edit-product-group-${item.id}`} onPress={() => openEdit(item)} style={styles.icon} hitSlop={8}><Ionicons name="create-outline" size={19} color={colors.primary} /></TouchableOpacity>
-                  <TouchableOpacity testID={`delete-product-group-${item.id}`} onPress={() => remove(item)} style={styles.icon} hitSlop={8}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity>
+                  <TouchableOpacity testID={`delete-product-group-${item.id}`} onPress={() => setDeleteTarget(item)} style={styles.icon} hitSlop={8}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity>
                 </View>
                 {open ? (
                   SHELF_PRICE_BOARD_ENABLED ? (
@@ -107,6 +123,15 @@ export default function AdminProductGroups() {
         <View style={{ height: spacing.md }} />
         <Button testID="save-product-group" title={editor ? "Save changes" : "Create group"} onPress={save} loading={saving} disabled={selected.length < 2} fullWidth />
       </AppModal>
+      <PasscodeConfirmModal
+        visible={!!deleteTarget}
+        title={`Delete ${deleteTarget?.name || "group"}`}
+        message="Deletes this product group and all products in it."
+        confirmLabel="Delete group and products"
+        loading={deleting}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteGroup}
+      />
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
     </SafeAreaView>
   );

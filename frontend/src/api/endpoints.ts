@@ -407,6 +407,63 @@ export function deleteCatalogItem(id: string) {
   });
 }
 
+/** Wipe catalog tree (products, categories, brands, groups, pricing). Requires passcode on server. */
+export function wipeCatalogAll(body: { contactNumber: string; passcode: string }) {
+  return apiRequest<{
+    catalog: number;
+    categories: number;
+    subcategories: number;
+    productGroups: number;
+    brands: number;
+    pricing: number;
+    pricingHistory: number;
+  }>("/catalog/wipe-all", { method: "POST", body });
+}
+
+export function deleteCatalogItemSecured(id: string, body: { contactNumber: string; passcode: string }) {
+  return apiRequest<{ deleted: boolean; id: string }>(`/catalog/${id}/delete-secured`, { method: "POST", body });
+}
+
+export function deleteCategoryCascade(id: string, body: { contactNumber: string; passcode: string }) {
+  return apiRequest<{ deleted: boolean; id: string; productsRemoved: number }>(
+    `/categories/${id}/delete-cascade`,
+    { method: "POST", body },
+  );
+}
+
+export function deleteBrandCascade(id: string, body: { contactNumber: string; passcode: string }) {
+  return apiRequest<{ deleted: boolean; id: string; productsRemoved: number }>(
+    `/brands/${id}/delete-cascade`,
+    { method: "POST", body },
+  );
+}
+
+export function deleteSubcategoryCascade(id: string, body: { contactNumber: string; passcode: string }) {
+  return apiRequest<{ deleted: boolean; id: string; productsRemoved: number }>(
+    `/subcategories/${id}/delete-cascade`,
+    { method: "POST", body },
+  );
+}
+
+export function deleteProductGroupCascade(id: string, body: { contactNumber: string; passcode: string }) {
+  return apiRequest<{ deleted: boolean; id: string; productsRemoved: number }>(
+    `/product-groups/${id}/delete-cascade`,
+    { method: "POST", body },
+  );
+}
+
+export function purgeCatalogByField(body: {
+  contactNumber: string;
+  passcode: string;
+  field: "type" | "productClass" | "productGroup";
+  value: string;
+}) {
+  return apiRequest<{ productsRemoved: number; field: string; value: string }>(
+    "/catalog/purge-by-field",
+    { method: "POST", body },
+  );
+}
+
 /** Wipe every catalog product. Uses bulk delete when the API supports it. */
 export async function clearCatalog() {
   try {

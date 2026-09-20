@@ -9,6 +9,7 @@ export default function AdminProductTypes() {
       searchPlaceholder="Search product types"
       emptyText="No product types yet. Import a sheet with a Type column (CPVC, PVC, UPVC)."
       valueOf={valueOf}
+      purgeField="type"
       testID="product-type"
     />
   );

@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
+import { PasscodeConfirmModal } from "@/src/components/PasscodeConfirmModal";
 import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
-import { createCategory, listCatalog, listCategories, updateCategory, type CatalogItem, type Category } from "@/src/api/endpoints";
+import { createCategory, deleteCategoryCascade, listCatalog, listCategories, updateCategory, type CatalogItem, type Category } from "@/src/api/endpoints";
 import { colors, font, radii, spacing } from "@/src/theme";
 
 export default function AdminCategories() {
-  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<CatalogItem[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -22,6 +22,8 @@ export default function AdminCategories() {
   const [error, setError] = useState<string | null>(null);
   const [editor, setEditor] = useState<Category | null | undefined>(undefined);
   const [name, setName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -87,6 +89,21 @@ export default function AdminCategories() {
     }
   }
 
+  async function confirmDeleteCategory(credentials: { contactNumber: string; passcode: string }) {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await deleteCategoryCascade(deleteTarget.id, credentials);
+      setDeleteTarget(null);
+      await load();
+      setError(`Deleted ${deleteTarget.name} and ${res.productsRemoved} product(s).`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not delete category");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header title="Categories" subtitle={`${filtered.length} of ${categories.length}`} onBack={() => router.back()} right={
@@ -129,6 +146,9 @@ export default function AdminCategories() {
                   <TouchableOpacity testID={`edit-category-${item.id}`} onPress={() => openEdit(item)} hitSlop={8} style={styles.iconButton}>
                     <Ionicons name="create-outline" size={19} color={colors.primary} />
                   </TouchableOpacity>
+                  <TouchableOpacity testID={`delete-category-${item.id}`} onPress={() => setDeleteTarget(item)} hitSlop={8} style={styles.iconButton}>
+                    <Ionicons name="trash-outline" size={19} color={colors.error} />
+                  </TouchableOpacity>
                   <TouchableOpacity testID={`toggle-category-${item.id}`} onPress={() => toggle(item)} hitSlop={8} style={styles.iconButton}>
                     <Ionicons name={item.isActive ? "pause-circle-outline" : "play-circle-outline"} size={21} color={item.isActive ? colors.error : colors.success} />
                   </TouchableOpacity>
@@ -143,6 +163,15 @@ export default function AdminCategories() {
         <Input testID="category-name-input" label="Category name" value={name} onChangeText={setName} placeholder="e.g. Electrical" autoCapitalize="words" />
         <Button testID="save-category" title={editor ? "Save changes" : "Create category"} onPress={save} loading={saving} fullWidth />
       </AppModal>
+      <PasscodeConfirmModal
+        visible={!!deleteTarget}
+        title={`Delete ${deleteTarget?.name || "category"}`}
+        message="Deletes this category, its subcategories, and every product in this category."
+        confirmLabel="Delete category and products"
+        loading={deleting}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteCategory}
+      />
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
     </SafeAreaView>
   );
