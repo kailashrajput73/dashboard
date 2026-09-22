@@ -17,9 +17,10 @@ export type Category = {
   isDefault?: boolean;
   isActive: boolean;
   productCount: number;
+  imageUrl?: string | null;
 };
 
-export type Brand = { id: string; name: string; isActive: boolean; productCount: number };
+export type Brand = { id: string; name: string; isActive: boolean; productCount: number; logoUrl?: string | null };
 export type ProductGroup = { id: string; name: string; productIds: string[]; productCount: number };
 export type RackSlot = { code: string; productId: string | null };
 export type Rack = { id: string; name: string; rows: number; columns: number; slots: RackSlot[] };
@@ -194,14 +195,14 @@ export function listCategories() {
 }
 
 // NOTE (DB): inserts into `categories` with { id, name, isDefault:false }.
-export function createCategory(name: string) {
+export function createCategory(name: string, imageUrl?: string | null) {
   return apiRequest<Category>("/categories", {
     method: "POST",
-    body: { name },
+    body: { name, imageUrl: imageUrl || null },
   });
 }
 
-export function updateCategory(id: string, body: { name: string; isActive: boolean }) {
+export function updateCategory(id: string, body: { name: string; isActive: boolean; imageUrl?: string | null }) {
   return apiRequest<Category>(`/categories/${id}`, {
     method: "PUT",
     body,
@@ -209,8 +210,8 @@ export function updateCategory(id: string, body: { name: string; isActive: boole
 }
 
 export function listBrands() { return apiRequest<Brand[]>("/brands"); }
-export function createBrand(name: string) { return apiRequest<Brand>("/brands", { method: "POST", body: { name } }); }
-export function updateBrand(id: string, body: { name: string; isActive: boolean }) { return apiRequest<Brand>(`/brands/${id}`, { method: "PUT", body }); }
+export function createBrand(name: string, logoUrl?: string | null) { return apiRequest<Brand>("/brands", { method: "POST", body: { name, logoUrl: logoUrl || null } }); }
+export function updateBrand(id: string, body: { name: string; isActive: boolean; logoUrl?: string | null }) { return apiRequest<Brand>(`/brands/${id}`, { method: "PUT", body }); }
 
 export function listProductGroups() { return apiRequest<ProductGroup[]>("/product-groups"); }
 export function createProductGroup(body: { name: string; productIds: string[] }) { return apiRequest<ProductGroup>("/product-groups", { method: "POST", body }); }

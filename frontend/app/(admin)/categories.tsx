@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
+import { CoverImageField } from "@/src/components/CoverImageField";
+import { RemoteImage } from "@/src/components/RemoteImage";
 import { PasscodeConfirmModal } from "@/src/components/PasscodeConfirmModal";
 import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
@@ -12,6 +14,7 @@ import { createCategory, deleteCategoryCascade, listCatalog, listCategories, upd
 import { colors, font, radii, spacing } from "@/src/theme";
 
 export default function AdminCategories() {
+  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<CatalogItem[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -22,6 +25,7 @@ export default function AdminCategories() {
   const [error, setError] = useState<string | null>(null);
   const [editor, setEditor] = useState<Category | null | undefined>(undefined);
   const [name, setName] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -54,11 +58,13 @@ export default function AdminCategories() {
 
   function openCreate() {
     setName("");
+    setImageUrl(undefined);
     setEditor(null);
   }
 
   function openEdit(category: Category) {
     setName(category.name);
+    setImageUrl(category.imageUrl || undefined);
     setEditor(category);
   }
 
@@ -69,8 +75,8 @@ export default function AdminCategories() {
     }
     setSaving(true);
     try {
-      if (editor) await updateCategory(editor.id, { name: name.trim(), isActive: editor.isActive });
-      else await createCategory(name.trim());
+      if (editor) await updateCategory(editor.id, { name: name.trim(), isActive: editor.isActive, imageUrl: imageUrl || null });
+      else await createCategory(name.trim(), imageUrl);
       setEditor(undefined);
       await load();
     } catch (e) {
@@ -131,6 +137,7 @@ export default function AdminCategories() {
             return (
               <View style={styles.card} testID={`category-row-${item.id}`}>
                 <View style={styles.row}>
+                  <RemoteImage uri={item.imageUrl} style={styles.thumb} placeholderSize={16} />
                   <View style={styles.rowMain}>
                     <Text style={styles.name}>{item.name}</Text>
                     <ProductCountButton
@@ -161,6 +168,7 @@ export default function AdminCategories() {
       )}
       <AppModal testID="category-editor" visible={editor !== undefined} onClose={() => setEditor(undefined)} title={editor ? "Edit category" : "New category"}>
         <Input testID="category-name-input" label="Category name" value={name} onChangeText={setName} placeholder="e.g. Electrical" autoCapitalize="words" />
+        <CoverImageField testID="category-image" label="Home photo" uri={imageUrl} onChange={setImageUrl} />
         <Button testID="save-category" title={editor ? "Save changes" : "Create category"} onPress={save} loading={saving} fullWidth />
       </AppModal>
       <PasscodeConfirmModal
@@ -186,6 +194,7 @@ const styles = StyleSheet.create({
   list: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 40 },
   card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  thumb: { width: 48, height: 48, borderRadius: 10 },
   rowMain: { flex: 1, gap: 8 },
   name: { ...font.title, color: colors.textPrimary },
   status: { borderRadius: radii.pill, paddingHorizontal: 8, paddingVertical: 4 },

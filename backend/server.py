@@ -236,20 +236,24 @@ class CatalogItemIn(BaseModel):
 
 class CategoryIn(BaseModel):
     name: str
+    imageUrl: Optional[str] = None
 
 
 class CategoryUpdateIn(BaseModel):
     name: str
     isActive: bool
+    imageUrl: Optional[str] = None
 
 
 class BrandIn(BaseModel):
     name: str
+    logoUrl: Optional[str] = None
 
 
 class BrandUpdateIn(BaseModel):
     name: str
     isActive: bool
+    logoUrl: Optional[str] = None
 
 
 class ProductGroupIn(BaseModel):
@@ -688,6 +692,79 @@ async def update_team_user(user_id: str, body: TeamUserUpdateIn):
     return envelope(public_team_user(await db.users.find_one({"id": user_id}, {"_id": 0})))
 
 
+# ---------- MongoDB indexes ----------
+
+async def ensure_indexes() -> None:
+    """
+    Create indexes for fields used in find/sort/count (not regex $or scans).
+    Idempotent: safe on every startup; Mongo skips unchanged definitions.
+    """
+    try:
+        await db.command("ping")
+    except Exception as exc:
+        logger.warning("MongoDB unavailable; skipping index ensure: %s", exc)
+        return
+
+    index_specs: list[tuple[Any, list[tuple[str, int]], dict]] = [
+        (db.users, [("id", 1)], {"unique": True, "name": "users_id_uq"}),
+        (db.users, [("role", 1), ("contactNumber", 1)], {"name": "users_role_contact"}),
+        (db.users, [("contactNumber", 1)], {"name": "users_contact"}),
+        (db.users, [("role", 1), ("name", 1)], {"name": "users_role_name_sort"}),
+        (db.admin_tokens, [("token", 1)], {"unique": True, "name": "admin_tokens_token_uq"}),
+        (db.admin_tokens, [("adminId", 1)], {"name": "admin_tokens_adminId"}),
+        (db.partners, [("id", 1)], {"unique": True, "name": "partners_id_uq"}),
+        (db.partners, [("phone", 1)], {"unique": True, "sparse": True, "name": "partners_phone_uq"}),
+        (db.partners, [("kycStatus", 1), ("name", 1)], {"name": "partners_kyc_name_sort"}),
+        (db.partners, [("salesManager", 1)], {"name": "partners_salesManager"}),
+        (db.partners, [("name", 1)], {"name": "partners_name_sort"}),
+        (db.categories, [("id", 1)], {"unique": True, "name": "categories_id_uq"}),
+        (db.categories, [("name", 1)], {"name": "categories_name"}),
+        (db.subcategories, [("id", 1)], {"unique": True, "name": "subcategories_id_uq"}),
+        (db.subcategories, [("categoryId", 1), ("name", 1)], {"name": "subcategories_cat_name"}),
+        (db.subcategories, [("categoryId", 1)], {"name": "subcategories_categoryId"}),
+        (db.brands, [("id", 1)], {"unique": True, "name": "brands_id_uq"}),
+        (db.brands, [("name", 1)], {"name": "brands_name"}),
+        (db.product_groups, [("id", 1)], {"unique": True, "name": "product_groups_id_uq"}),
+        (db.product_groups, [("name", 1)], {"name": "product_groups_name"}),
+        (db.racks, [("id", 1)], {"unique": True, "name": "racks_id_uq"}),
+        (db.racks, [("name", 1)], {"name": "racks_name"}),
+        (db.catalog, [("id", 1)], {"unique": True, "name": "catalog_id_uq"}),
+        (db.catalog, [("productCode", 1)], {"unique": True, "sparse": True, "name": "catalog_productCode_uq"}),
+        (db.catalog, [("category", 1), ("name", 1)], {"name": "catalog_category_name_sort"}),
+        (db.catalog, [("brandId", 1)], {"name": "catalog_brandId"}),
+        (db.catalog, [("brand", 1)], {"name": "catalog_brand"}),
+        (db.catalog, [("rackId", 1), ("name", 1)], {"name": "catalog_rack_name_sort"}),
+        (db.catalog, [("productGroupIds", 1)], {"name": "catalog_productGroupIds"}),
+        (db.catalog, [("type", 1)], {"name": "catalog_type"}),
+        (db.catalog, [("productGroup", 1)], {"name": "catalog_productGroup"}),
+        (db.catalog, [("subcategory", 1)], {"name": "catalog_subcategory"}),
+        (db.catalog, [("productClass", 1)], {"name": "catalog_productClass"}),
+        (db.catalog, [("sizeMm", 1)], {"name": "catalog_sizeMm"}),
+        (db.catalog, [("name", 1)], {"name": "catalog_name_sort"}),
+        (db.catalog, [("stock", 1), ("reorderLevel", 1)], {"name": "catalog_stock_reorder"}),
+        (db.pricing, [("productCode", 1)], {"unique": True, "name": "pricing_productCode_uq"}),
+        (db.pricing_history, [("productCode", 1), ("updatedAt", -1)], {"name": "pricing_history_code_updated"}),
+        (db.purchases, [("createdAt", -1)], {"name": "purchases_createdAt"}),
+        (db.purchases, [("partnerId", 1), ("createdAt", -1)], {"name": "purchases_partner_created"}),
+        (db.rfqs, [("id", 1)], {"unique": True, "name": "rfqs_id_uq"}),
+        (db.rfqs, [("partnerId", 1)], {"name": "rfqs_partnerId"}),
+        (db.rfqs, [("partnerId", 1), ("status", 1)], {"name": "rfqs_partner_status"}),
+        (db.rfqs, [("status", 1), ("createdAt", -1)], {"name": "rfqs_status_created"}),
+        (db.rfqs, [("createdAt", -1)], {"name": "rfqs_createdAt"}),
+        (db.dispatches, [("createdAt", -1)], {"name": "dispatches_createdAt"}),
+        (db.reward_ledger, [("requesterId", 1), ("createdAt", -1)], {"name": "reward_ledger_requester_created"}),
+        (db.reward_ledger, [("requesterId", 1), ("type", 1)], {"name": "reward_ledger_requester_type"}),
+        (db.reward_ledger, [("quotationId", 1), ("type", 1)], {"name": "reward_ledger_quotation_type"}),
+        (db.money_config, [("adminId", 1)], {"unique": True, "name": "money_config_adminId_uq"}),
+    ]
+    for collection, keys, options in index_specs:
+        try:
+            await collection.create_index(keys, **options)
+        except Exception as exc:
+            logger.warning("Index %s on %s failed: %s", options.get("name"), collection.name, exc)
+    logger.info("MongoDB indexes ensured (%d definitions)", len(index_specs))
+
+
 # ---------- Categories ----------
 
 DEFAULT_CATEGORIES = []
@@ -746,7 +823,7 @@ async def create_category(body: CategoryIn):
     existing = await db.categories.find_one({"name": {"$regex": f"^{re.escape(name)}$", "$options": "i"}})
     if existing:
         return JSONResponse(status_code=409, content=envelope(None, False, "Category name already exists"))
-    doc = {"id": new_id(), "name": name, "isDefault": False, "isActive": True, "productCount": 0}
+    doc = {"id": new_id(), "name": name, "isDefault": False, "isActive": True, "productCount": 0, "imageUrl": (body.imageUrl or "").strip() or None}
     await db.categories.insert_one(doc.copy())
     return envelope({k: v for k, v in doc.items()})
 
@@ -765,9 +842,12 @@ async def update_category(category_id: str, body: CategoryUpdateIn):
     current = await db.categories.find_one({"id": category_id})
     if not current:
         return JSONResponse(status_code=404, content=envelope(None, False, "Category not found"))
+    updates = {"name": name, "isActive": body.isActive}
+    if "imageUrl" in body.model_fields_set:
+        updates["imageUrl"] = (body.imageUrl or "").strip() or None
     result = await db.categories.update_one(
         {"id": category_id},
-        {"$set": {"name": name, "isActive": body.isActive}},
+        {"$set": updates},
     )
     if current["name"] != name:
         await db.catalog.update_many({"category": current["name"]}, {"$set": {"category": name}})
@@ -827,7 +907,7 @@ async def create_brand(body: BrandIn):
         return JSONResponse(status_code=400, content=envelope(None, False, "Name required"))
     if await db.brands.find_one({"name": {"$regex": f"^{re.escape(name)}$", "$options": "i"}}):
         return JSONResponse(status_code=409, content=envelope(None, False, "Brand name already exists"))
-    doc = {"id": new_id(), "name": name, "isActive": True, "productCount": 0, "createdAt": now_iso(), "updatedAt": now_iso()}
+    doc = {"id": new_id(), "name": name, "isActive": True, "productCount": 0, "logoUrl": (body.logoUrl or "").strip() or None, "createdAt": now_iso(), "updatedAt": now_iso()}
     await db.brands.insert_one(doc.copy())
     return envelope(doc)
 
@@ -842,7 +922,10 @@ async def update_brand(brand_id: str, body: BrandUpdateIn):
     current = await db.brands.find_one({"id": brand_id})
     if not current:
         return JSONResponse(status_code=404, content=envelope(None, False, "Brand not found"))
-    await db.brands.update_one({"id": brand_id}, {"$set": {"name": name, "isActive": body.isActive, "updatedAt": now_iso()}})
+    updates = {"name": name, "isActive": body.isActive, "updatedAt": now_iso()}
+    if "logoUrl" in body.model_fields_set:
+        updates["logoUrl"] = (body.logoUrl or "").strip() or None
+    await db.brands.update_one({"id": brand_id}, {"$set": updates})
     if current["name"] != name:
         await db.catalog.update_many({"brandId": brand_id}, {"$set": {"brand": name}})
     brand = await db.brands.find_one({"id": brand_id}, {"_id": 0})
@@ -2256,6 +2339,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def on_startup():
+    await ensure_indexes()
     await ensure_default_categories()
     logger.info("Quotation mirror backend started")
 

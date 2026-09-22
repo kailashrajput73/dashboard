@@ -4,6 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "@/src/components/UI";
+import { CoverImageField } from "@/src/components/CoverImageField";
+import { RemoteImage } from "@/src/components/RemoteImage";
 import { ProductCountButton, ProductPeekList } from "@/src/components/LinkedProducts";
 import { ApiError } from "@/src/api/client";
 import { createBrand, deleteBrandCascade, listBrands, listCatalog, updateBrand, type Brand, type CatalogItem } from "@/src/api/endpoints";
@@ -19,6 +21,7 @@ export default function AdminBrands() {
   const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
   const [editor, setEditor] = useState<Brand | null | undefined>(undefined);
   const [name, setName] = useState("");
+  const [logoUrl, setLogoUrl] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,12 +48,17 @@ export default function AdminBrands() {
     return products.filter((item) => item.brandId === brand.id || (item.brand || "").toLowerCase() === brand.name.toLowerCase());
   }
 
-  function openCreate() { setEditor(null); setName(""); }
-  function openEdit(brand: Brand) { setEditor(brand); setName(brand.name); }
+  function openCreate() { setEditor(null); setName(""); setLogoUrl(undefined); }
+  function openEdit(brand: Brand) { setEditor(brand); setName(brand.name); setLogoUrl(brand.logoUrl || undefined); }
   async function save() {
     if (!name.trim()) { setError("Brand name is required."); return; }
     setSaving(true);
-    try { if (editor) await updateBrand(editor.id, { name: name.trim(), isActive: editor.isActive }); else await createBrand(name.trim()); setEditor(undefined); await load(); }
+    try {
+      if (editor) await updateBrand(editor.id, { name: name.trim(), isActive: editor.isActive, logoUrl: logoUrl || null });
+      else await createBrand(name.trim(), logoUrl);
+      setEditor(undefined);
+      await load();
+    }
     catch (e) { setError(e instanceof ApiError ? e.message : "Could not save brand"); }
     finally { setSaving(false); }
   }
@@ -97,6 +105,7 @@ export default function AdminBrands() {
             return (
               <View style={styles.card} testID={`brand-row-${item.id}`}>
                 <View style={styles.row}>
+                  <RemoteImage uri={item.logoUrl} style={styles.thumb} placeholderSize={16} />
                   <View style={styles.main}>
                     <Text style={styles.name}>{item.name}</Text>
                     <ProductCountButton count={listed.length} selected={open} onPress={() => setOpenId(open ? null : item.id)} testID={`brand-products-${item.id}`} />
@@ -116,6 +125,7 @@ export default function AdminBrands() {
       )}
       <AppModal testID="brand-editor" visible={editor !== undefined} onClose={() => setEditor(undefined)} title={editor ? "Edit brand" : "New brand"}>
         <Input testID="brand-name-input" label="Brand name" value={name} onChangeText={setName} placeholder="e.g. ACME" autoCapitalize="words" />
+        <CoverImageField testID="brand-logo" label="Brand logo" uri={logoUrl} onChange={setLogoUrl} />
         <Button testID="save-brand" title={editor ? "Save changes" : "Create brand"} onPress={save} loading={saving} fullWidth />
       </AppModal>
       <PasscodeConfirmModal
@@ -141,6 +151,7 @@ const styles = StyleSheet.create({
   list: { padding: spacing.lg, paddingTop: spacing.sm },
   card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  thumb: { width: 48, height: 48, borderRadius: 10 },
   main: { flex: 1, gap: 8 },
   name: { ...font.title, color: colors.textPrimary },
   status: { borderRadius: radii.pill, paddingHorizontal: 8, paddingVertical: 4 },
