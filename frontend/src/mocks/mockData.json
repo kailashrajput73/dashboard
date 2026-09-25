@@ -1,0 +1,40 @@
+{
+  "appConstants": {
+    "appName": "Shivani Constructions",
+    "appVersion": "v1.0.0",
+    "taglinePrefix": "Everything for Construction.",
+    "taglineEmphasis": "One Trusted Platform.",
+    "splashDurationMs": 2200,
+    "mockNetworkDelayMs": 900,
+    "mockOtp": "123456",
+    "otpLength": 6,
+    "otpResendSeconds": 30
+  },
+  "session": {
+    "storageKey": "session_user_profile",
+    "demoUser": {
+      "id": "user-demo-1",
+      "name": "Rajesh Kumar",
+      "email": "rajesh.kumar@example.com",
+      "phone": "+91 98765 43210",
+      "businessName": null,
+      "isGuest": false
+    }
+  },
+  "mockAuth": {
+    "guestUser": {
+      "id": "guest",
+      "email": "",
+      "fullName": "Guest",
+      "isGuest": true
+    },
+    "pendingOtpUserId": "pending",
+    "registerUserId": "user-register",
+    "otpUserId": "user-otp",
+    "otpDefaultFullName": "Verified User"
+  },
+  "catalog": {
+    "pipesTubingCategoryId": "cat-pipes-tubing",
+    "pipesTubingCategoryName": "Pipes & Tubing"
+  }
+}

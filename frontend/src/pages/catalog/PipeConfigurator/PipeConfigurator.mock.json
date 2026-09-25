@@ -1,0 +1,9 @@
+{
+  "_addToCart": {
+    "snackBarDurationMs": 2000
+  },
+  "_webLabels": {
+    "size": "Size",
+    "type": "Type"
+  }
+}
