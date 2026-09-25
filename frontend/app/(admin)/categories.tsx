@@ -112,7 +112,7 @@ export default function AdminCategories() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-      <Header title="Categories" subtitle={`${filtered.length} of ${categories.length}`} onBack={() => router.back()} right={
+      <Header title="Categories" subtitle="Tap Photo to add a home picture or URL" onBack={() => router.back()} right={
         <TouchableOpacity testID="open-add-category" onPress={openCreate} hitSlop={8}>
           <Ionicons name="add-circle" size={26} color={colors.primary} />
         </TouchableOpacity>
@@ -137,7 +137,9 @@ export default function AdminCategories() {
             return (
               <View style={styles.card} testID={`category-row-${item.id}`}>
                 <View style={styles.row}>
-                  <RemoteImage uri={item.imageUrl} style={styles.thumb} placeholderSize={16} />
+                  <TouchableOpacity testID={`photo-category-${item.id}`} onPress={() => openEdit(item)} hitSlop={8}>
+                    <RemoteImage uri={item.imageUrl} style={styles.thumb} placeholderSize={16} />
+                  </TouchableOpacity>
                   <View style={styles.rowMain}>
                     <Text style={styles.name}>{item.name}</Text>
                     <ProductCountButton
@@ -150,8 +152,9 @@ export default function AdminCategories() {
                   <View style={[styles.status, item.isActive ? styles.active : styles.inactive]}>
                     <Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.textMuted }]}>{item.isActive ? "Active" : "Inactive"}</Text>
                   </View>
-                  <TouchableOpacity testID={`edit-category-${item.id}`} onPress={() => openEdit(item)} hitSlop={8} style={styles.iconButton}>
-                    <Ionicons name="create-outline" size={19} color={colors.primary} />
+                  <TouchableOpacity testID={`edit-category-${item.id}`} onPress={() => openEdit(item)} hitSlop={8} style={styles.photoButton}>
+                    <Ionicons name="image-outline" size={16} color={colors.primary} />
+                    <Text style={styles.photoButtonText}>{item.imageUrl ? "Photo" : "Add photo"}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity testID={`delete-category-${item.id}`} onPress={() => setDeleteTarget(item)} hitSlop={8} style={styles.iconButton}>
                     <Ionicons name="trash-outline" size={19} color={colors.error} />
@@ -168,7 +171,7 @@ export default function AdminCategories() {
       )}
       <AppModal testID="category-editor" visible={editor !== undefined} onClose={() => setEditor(undefined)} title={editor ? "Edit category" : "New category"}>
         <Input testID="category-name-input" label="Category name" value={name} onChangeText={setName} placeholder="e.g. Electrical" autoCapitalize="words" />
-        <CoverImageField testID="category-image" label="Home photo" uri={imageUrl} onChange={setImageUrl} />
+        <CoverImageField testID="category-image" label="Category home photo" uri={imageUrl} onChange={setImageUrl} />
         <Button testID="save-category" title={editor ? "Save changes" : "Create category"} onPress={save} loading={saving} fullWidth />
       </AppModal>
       <PasscodeConfirmModal
@@ -202,5 +205,7 @@ const styles = StyleSheet.create({
   inactive: { backgroundColor: colors.border },
   statusText: { fontSize: 11, fontWeight: "700" },
   iconButton: { padding: 4 },
+  photoButton: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 6, borderRadius: radii.pill, backgroundColor: colors.primaryLight },
+  photoButtonText: { fontSize: 11, fontWeight: "700", color: colors.primary },
   empty: { textAlign: "center", color: colors.textSecondary, padding: spacing.xl },
 });

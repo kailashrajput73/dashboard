@@ -212,7 +212,7 @@ export default function AdminDashboard() {
           <ActionRow
             testID="nav-category-manage"
             title="Manage Categories"
-            subtitle="Create, rename, and deactivate categories"
+            subtitle="Home photo (file or URL), rename, activate"
             icon="pricetags-outline"
             onPress={() => router.push("/(admin)/categories")}
           />
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
           <ActionRow
             testID="nav-brand-manage"
             title="Manage Brands"
-            subtitle="Create brands and link them to products"
+            subtitle="Brand logo (file or URL), create and link products"
             icon="ribbon-outline"
             onPress={() => router.push("/(admin)/brands")}
           />

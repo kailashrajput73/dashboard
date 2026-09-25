@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { Button } from "@/src/components/UI";
+import { Button, Input } from "@/src/components/UI";
 import { RemoteImage } from "@/src/components/RemoteImage";
 import { pickImageAsDataUrl } from "@/src/utils/pick-image";
 import { colors, radii, spacing } from "@/src/theme";
@@ -17,9 +17,12 @@ export function CoverImageField(props: {
     if (picked) props.onChange(picked.dataUrl);
   }
 
+  const pastedUrl = props.uri && !props.uri.startsWith("data:") ? props.uri : "";
+
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>{props.label}</Text>
+      <Text style={styles.hint}>Upload a file from this computer, or paste a picture URL.</Text>
       <RemoteImage uri={props.uri} style={styles.preview} placeholderSize={28} />
       <View style={styles.actions}>
         <Button
@@ -39,13 +42,22 @@ export function CoverImageField(props: {
           />
         ) : null}
       </View>
+      <Input
+        testID={`${props.testID}-url`}
+        label="Or paste picture URL"
+        placeholder="https://example.com/photo.jpg"
+        value={pastedUrl}
+        onChangeText={(value) => props.onChange(value.trim() || undefined)}
+        autoCapitalize="none"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.md },
-  label: { color: colors.textSecondary, fontSize: 12, fontWeight: "600", marginBottom: spacing.sm },
+  label: { color: colors.textSecondary, fontSize: 12, fontWeight: "600", marginBottom: 4 },
+  hint: { color: colors.textMuted, fontSize: 12, marginBottom: spacing.sm },
   preview: { width: "100%", height: 120, borderRadius: radii.md, marginBottom: spacing.sm },
-  actions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm },
 });

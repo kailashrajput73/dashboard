@@ -84,7 +84,7 @@ export default function AdminBrands() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-      <Header title="Brands" subtitle={`${filtered.length} of ${brands.length}`} onBack={() => router.back()} right={<TouchableOpacity testID="open-add-brand" onPress={openCreate} hitSlop={8}><Ionicons name="add-circle" size={26} color={colors.primary} /></TouchableOpacity>} />
+      <Header title="Brands" subtitle="Tap Photo to add a logo file or URL" onBack={() => router.back()} right={<TouchableOpacity testID="open-add-brand" onPress={openCreate} hitSlop={8}><Ionicons name="add-circle" size={26} color={colors.primary} /></TouchableOpacity>} />
       <View style={styles.controls}>
         <Input testID="brand-search" value={query} onChangeText={setQuery} placeholder="Search brands" style={styles.search} />
         <View style={styles.chips}>
@@ -105,7 +105,9 @@ export default function AdminBrands() {
             return (
               <View style={styles.card} testID={`brand-row-${item.id}`}>
                 <View style={styles.row}>
-                  <RemoteImage uri={item.logoUrl} style={styles.thumb} placeholderSize={16} />
+                  <TouchableOpacity testID={`photo-brand-${item.id}`} onPress={() => openEdit(item)} hitSlop={8}>
+                    <RemoteImage uri={item.logoUrl} style={styles.thumb} placeholderSize={16} />
+                  </TouchableOpacity>
                   <View style={styles.main}>
                     <Text style={styles.name}>{item.name}</Text>
                     <ProductCountButton count={listed.length} selected={open} onPress={() => setOpenId(open ? null : item.id)} testID={`brand-products-${item.id}`} />
@@ -113,7 +115,10 @@ export default function AdminBrands() {
                   <View style={[styles.status, item.isActive ? styles.active : styles.inactive]}>
                     <Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.textMuted }]}>{item.isActive ? "Active" : "Inactive"}</Text>
                   </View>
-                  <TouchableOpacity testID={`edit-brand-${item.id}`} onPress={() => openEdit(item)} style={styles.icon} hitSlop={8}><Ionicons name="create-outline" size={19} color={colors.primary} /></TouchableOpacity>
+                  <TouchableOpacity testID={`edit-brand-${item.id}`} onPress={() => openEdit(item)} style={styles.photoButton} hitSlop={8}>
+                    <Ionicons name="image-outline" size={16} color={colors.primary} />
+                    <Text style={styles.photoButtonText}>{item.logoUrl ? "Photo" : "Add photo"}</Text>
+                  </TouchableOpacity>
                   <TouchableOpacity testID={`delete-brand-${item.id}`} onPress={() => setDeleteTarget(item)} style={styles.icon} hitSlop={8}><Ionicons name="trash-outline" size={19} color={colors.error} /></TouchableOpacity>
                   <TouchableOpacity testID={`toggle-brand-${item.id}`} onPress={() => toggle(item)} style={styles.icon} hitSlop={8}><Ionicons name={item.isActive ? "pause-circle-outline" : "play-circle-outline"} size={21} color={item.isActive ? colors.error : colors.success} /></TouchableOpacity>
                 </View>
@@ -159,5 +164,7 @@ const styles = StyleSheet.create({
   inactive: { backgroundColor: colors.border },
   statusText: { fontSize: 11, fontWeight: "700" },
   icon: { padding: 4 },
+  photoButton: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 6, borderRadius: radii.pill, backgroundColor: colors.primaryLight },
+  photoButtonText: { fontSize: 11, fontWeight: "700", color: colors.primary },
   empty: { textAlign: "center", color: colors.textSecondary, padding: spacing.xl },
 });
