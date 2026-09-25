@@ -16,7 +16,7 @@ Collections & documents (mirrored):
 Response envelope for every endpoint: { success: bool, data: any, error: str|None }
 """
 
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Header
 from fastapi.responses import JSONResponse, Response
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -169,6 +169,15 @@ class PartnerIn(BaseModel):
     area: str = ""
     salesManager: str = ""
     documents: List[str] = []
+
+
+class PartnerLoginIn(BaseModel):
+    phone: str
+    passcode: str
+
+
+class PartnerRegisterIn(PartnerIn):
+    passcode: str = Field(min_length=4)
 
 
 class PartnerReviewIn(BaseModel):
@@ -556,6 +565,87 @@ async def admin_login(body: AdminLoginIn):
     })
 
 
+@api.post("/auth/partner/register")
+async def partner_app_register(body: PartnerRegisterIn):
+    if not body.name.strip() or not body.phone.strip():
+        return JSONResponse(status_code=400, content=envelope(None, False, "Name and phone are required"))
+    if await db.partners.find_one({"phone": body.phone.strip()}):
+        return JSONResponse(status_code=409, content=envelope(None, False, "Partner phone already registered"))
+    passcode_hash = bcrypt.hashpw(body.passcode.encode(), bcrypt.gensalt()).decode()
+    payload = body.model_dump(exclude={"passcode"})
+    partner = {
+        "id": new_id(),
+        **payload,
+        "name": body.name.strip(),
+        "phone": body.phone.strip(),
+        "passcodeHash": passcode_hash,
+        "kycStatus": "pending",
+        "locationVerified": False,
+        "appActive": False,
+        "kycHistory": [],
+        "rewardPoints": None,
+        "registeredVia": "mobile_app",
+        "loginCount": 0,
+        "createdAt": now_iso(),
+        "updatedAt": now_iso(),
+    }
+    await db.partners.insert_one(partner.copy())
+    return envelope(public_partner(partner))
+
+
+@api.post("/auth/partner/login")
+async def partner_app_login(body: PartnerLoginIn):
+    phone = body.phone.strip()
+    partner = await db.partners.find_one({"phone": phone}, {"_id": 0})
+    if not partner or not partner.get("passcodeHash"):
+        return JSONResponse(status_code=401, content=envelope(None, False, "Invalid phone or passcode"))
+    try:
+        if not bcrypt.checkpw(body.passcode.encode(), partner["passcodeHash"].encode()):
+            return JSONResponse(status_code=401, content=envelope(None, False, "Invalid phone or passcode"))
+    except ValueError:
+        return JSONResponse(status_code=401, content=envelope(None, False, "Invalid phone or passcode"))
+    token = new_id()
+    login_at = now_iso()
+    await db.partner_tokens.insert_one({"token": token, "partnerId": partner["id"], "createdAt": login_at})
+    await db.partners.update_one(
+        {"id": partner["id"]},
+        {
+            "$set": {"lastAppLoginAt": login_at, "updatedAt": login_at},
+            "$inc": {"loginCount": 1},
+        },
+    )
+    refreshed = await db.partners.find_one({"id": partner["id"]}, {"_id": 0})
+    return envelope({
+        "token": token,
+        "partnerId": partner["id"],
+        "partner": public_partner(refreshed or partner),
+    })
+
+
+@api.get("/auth/partner/me")
+async def partner_app_me(authorization: Optional[str] = Header(default=None)):
+    token = None
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+    if not token:
+        return JSONResponse(status_code=401, content=envelope(None, False, "Missing partner token"))
+    session = await db.partner_tokens.find_one({"token": token})
+    if not session:
+        return JSONResponse(status_code=401, content=envelope(None, False, "Invalid or expired partner token"))
+    partner = await db.partners.find_one({"id": session["partnerId"]}, {"_id": 0})
+    if not partner:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Partner not found"))
+    partner["rewardBalance"] = await reward_balance(partner["id"])
+    return envelope(public_partner(partner))
+
+
+def public_partner(partner: dict) -> dict:
+    result = dict(partner)
+    result.pop("_id", None)
+    result.pop("passcodeHash", None)
+    return result
+
+
 class AdminPasscodeIn(BaseModel):
     contactNumber: str
     passcode: str
@@ -581,12 +671,6 @@ class CatalogFieldPurgeIn(AdminPasscodeIn):
 
 
 # ---------- Referral Partners and KYC ----------
-
-def public_partner(partner: dict) -> dict:
-    result = dict(partner)
-    result.pop("_id", None)
-    return result
-
 
 @api.post("/partners/register")
 async def register_partner(body: PartnerIn):
@@ -712,6 +796,8 @@ async def ensure_indexes() -> None:
         (db.users, [("role", 1), ("name", 1)], {"name": "users_role_name_sort"}),
         (db.admin_tokens, [("token", 1)], {"unique": True, "name": "admin_tokens_token_uq"}),
         (db.admin_tokens, [("adminId", 1)], {"name": "admin_tokens_adminId"}),
+        (db.partner_tokens, [("token", 1)], {"unique": True, "name": "partner_tokens_token_uq"}),
+        (db.partner_tokens, [("partnerId", 1)], {"name": "partner_tokens_partnerId"}),
         (db.partners, [("id", 1)], {"unique": True, "name": "partners_id_uq"}),
         (db.partners, [("phone", 1)], {"unique": True, "sparse": True, "name": "partners_phone_uq"}),
         (db.partners, [("kycStatus", 1), ("name", 1)], {"name": "partners_kyc_name_sort"}),

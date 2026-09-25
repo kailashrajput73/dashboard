@@ -31,7 +31,7 @@ export type Rfq = { id: string; partnerId: string; lines: RfqLine[]; status: str
 export type Dispatch = { id: string; sourceRfqId?: string; customerName?: string; customerPhone?: string; lines: RfqLine[]; createdAt: string };
 export type InventoryRow = { productId: string; productCode?: string; name: string; category?: string; brand?: string; stock: number; reorderLevel: number; unitCost: number; valuation: number; rackName?: string; rackSlot?: string };
 export type InventoryTransaction = { type: "in" | "out"; referenceId: string; productCode: string; productName: string; quantity: number; at: string };
-export type Partner = { id: string; name: string; phone: string; address?: string; businessName?: string; pincode?: string; city?: string; area?: string; salesManager?: string; documents: string[]; kycStatus: "pending" | "approved" | "rejected"; locationVerified: boolean; appActive?: boolean; rewardBalance?: number; rfqCount?: number; salesPerformance?: { approvedCount: number; approvedValue: number } };
+export type Partner = { id: string; name: string; phone: string; address?: string; businessName?: string; pincode?: string; city?: string; area?: string; salesManager?: string; documents: string[]; kycStatus: "pending" | "approved" | "rejected"; locationVerified: boolean; appActive?: boolean; rewardBalance?: number; rfqCount?: number; salesPerformance?: { approvedCount: number; approvedValue: number }; registeredVia?: string; lastAppLoginAt?: string; loginCount?: number; createdAt?: string };
 export type RewardWallet = { balance: number; entries: { id: string; requesterId: string; quotationId: string; points: number; type: string; createdAt: string }[] };
 export type TeamUser = { id: string; name: string; contactNumber: string; role: "admin" | "store_manager" | "staff"; permissions: string[]; isActive: boolean; createdAt?: string };
 
@@ -224,7 +224,7 @@ export function assignRackSlot(rackId: string, body: { productId: string; slotCo
 export function listRackProducts(id: string) { return apiRequest<CatalogItem[]>(`/racks/${id}/products`); }
 export function listPurchases() { return apiRequest<Purchase[]>("/purchases"); }
 export function createPurchase(lines: PurchaseLine[]) { return apiRequest<Purchase>("/purchases", { method: "POST", body: { lines } }); }
-export function listRfqs(params?: { status?: string; search?: string }) { return apiRequest<Rfq[]>("/rfqs", { query: params }); }
+export function listRfqs(params?: { partner_id?: string; status?: string; search?: string }) { return apiRequest<Rfq[]>("/rfqs", { query: params }); }
 export function createRfq(body: { partnerId: string; lines: RfqLine[]; deliveryMode: "storePickup" | "homeDelivery"; scheduledAt?: string }) { return apiRequest<Rfq>("/rfqs", { method: "POST", body }); }
 export function updateRfq(id: string, body: { partnerId: string; lines: RfqLine[]; deliveryMode: "storePickup" | "homeDelivery"; scheduledAt?: string }) { return apiRequest<Rfq>(`/rfqs/${id}`, { method: "PUT", body }); }
 export function approveRfq(id: string, body: { approved: boolean; specialDiscountPercent: number; rewardPoints: number; deliveryMode?: "storePickup" | "homeDelivery"; scheduledAt?: string }) { return apiRequest<Rfq>(`/rfqs/${id}/approve`, { method: "POST", body }); }
