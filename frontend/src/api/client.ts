@@ -14,7 +14,7 @@
 // ============================================================================
 
 import { storage } from "@/src/utils/storage";
-import { API_BASE_URL, API_PREFIX } from "@/src/config/env";
+import { API_BASE_URL, API_PREFIX, isMixedContentRisk } from "@/src/config/env";
 
 const ADMIN_TOKEN_KEY = "session:admin:token";
 
@@ -96,11 +96,14 @@ export async function apiRequest<T = any>(
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch (netErr: any) {
-    // Network failure — backend unreachable.
+    const mixed = isMixedContentRisk();
+    const detail = netErr?.message ? ` (${netErr.message})` : "";
     throw new ApiError(
-      "Backend not running — please start the FastAPI server (uvicorn server:app --host 0.0.0.0 --port 8000).",
+      mixed
+        ? `Cannot reach API at ${API_BASE_URL}: HTTPS admin pages cannot call HTTP APIs. Use HTTPS on the VPS (nginx + SSL) and set EXPO_PUBLIC_BACKEND_URL to https://…, then redeploy.`
+        : `Cannot reach API at ${url}${detail}. Check VPS is up, firewall allows port 80/443, URL in env.ts / EXPO_PUBLIC_BACKEND_URL, and restart Expo with --clear.`,
       0,
-      { networkError: true, message: netErr?.message },
+      { networkError: true, message: netErr?.message, url },
     );
   }
 

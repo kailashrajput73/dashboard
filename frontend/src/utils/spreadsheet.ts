@@ -1,4 +1,4 @@
-import { parseCsvBytes, normalizeHeader, type CsvParseResult } from "./csv";
+import { normalizeHeader, tableToRowRecords, type CsvParseResult } from "./csv";
 
 const LOCAL_FILE = 0x04034b50;
 const CENTRAL_DIR = 0x02014b50;
@@ -156,14 +156,10 @@ async function parseXlsxBytes(bytes: Uint8Array): Promise<CsvParseResult> {
     if (table.length < 2) {
       return { ok: false, error: "Spreadsheet must have a header row and at least one data row." };
     }
-    const header = table[0].map((h) => normalizeHeader(h));
-    const rows = table.slice(1).map((cells) => {
-      const row: Record<string, string> = {};
-      header.forEach((h, idx) => {
-        if (h) row[h] = cells[idx] ?? "";
-      });
-      return row;
-    });
+    const rows = tableToRowRecords(table);
+    if (rows.length === 0) {
+      return { ok: false, error: "Spreadsheet must have a header row and at least one data row." };
+    }
     return { ok: true, rows, encoding: "xlsx" };
   } catch (e: any) {
     return { ok: false, error: e?.message || "Could not read the Excel file. Export CSV (UTF-8) and try again." };

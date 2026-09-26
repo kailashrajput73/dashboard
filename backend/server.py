@@ -49,7 +49,19 @@ api = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("quotation-api")
+origins = [
+    "http://localhost:5173",    # Default port for Vite React Web
+    "http://localhost:3000",    # Default port for Standard React Web
+    "http://localhost:8081",    # Default port for Expo / React Native Web
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # Opens doors for your laptop's local ports
+    allow_credentials=True,
+    allow_methods=["*"],         # Allows GET, POST, PUT, DELETE, etc.
+    allow_headers=["*"],         # Allows content-type, authorization, etc.
+)
 # ---------- Helpers ----------
 
 def selling_from(mrp: Optional[float], discount: Optional[float], selling: Optional[float], fallback: float = 0) -> float:
@@ -429,12 +441,32 @@ class MasterImportRow(BaseModel):
     productCode: Optional[str] = None
     length: Optional[str] = None
     imageUrl: Optional[str] = None
+    hsnCode: Optional[str] = None
+    gstRate: Optional[float] = None
+    stdPkg: Optional[float] = None
+    mrpPkg: Optional[float] = None
+    mrp: Optional[float] = None
+    discount: Optional[float] = None
+    sellingPrice: Optional[float] = None
     isActive: bool = True
 
     @field_validator("sizeMm", "sizeCm", mode="before")
     @classmethod
     def coerce_master_size(cls, value):
         return parse_size_mm(value)
+
+    @field_validator("gstRate", "discount", mode="before")
+    @classmethod
+    def coerce_sheet_percent(cls, value):
+        if value is None or value == "":
+            return None
+        try:
+            n = float(value)
+        except (TypeError, ValueError):
+            return value
+        if 0 < n <= 1:
+            return round(n * 100, 4)
+        return n
 
 
 class CatalogMasterImportIn(BaseModel):
@@ -2051,9 +2083,14 @@ async def _run_master_catalog_import(body: CatalogMasterImportIn):
             stock = float(existing.get("stock", 0))
             purchase_price = existing.get("purchasePrice")
         else:
-            selling = 0.0
-            mrp = None
-            discount = None
+            mrp = it.mrp
+            discount = it.discount
+            selling = float(it.sellingPrice) if it.sellingPrice is not None else None
+            if selling is None and mrp is not None:
+                disc = float(discount or 0)
+                selling = round(float(mrp) * (1 - disc / 100), 2)
+            if selling is None:
+                selling = 0.0
             stock = 0.0
             purchase_price = None
         group_ids = list((existing or {}).get("productGroupIds") or [])
@@ -2120,7 +2157,10 @@ async def _run_master_catalog_import(body: CatalogMasterImportIn):
             "sizeCm": it.sizeCm,
             "sizeInch": it.sizeInch,
             "length": it.length,
-            "stdPkg": existing.get("stdPkg") if existing else None,
+            "stdPkg": it.stdPkg if it.stdPkg is not None else (existing.get("stdPkg") if existing else None),
+            "hsnCode": (it.hsnCode or "").strip() or (existing.get("hsnCode") if existing else None),
+            "gstRate": it.gstRate if it.gstRate is not None else (existing.get("gstRate") if existing else None),
+            "mrpPkg": it.mrpPkg if it.mrpPkg is not None else (existing.get("mrpPkg") if existing else None),
             "imageUrl": (it.imageUrl or "").strip() or (existing.get("imageUrl") if existing else None),
             "isActive": True if it.isActive is None else it.isActive,
             "createdAt": existing.get("createdAt") if existing else now_iso(),
@@ -2133,7 +2173,7 @@ async def _run_master_catalog_import(body: CatalogMasterImportIn):
         else:
             await db.catalog.insert_one(doc.copy())
             inserted += 1
-            await upsert_pricing(doc["productCode"], None, 0, None, None)
+            await upsert_pricing(doc["productCode"], mrp, selling, None, discount or 0)
         if it.productGroup and it.productGroup.strip():
             group = group_cache[it.productGroup.strip().lower()]
             ids = list(group.get("productIds") or [])

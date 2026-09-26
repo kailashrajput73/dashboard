@@ -528,6 +528,13 @@ export type MasterImportRow = {
   productCode?: string;
   length?: string;
   imageUrl?: string;
+  hsnCode?: string;
+  gstRate?: number;
+  stdPkg?: number;
+  mrpPkg?: number;
+  mrp?: number;
+  discount?: number;
+  sellingPrice?: number;
   isActive?: boolean;
 };
 

@@ -40,6 +40,7 @@ import {
 } from "@/src/api/endpoints";
 import { ApiError } from "@/src/api/client";
 import { formatMoney } from "@/src/utils/money";
+import { discountFromMrpSelling, sellingFromMrpDiscount } from "@/src/utils/pricing";
 import { sizeInchLabel, sizeLengthLabel, sizeMmLabel, parseSizeMm } from "@/src/utils/size";
 import { inferProductClass } from "@/src/utils/csv";
 
@@ -908,22 +909,22 @@ function PricingRow(props: {
     Number(selling || 0) !== Number(item.sellingPrice ?? item.standardRate ?? 0) ||
     Number(stock || 0) !== Number(item.stock || 0);
 
+  function syncSellingFromMrpDisc(mrpRaw: string, discRaw: string) {
+    const nextMrp = parseFloat(mrpRaw);
+    if (Number.isNaN(nextMrp) || nextMrp < 0) return;
+    const parsedDisc = parseFloat(discRaw);
+    const nextDisc = Number.isNaN(parsedDisc) ? 0 : parsedDisc;
+    setSelling(String(sellingFromMrpDiscount(nextMrp, nextDisc)));
+  }
+
   function onMrp(value: string) {
     setMrp(value);
-    const nextMrp = parseFloat(value);
-    const nextDisc = parseFloat(discount);
-    if (!Number.isNaN(nextMrp) && !Number.isNaN(nextDisc)) {
-      setSelling(String(sellingFromMrpDiscount(nextMrp, nextDisc)));
-    }
+    syncSellingFromMrpDisc(value, discount);
   }
 
   function onDiscount(value: string) {
     setDiscount(value);
-    const nextMrp = parseFloat(mrp);
-    const nextDisc = parseFloat(value);
-    if (!Number.isNaN(nextMrp) && !Number.isNaN(nextDisc)) {
-      setSelling(String(sellingFromMrpDiscount(nextMrp, nextDisc)));
-    }
+    syncSellingFromMrpDisc(mrp, value);
   }
 
   function onSelling(value: string) {

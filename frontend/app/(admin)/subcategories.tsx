@@ -14,6 +14,7 @@ import { SHELF_PRICE_BOARD_ENABLED, ShelfPriceBoard } from "@/src/features/shelf
 import { colors, font, radii, spacing } from "@/src/theme";
 import { parseCsvBytes } from "@/src/utils/csv";
 import { readAssetBytes } from "@/src/utils/read-asset-bytes";
+import { downloadImportTemplate } from "@/src/utils/import-templates";
 
 export default function AdminSubcategories() {
   const router = useRouter();
@@ -155,6 +156,9 @@ export default function AdminSubcategories() {
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header title="Subcategories" subtitle={`${filtered.length} of ${items.length}`} onBack={() => router.back()} right={
         <View style={styles.headerActions}>
+          <TouchableOpacity testID="download-subcategory-template" onPress={() => downloadImportTemplate("subcategory")} hitSlop={8}>
+            <Ionicons name="document-outline" size={23} color={colors.primary} />
+          </TouchableOpacity>
           <TouchableOpacity testID="import-subcategories" onPress={importCsv} hitSlop={8}><Ionicons name="cloud-upload-outline" size={23} color={colors.primary} /></TouchableOpacity>
           <TouchableOpacity testID="export-subcategories" onPress={exportCsv} hitSlop={8}><Ionicons name="download-outline" size={23} color={colors.primary} /></TouchableOpacity>
           <TouchableOpacity testID="open-add-subcategory" onPress={openCreate} hitSlop={8}><Ionicons name="add-circle" size={26} color={colors.primary} /></TouchableOpacity>

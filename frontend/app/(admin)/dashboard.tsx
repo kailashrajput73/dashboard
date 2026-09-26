@@ -8,6 +8,8 @@ import { Header } from "@/src/components/UI";
 import { colors, spacing, radii, shadow, font, isWeb, pointer } from "@/src/theme";
 import { fullSignOut, getAdmin } from "@/src/state/session";
 import { getDashboardSnapshot, type DashboardSnapshot } from "@/src/api/endpoints";
+import { ApiError } from "@/src/api/client";
+import { API_BASE_URL, isMixedContentRisk } from "@/src/config/env";
 import { getTaxonomyTabs } from "@/src/features/catalog-taxonomy/settings";
 import { formatMoney } from "@/src/utils/money";
 
@@ -18,6 +20,7 @@ export default function AdminDashboard() {
   const [company, setCompany] = useState<string>("");
   const [snap, setSnap] = useState<DashboardSnapshot | null>(null);
   const [loadingSnap, setLoadingSnap] = useState(true);
+  const [snapError, setSnapError] = useState<string | null>(null);
   const [showProductType, setShowProductType] = useState(true);
   const [showProductClass, setShowProductClass] = useState(true);
 
@@ -25,13 +28,28 @@ export default function AdminDashboard() {
     const a = await getAdmin();
     setCompany(a?.companyName || "");
     setLoadingSnap(true);
+    setSnapError(null);
     try {
-      const [snapshot, tabs] = await Promise.all([getDashboardSnapshot(), getTaxonomyTabs()]);
+      const snapshot = await getDashboardSnapshot();
       setSnap(snapshot);
-      setShowProductType(tabs.showProductType);
-      setShowProductClass(tabs.showProductClass);
-    } catch {
+      try {
+        const tabs = await getTaxonomyTabs();
+        setShowProductType(tabs.showProductType);
+        setShowProductClass(tabs.showProductClass);
+      } catch {
+        /* local settings only */
+      }
+    } catch (e) {
       setSnap(null);
+      if (e instanceof ApiError) {
+        setSnapError(e.message);
+      } else if (isMixedContentRisk()) {
+        setSnapError(
+          "Browser blocked HTTP API from this HTTPS page. Use https:// on the VPS or open admin from http://localhost Expo.",
+        );
+      } else {
+        setSnapError("Could not load overview from the API.");
+      }
     } finally {
       setLoadingSnap(false);
     }
@@ -197,7 +215,17 @@ export default function AdminDashboard() {
             </View>
           </>
         ) : (
-          <Text style={styles.emptyHint}>Could not load snapshot. Deploy latest API or check connection.</Text>
+          <View style={styles.panel} testID="snapshot-error">
+            <Text style={styles.emptyHint}>
+              {snapError || "Could not load snapshot. Check API URL and redeploy backend."}
+            </Text>
+            <Text style={styles.apiHint}>API: {API_BASE_URL}/api</Text>
+            {isMixedContentRisk() ? (
+              <Text style={styles.apiHint}>
+                Mixed content: enable HTTPS on the VPS for production admin (Vercel).
+              </Text>
+            ) : null}
+          </View>
         )}
 
         <Text style={[styles.sectionTitle, { marginTop: spacing.lg }]}>Modules</Text>
@@ -413,6 +441,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   container: { padding: isWeb ? spacing.xl : spacing.lg, paddingBottom: 40 },
   sectionHint: { color: colors.textSecondary, fontSize: 12, marginBottom: spacing.md, marginTop: -4 },
+  apiHint: { color: colors.textMuted, fontSize: 11, marginTop: spacing.sm, lineHeight: 16 },
   statsRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md, marginBottom: spacing.lg },
   statCard: {
     flexGrow: 1,

@@ -10,6 +10,7 @@ import { createPurchase, listCatalog, listPurchases, listRacks, type CatalogItem
 import { colors, font, radii, spacing } from "@/src/theme";
 import { parseCsvBytes } from "@/src/utils/csv";
 import { readAssetBytes } from "@/src/utils/read-asset-bytes";
+import { downloadImportTemplate } from "@/src/utils/import-templates";
 
 export default function AdminPurchases() {
   const router = useRouter();
@@ -49,7 +50,11 @@ export default function AdminPurchases() {
   }
   return <SafeAreaView style={styles.safe} edges={["top", "bottom"]}><Header title="Purchases" subtitle={`${purchases.length} transaction${purchases.length === 1 ? "" : "s"}`} onBack={() => router.back()} right={<View style={{ flexDirection: "row", gap: spacing.sm }}><TouchableOpacity testID="export-purchases" onPress={exportPurchasesCsv} hitSlop={8}><Ionicons name="download-outline" size={23} color={colors.primary} /></TouchableOpacity><TouchableOpacity testID="open-add-purchase" onPress={openCreate} hitSlop={8}><Ionicons name="add-circle" size={26} color={colors.primary} /></TouchableOpacity></View>} />
     {loading ? <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View> : <FlatList data={purchases} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} ListEmptyComponent={<Text style={styles.empty}>No purchases recorded.</Text>} renderItem={({ item }) => <View style={styles.transaction} testID={`purchase-${item.id}`}><Text style={styles.date}>{new Date(item.createdAt).toLocaleString()}</Text>{item.lines.map((line, index) => <View key={`${item.id}-${index}`} style={styles.line}><View style={styles.main}><Text style={styles.name}>{line.productName}</Text><Text style={styles.meta}>{line.productCode} · Qty {line.quantity}</Text></View><Text style={styles.price}>₹{line.listPrice}</Text></View>)}</View>} />}
-    <View style={styles.footer}><Button testID="bulk-purchase-import" title="Bulk CSV" icon="cloud-upload-outline" onPress={bulkUpload} size="sm" /><Button testID="new-purchase" title="Record purchase" icon="add" onPress={openCreate} fullWidth /></View>
+    <View style={styles.footer}>
+      <Button testID="download-purchase-template" title="Template" icon="download-outline" onPress={() => downloadImportTemplate("purchase")} size="sm" variant="ghost" />
+      <Button testID="bulk-purchase-import" title="Bulk CSV" icon="cloud-upload-outline" onPress={bulkUpload} size="sm" />
+      <Button testID="new-purchase" title="Record purchase" icon="add" onPress={openCreate} fullWidth />
+    </View>
     <AppModal testID="purchase-form" visible={formOpen} onClose={() => setFormOpen(false)} title="Record purchase"><Text style={styles.label}>Product</Text>{products.slice(0, 25).map((product) => <TouchableOpacity key={product.id} testID={`purchase-product-${product.id}`} style={[styles.product, product.productCode === productCode && styles.selected]} onPress={() => { setProductCode(product.productCode || ""); setPrice(String(product.standardRate)); }}><Text style={styles.name}>{product.name}</Text><Text style={styles.meta}>{product.productCode || "Legacy product"}</Text></TouchableOpacity>)}<Input testID="purchase-quantity" label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="decimal-pad" /><Input testID="purchase-price" label="List price" value={price} onChangeText={setPrice} keyboardType="decimal-pad" /><Input testID="purchase-discount" label="Purchase discount (%)" value={discount} onChangeText={setDiscount} keyboardType="decimal-pad" /><Input testID="purchase-rack-id" label="Rack ID (optional)" value={rackId} onChangeText={setRackId} placeholder={racks[0]?.id || "Rack ID"} /><Input testID="purchase-rack-slot" label="Rack slot (optional)" value={rackSlot} onChangeText={setRackSlot} placeholder="A1" /><Button testID="save-purchase" title={`Receive ${selectedProduct?.name || "stock"}`} onPress={save} loading={saving} disabled={!productCode} fullWidth /></AppModal>
     <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} /></SafeAreaView>;
 }

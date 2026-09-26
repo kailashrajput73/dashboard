@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,14 +10,17 @@ import {
   createDispatch,
   createRfq,
   listCatalog,
+  listPartners,
   listRfqs,
   rfqHistory,
   updateRfq,
   type CatalogItem,
+  type Partner,
   type Rfq,
   type RfqLine,
 } from "@/src/api/endpoints";
-import { colors, font, radii, spacing } from "@/src/theme";
+import { colors, font, radii, spacing, isWeb } from "@/src/theme";
+import { formatMoney } from "@/src/utils/money";
 
 type EditableLine = { productCode: string; quantity: string; productName?: string; unitPrice?: number };
 
@@ -41,9 +44,27 @@ function csvCell(value: string | number | undefined) {
   return `"${String(value ?? "").replace(/"/g, '""')}"`;
 }
 
+function statusLabel(status: string) {
+  if (status === "pending") return "Pending";
+  if (status === "approved") return "Approved";
+  if (status === "rejected") return "Rejected";
+  if (status === "dispatched") return "Dispatched";
+  return status;
+}
+
+function lineSubtotal(line: RfqLine) {
+  return (line.quantity || 0) * (line.unitPrice || 0);
+}
+
+function rfqLineTotal(rfq: Rfq) {
+  if (rfq.grandTotal != null && rfq.status !== "pending") return rfq.grandTotal;
+  return rfq.lines.reduce((sum, line) => sum + lineSubtotal(line), 0);
+}
+
 export default function AdminRfqs() {
   const router = useRouter();
-  const [rfqs, setRfqs] = useState<Rfq[]>([]);
+  const [allRfqs, setAllRfqs] = useState<Rfq[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
   const [products, setProducts] = useState<CatalogItem[]>([]);
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
@@ -62,18 +83,34 @@ export default function AdminRfqs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const partnerById = useMemo(() => {
+    const map = new Map<string, Partner>();
+    partners.forEach((p) => map.set(p.id, p));
+    return map;
+  }, [partners]);
+
+  const stockByCode = useMemo(() => {
+    const map = new Map<string, number>();
+    products.forEach((p) => {
+      if (p.productCode) map.set(p.productCode, Number(p.stock ?? 0));
+    });
+    return map;
+  }, [products]);
+
   const load = useCallback(async () => {
     try {
-      const [nextRfqs, nextProducts] = await Promise.all([
-        listRfqs({ status: status === "all" ? undefined : status, search }),
+      const [nextRfqs, nextProducts, nextPartners] = await Promise.all([
+        listRfqs(),
         listCatalog(),
+        listPartners(),
       ]);
-      setRfqs(nextRfqs || []);
+      setAllRfqs(nextRfqs || []);
       setProducts(nextProducts || []);
+      setPartners(nextPartners || []);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Failed to load RFQs");
     }
-  }, [search, status]);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -82,12 +119,77 @@ export default function AdminRfqs() {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: allRfqs.length, pending: 0, approved: 0, rejected: 0, dispatched: 0 };
+    allRfqs.forEach((rfq) => {
+      if (counts[rfq.status] != null) counts[rfq.status] += 1;
+    });
+    return counts;
+  }, [allRfqs]);
+
+  const filteredRfqs = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return allRfqs.filter((rfq) => {
+      if (status !== "all" && rfq.status !== status) return false;
+      if (!q) return true;
+      const partner = partnerById.get(rfq.partnerId);
+      const blob = [
+        rfq.id,
+        rfq.partnerId,
+        partner?.name,
+        partner?.phone,
+        partner?.businessName,
+        ...rfq.lines.map((l) => `${l.productName} ${l.productCode}`),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return blob.includes(q);
+    });
+  }, [allRfqs, partnerById, search, status]);
+
+  const tabs = useMemo(
+    () =>
+      (["all", "pending", "approved", "rejected", "dispatched"] as const).map((key) => ({
+        key,
+        label: key === "all" ? "All" : statusLabel(key),
+        count: statusCounts[key] ?? 0,
+      })),
+    [statusCounts],
+  );
+
+  function partnerTitle(id: string) {
+    const p = partnerById.get(id);
+    if (p?.name) return p.name;
+    return `Partner ${id.slice(0, 8)}`;
+  }
+
+  function partnerSubtitle(id: string) {
+    const p = partnerById.get(id);
+    if (!p) return id;
+    return [p.phone, p.city || p.area].filter(Boolean).join(" · ") || p.businessName || id.slice(0, 8);
+  }
+
   const product = products.find((item) => item.productCode === productCode);
   const scanProduct = products.find(
     (item) => item.productCode?.toLowerCase() === scanCode.trim().toLowerCase(),
   );
   const canEditSelected = selected && !["dispatched", "cancelled"].includes(selected.status);
-  const tabs = useMemo(() => ["all", "pending", "approved", "rejected", "dispatched"], []);
+
+  const dispatchStockIssues = useMemo(() => {
+    if (!selected || selected.status !== "approved") return [] as string[];
+    const issues: string[] = [];
+    for (const line of selected.lines) {
+      const need = line.quantity;
+      const have = stockByCode.get(line.productCode);
+      if (have == null) {
+        issues.push(`${line.productName || line.productCode}: not in catalog`);
+      } else if (have < need) {
+        issues.push(`${line.productName || line.productCode}: need ${need}, stock ${have}`);
+      }
+    }
+    return issues;
+  }, [selected, stockByCode]);
 
   function openCreate() {
     setPartnerId("");
@@ -243,12 +345,13 @@ export default function AdminRfqs() {
   }
 
   async function exportCsv() {
-    const header = "id,partnerId,status,productCode,productName,quantity,deliveryMode,scheduledAt,createdAt";
-    const rows = rfqs.flatMap((rfq) =>
+    const header = "id,partnerId,partnerName,status,productCode,productName,quantity,deliveryMode,scheduledAt,createdAt";
+    const rows = allRfqs.flatMap((rfq) =>
       rfq.lines.map((line) =>
         [
           rfq.id,
           rfq.partnerId,
+          partnerById.get(rfq.partnerId)?.name || "",
           rfq.status,
           line.productCode,
           line.productName || "",
@@ -267,11 +370,13 @@ export default function AdminRfqs() {
     }
   }
 
+  const selectedTotal = selected ? rfqLineTotal(selected) : 0;
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header
         title="RFQ Management"
-        subtitle={`${rfqs.length} request${rfqs.length === 1 ? "" : "s"} · pending → approve → edit at counter → dispatch`}
+        subtitle={`${statusCounts.pending} pending · ${statusCounts.approved} approved · tap a row to review`}
         onBack={() => router.back()}
         right={
           <View style={styles.headerActions}>
@@ -285,51 +390,63 @@ export default function AdminRfqs() {
         }
       />
       <View style={styles.controls}>
-        <Input testID="rfq-search" value={search} onChangeText={setSearch} placeholder="Search partner, code, or product" style={styles.search} />
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={tabs}
-          keyExtractor={(item) => item}
-          contentContainerStyle={styles.tabs}
-          renderItem={({ item }) => (
-            <Chip
-              label={item[0].toUpperCase() + item.slice(1)}
-              selected={status === item}
-              onPress={() => setStatus(item)}
-              testID={`rfq-filter-${item}`}
-            />
-          )}
+        <Input
+          testID="rfq-search"
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Search partner, phone, product, or code"
+          style={styles.search}
         />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
+          {tabs.map((tab) => (
+            <Chip
+              key={tab.key}
+              label={`${tab.label} (${tab.count})`}
+              selected={status === tab.key}
+              onPress={() => setStatus(tab.key)}
+              testID={`rfq-filter-${tab.key}`}
+            />
+          ))}
+        </ScrollView>
       </View>
       {loading ? (
         <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>
       ) : (
         <FlatList
-          data={rfqs}
+          data={filteredRfqs}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={<Text style={styles.empty}>No RFQs found.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>No RFQs match this filter.</Text>}
           renderItem={({ item }) => (
             <TouchableOpacity testID={`rfq-row-${item.id}`} style={styles.row} onPress={() => openDetails(item)}>
               <View style={styles.main}>
-                <Text style={styles.name}>Partner {item.partnerId}</Text>
+                <Text style={styles.name}>{partnerTitle(item.partnerId)}</Text>
+                <Text style={styles.meta}>{partnerSubtitle(item.partnerId)}</Text>
                 <Text style={styles.meta}>
-                  {item.lines.length} product{item.lines.length === 1 ? "" : "s"} ·{" "}
-                  {item.deliveryMode === "storePickup" ? "Store pickup" : "Home delivery"}
+                  {item.lines.length} item{item.lines.length === 1 ? "" : "s"} ·{" "}
+                  {item.deliveryMode === "storePickup" ? "Pickup" : "Delivery"}
+                  {item.scheduledAt ? ` · ${item.scheduledAt}` : ""}
                 </Text>
-                <Text style={styles.meta}>{item.lines.map((line) => `${line.productName || line.productCode} x${line.quantity}`).join(", ")}</Text>
+                <Text style={styles.meta} numberOfLines={2}>
+                  {item.lines.map((line) => `${line.productName || line.productCode} × ${line.quantity}`).join(" · ")}
+                </Text>
+                <Text style={styles.date}>{new Date(item.createdAt).toLocaleString()}</Text>
               </View>
-              <View style={[styles.status, statusStyle(item.status)]}>
-                <Text style={styles.statusText}>{item.status}</Text>
+              <View style={styles.right}>
+                <Text style={styles.amount}>₹{formatMoney(rfqLineTotal(item))}</Text>
+                {item.rewardPoints ? (
+                  <Text style={styles.points}>{item.rewardPoints} pts</Text>
+                ) : (
+                  <Text style={styles.pointsMuted}>— pts</Text>
+                )}
+                <View style={[styles.status, statusStyle(item.status)]}>
+                  <Text style={styles.statusText}>{statusLabel(item.status)}</Text>
+                </View>
               </View>
             </TouchableOpacity>
           )}
         />
       )}
-      <View style={styles.footer}>
-        <Button testID="new-rfq" title="Create RFQ (manual)" icon="add" onPress={openCreate} fullWidth />
-      </View>
 
       <AppModal testID="create-rfq-modal" visible={createOpen} onClose={() => setCreateOpen(false)} title="Create RFQ">
         <Input testID="rfq-partner-id" label="Partner ID" value={partnerId} onChangeText={setPartnerId} placeholder="Partner identifier" autoCapitalize="none" />
@@ -346,72 +463,146 @@ export default function AdminRfqs() {
         <Button testID="save-rfq" title={`Submit ${product?.name || "RFQ"}`} onPress={saveCreate} loading={saving} disabled={!productCode} fullWidth />
       </AppModal>
 
-      <AppModal testID="rfq-details-modal" visible={!!selected} onClose={closeDetails} title={`RFQ ${selected?.id.slice(0, 8)}`}>
-        <Text style={styles.meta}>Partner: {selected?.partnerId}</Text>
-        <Text style={styles.meta}>Status: {selected?.status}</Text>
-        <Text style={styles.meta}>Line total (before special discount): ₹{selected?.grandTotal?.toFixed?.(2) ?? selected?.grandTotal ?? 0}</Text>
-        <Text style={styles.meta}>Reward on last approval: {selected?.rewardPoints || 0} pts</Text>
-
-        {canEditSelected ? (
+      <AppModal testID="rfq-details-modal" visible={!!selected} onClose={closeDetails} title={selected ? partnerTitle(selected.partnerId) : "RFQ"} wide>
+        {selected ? (
           <>
-            <Text style={styles.sectionTitle}>Order lines</Text>
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryRow}>
+                <SummaryCell label="Status" value={statusLabel(selected.status)} />
+                <SummaryCell label="Total" value={`₹${formatMoney(selectedTotal)}`} highlight />
+              </View>
+              <View style={styles.summaryRow}>
+                <SummaryCell label="Reward points" value={String(selected.rewardPoints || 0)} />
+                <SummaryCell
+                  label="Delivery"
+                  value={selected.deliveryMode === "storePickup" ? "Store pickup" : "Home delivery"}
+                />
+              </View>
+              <Text style={styles.summaryMeta}>
+                RFQ {selected.id.slice(0, 8)} · {partnerSubtitle(selected.partnerId)}
+              </Text>
+              {selected.scheduledAt ? (
+                <Text style={styles.summaryMeta}>Scheduled: {selected.scheduledAt}</Text>
+              ) : null}
+            </View>
+
+            <Text style={styles.sectionTitle}>Products ({editLines.length})</Text>
             {editLines.map((line, index) => (
-              <View key={`${line.productCode}-${index}`} style={styles.lineRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.name}>{line.productName || line.productCode}</Text>
+              <View key={`${line.productCode}-${index}`} style={styles.lineCard}>
+                <View style={styles.lineMain}>
+                  <Text style={styles.lineName}>{line.productName || line.productCode}</Text>
                   <Text style={styles.meta}>{line.productCode}</Text>
+                  <Text style={styles.meta}>
+                    ₹{formatMoney(line.unitPrice || 0)} each · line ₹{formatMoney((Number(line.quantity) || 0) * (line.unitPrice || 0))}
+                  </Text>
+                  {selected.status === "approved" ? (
+                    <Text
+                      style={[
+                        styles.meta,
+                        (stockByCode.get(line.productCode) ?? 0) < Number(line.quantity) ? styles.stockWarn : styles.stockOk,
+                      ]}
+                    >
+                      In stock: {stockByCode.has(line.productCode) ? stockByCode.get(line.productCode) : "—"} · order qty {line.quantity}
+                    </Text>
+                  ) : null}
                 </View>
-                <Input testID={`rfq-line-qty-${index}`} value={line.quantity} onChangeText={(v) => setLineQty(index, v)} keyboardType="decimal-pad" style={styles.qtyInput} />
-                <TouchableOpacity testID={`rfq-line-remove-${index}`} onPress={() => removeLine(index)} hitSlop={8}>
-                  <Ionicons name="trash-outline" size={20} color={colors.error} />
-                </TouchableOpacity>
+                {canEditSelected ? (
+                  <View style={styles.lineActions}>
+                    <Input
+                      testID={`rfq-line-qty-${index}`}
+                      value={line.quantity}
+                      onChangeText={(v) => setLineQty(index, v)}
+                      keyboardType="decimal-pad"
+                      style={styles.qtyInput}
+                    />
+                    <TouchableOpacity testID={`rfq-line-remove-${index}`} onPress={() => removeLine(index)} hitSlop={8}>
+                      <Ionicons name="trash-outline" size={20} color={colors.error} />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <Text style={styles.qtyReadonly}>Qty {line.quantity}</Text>
+                )}
               </View>
             ))}
-            <Input
-              testID="rfq-scan-code"
-              label="Add product (scan or type product code)"
-              value={scanCode}
-              onChangeText={setScanCode}
-              placeholder="PRD-..."
-              autoCapitalize="characters"
-            />
-            <Text style={styles.hint}>{scanProduct ? `${scanProduct.name} · tap Add` : "Code must match catalog productCode / QR payload."}</Text>
-            <Button testID="rfq-add-scanned" title="Add product to RFQ" onPress={addScannedLine} disabled={!scanProduct} size="sm" />
-            <Button testID="rfq-save-lines" title="Save line changes" onPress={saveLineChanges} loading={saving} fullWidth />
-          </>
-        ) : (
-          <Text style={styles.hint}>This RFQ is closed ({selected?.status}). Open history below.</Text>
-        )}
 
-        {selected?.status === "pending" ? (
-          <>
-            <View style={{ height: spacing.md }} />
-            <Input testID="rfq-discount" label="Special discount (%)" value={discount} onChangeText={setDiscount} keyboardType="decimal-pad" />
-            <DeliveryPicker mode={deliveryMode} setMode={setDeliveryMode} />
-            <Input testID="rfq-detail-schedule" label="Scheduled date and time" value={scheduledAt} onChangeText={setScheduledAt} />
-            <View style={styles.actions}>
-              <Button testID="approve-rfq" title="Approve and credit reward" onPress={() => decide(true)} loading={saving} />
-              <Button testID="reject-rfq" title="Reject" variant="danger" onPress={() => decide(false)} loading={saving} />
-            </View>
+            {canEditSelected ? (
+              <View style={styles.addBlock}>
+                <Input
+                  testID="rfq-scan-code"
+                  label="Add product (scan or type code)"
+                  value={scanCode}
+                  onChangeText={setScanCode}
+                  placeholder="Product code"
+                  autoCapitalize="characters"
+                />
+                <Text style={styles.hint}>
+                  {scanProduct ? `${scanProduct.name} — ready to add` : "Enter a catalog product code"}
+                </Text>
+                <Button testID="rfq-add-scanned" title="Add to order" onPress={addScannedLine} disabled={!scanProduct} size="sm" />
+                <Button testID="rfq-save-lines" title="Save changes" onPress={saveLineChanges} loading={saving} fullWidth />
+              </View>
+            ) : null}
+
+            {selected.status === "pending" ? (
+              <View style={styles.actionBlock}>
+                <Text style={styles.sectionTitle}>Approval</Text>
+                <Input testID="rfq-discount" label="Special discount (%)" value={discount} onChangeText={setDiscount} keyboardType="decimal-pad" />
+                <DeliveryPicker mode={deliveryMode} setMode={setDeliveryMode} />
+                <Input testID="rfq-detail-schedule" label="Scheduled date and time" value={scheduledAt} onChangeText={setScheduledAt} />
+                <View style={styles.actions}>
+                  <Button testID="approve-rfq" title="Approve + reward" onPress={() => decide(true)} loading={saving} />
+                  <Button testID="reject-rfq" title="Reject" variant="danger" onPress={() => decide(false)} loading={saving} />
+                </View>
+              </View>
+            ) : null}
+
+            {selected.status === "approved" ? (
+              <View style={styles.actionBlock}>
+                <Text style={styles.sectionTitle}>Dispatch</Text>
+                <Text style={styles.hint}>
+                  Stock is reduced in catalog when you dispatch (same as Dispatch & Billing). RFQ moves to Dispatched and cannot be edited again.
+                </Text>
+                {dispatchStockIssues.length ? (
+                  <Text style={styles.stockWarn}>{dispatchStockIssues.join(" · ")}</Text>
+                ) : (
+                  <Text style={styles.stockOk}>Stock OK for all lines — ready to dispatch.</Text>
+                )}
+                <Button
+                  testID="dispatch-rfq-from-detail"
+                  title="Dispatch & deduct stock"
+                  icon="barcode-outline"
+                  onPress={dispatchSelected}
+                  loading={saving}
+                  disabled={dispatchStockIssues.length > 0}
+                  fullWidth
+                />
+              </View>
+            ) : null}
+
+            {history.length ? (
+              <>
+                <Text style={styles.sectionTitle}>History</Text>
+                {history.map((event, index) => (
+                  <Text key={`${event.at}-${index}`} style={styles.history}>
+                    {new Date(event.at).toLocaleString()} · {event.action} · {event.actor}
+                  </Text>
+                ))}
+              </>
+            ) : null}
           </>
         ) : null}
-
-        {selected?.status === "approved" ? (
-          <View style={styles.actions}>
-            <Button testID="dispatch-rfq-from-detail" title="Dispatch & deduct stock" icon="barcode-outline" onPress={dispatchSelected} loading={saving} fullWidth />
-            <Button testID="open-dispatch-screen" title="Open dispatch list" variant="secondary" onPress={() => { closeDetails(); router.push("/(admin)/dispatches"); }} size="sm" />
-          </View>
-        ) : null}
-
-        <Text style={styles.historyTitle}>Audit history</Text>
-        {history.map((event, index) => (
-          <Text key={`${event.at}-${index}`} style={styles.history}>
-            {event.at} · {event.action} · {event.actor}
-          </Text>
-        ))}
       </AppModal>
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
     </SafeAreaView>
+  );
+}
+
+function SummaryCell(props: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <View style={styles.summaryCell}>
+      <Text style={styles.summaryLabel}>{props.label}</Text>
+      <Text style={[styles.summaryValue, props.highlight && styles.summaryHighlight]}>{props.value}</Text>
+    </View>
   );
 }
 
@@ -436,30 +627,74 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   controls: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   search: { marginBottom: spacing.sm },
-  tabs: { gap: spacing.sm, paddingBottom: spacing.sm },
+  tabs: { flexDirection: "row", gap: spacing.sm, paddingBottom: spacing.sm },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  list: { padding: spacing.lg, paddingBottom: 80 },
-  row: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm, flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  main: { flex: 1 },
+  list: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 40 },
+  row: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
+  main: { flex: 1, minWidth: 0 },
+  right: { alignItems: "flex-end", minWidth: 88 },
   name: { ...font.title, color: colors.textPrimary },
   meta: { color: colors.textSecondary, fontSize: 12, marginTop: 3 },
-  status: { borderRadius: radii.pill, paddingHorizontal: 8, paddingVertical: 5 },
+  date: { color: colors.textMuted, fontSize: 11, marginTop: 6 },
+  amount: { fontSize: 18, fontWeight: "800", color: colors.textPrimary },
+  points: { fontSize: 12, fontWeight: "700", color: colors.primary, marginTop: 4 },
+  pointsMuted: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
+  status: { borderRadius: radii.pill, paddingHorizontal: 8, paddingVertical: 4, marginTop: 6 },
   good: { backgroundColor: colors.successBg },
   bad: { backgroundColor: colors.errorBg },
   pending: { backgroundColor: colors.warningBg },
   done: { backgroundColor: colors.primaryLight },
-  statusText: { color: colors.textPrimary, fontSize: 11, fontWeight: "700" },
+  statusText: { color: colors.textPrimary, fontSize: 10, fontWeight: "700" },
   empty: { textAlign: "center", color: colors.textSecondary, padding: spacing.xl },
-  footer: { position: "absolute", bottom: 12, left: spacing.lg, right: spacing.lg },
   label: { color: colors.textSecondary, fontWeight: "600", marginBottom: spacing.sm },
   product: { padding: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
   selected: { backgroundColor: colors.primaryLight },
-  delivery: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
-  actions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.md },
-  historyTitle: { ...font.title, color: colors.textPrimary, marginTop: spacing.lg, marginBottom: spacing.sm },
-  history: { color: colors.textSecondary, fontSize: 11, marginBottom: 4 },
+  delivery: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md, flexWrap: "wrap" },
+  actions: { flexDirection: isWeb ? "row" : "column", gap: spacing.sm, marginTop: spacing.sm },
   sectionTitle: { ...font.title, color: colors.textPrimary, marginTop: spacing.md, marginBottom: spacing.sm },
-  lineRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border, paddingBottom: spacing.sm },
-  qtyInput: { width: 72, marginBottom: 0 },
+  history: { color: colors.textSecondary, fontSize: 11, marginBottom: 4 },
   hint: { color: colors.textSecondary, fontSize: 12, marginBottom: spacing.sm },
+  stockOk: { color: colors.success, fontSize: 12, marginBottom: spacing.sm },
+  stockWarn: { color: colors.error, fontSize: 12, marginBottom: spacing.sm },
+  summaryCard: {
+    backgroundColor: colors.primaryLight,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  summaryRow: { flexDirection: "row", gap: spacing.md, marginBottom: spacing.sm },
+  summaryCell: { flex: 1 },
+  summaryLabel: { fontSize: 11, color: colors.textSecondary, fontWeight: "600" },
+  summaryValue: { fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginTop: 2 },
+  summaryHighlight: { fontSize: 20, color: colors.primary },
+  summaryMeta: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  lineCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  lineMain: { flex: 1, minWidth: 0 },
+  lineName: { ...font.title, fontSize: 14, color: colors.textPrimary },
+  lineActions: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+  qtyInput: { width: 64, marginBottom: 0 },
+  qtyReadonly: { fontSize: 16, fontWeight: "800", color: colors.textPrimary },
+  addBlock: { marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
+  actionBlock: { marginTop: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border },
 });

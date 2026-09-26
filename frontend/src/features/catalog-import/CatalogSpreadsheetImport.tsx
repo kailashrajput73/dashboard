@@ -18,7 +18,7 @@ import {
   importCatalogPricing,
   importCatalogStock,
 } from "@/src/api/endpoints";
-import { ApiError } from "@/src/api/client";
+import { downloadImportTemplate, type ImportTemplateKind } from "@/src/utils/import-templates";
 
 type Mode = "fromCsv" | "overrideExisting" | "overrideNew";
 
@@ -170,6 +170,10 @@ export function CatalogSpreadsheetImport(props: Props) {
   const accent =
     props.kind === "master" ? colors.primary : props.kind === "pricing" ? colors.secondary : "#0D9488";
 
+  function downloadTemplate() {
+    downloadImportTemplate(props.kind as ImportTemplateKind);
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header title={props.title} subtitle={props.subtitle} onBack={() => router.back()} />
@@ -177,16 +181,26 @@ export function CatalogSpreadsheetImport(props: Props) {
         <View style={[styles.badge, { backgroundColor: accent + "18" }]}>
           <Text style={[styles.badgeText, { color: accent }]}>
             {props.kind === "master"
-              ? "Master data only — no MRP, discount, or stock"
+              ? "Product master — client sheet format; existing rows keep stock & prices"
               : props.kind === "pricing"
-                ? "Prices only — matched by product_code"
-                : "Stock count — sets on-hand qty by product_code"}
+                ? "Prices only — matched by Product Code"
+                : "Stock count — sets on-hand qty by Product Code"}
           </Text>
         </View>
 
         <Card>
           <Text style={styles.title}>Columns</Text>
           <Text style={styles.hint}>{props.columnHelp}</Text>
+          <View style={{ height: spacing.sm }} />
+          <Button
+            testID={`download-${props.kind}-template`}
+            title="Download empty template (CSV)"
+            icon="download-outline"
+            variant="ghost"
+            size="sm"
+            onPress={downloadTemplate}
+            fullWidth
+          />
           <View style={{ height: spacing.md }} />
           <Button
             testID={`pick-${props.kind}-import`}

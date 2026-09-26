@@ -144,16 +144,10 @@ export function parseCsvBytes(bytes: Uint8Array): CsvParseResult {
     return { ok: false, error: "CSV must have a header row and at least one data row." };
   }
 
-  const delimiter = sniffDelimiter(lines[0]);
-  const header = parseCsvLine(lines[0], delimiter).map(normalizeHeader);
-  const rows: Record<string, string>[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cells = parseCsvLine(lines[i], delimiter);
-    const row: Record<string, string> = {};
-    header.forEach((h, idx) => {
-      if (h) row[h] = cells[idx] ?? "";
-    });
-    rows.push(row);
+  const table = lines.map((line) => parseCsvLine(line, sniffDelimiter(lines[0])));
+  const rows = tableToRowRecords(table);
+  if (rows.length === 0) {
+    return { ok: false, error: "CSV must have a header row and at least one data row." };
   }
   return { ok: true, rows, encoding };
 }
@@ -246,6 +240,78 @@ function stripCode(value: string): string | undefined {
   return cleaned || undefined;
 }
 
+const PIPE_MATERIALS = new Set(["cpvc", "pvc", "upvc", "pe", "pp", "ppr"]);
+
+function looksLikeSchedule(value: string): boolean {
+  return /^(sch\s*\d+|sdr\s*[\d.]+|schedule\s*\d+)/i.test(String(value || "").trim());
+}
+
+/** Client sheet: Sub-Category = UPVC, Type = Sch 40 — map to admin Type + Class. */
+export function mapClientTaxonomy(subCategory: string, typeCol: string, classCol: string) {
+  const sub = subCategory.trim();
+  const typ = typeCol.trim();
+  const cls = classCol.trim();
+  let type = typ;
+  let productClass = cls;
+  let subcategory = sub;
+
+  if (sub && PIPE_MATERIALS.has(sub.toLowerCase()) && typ && looksLikeSchedule(typ)) {
+    type = sub;
+    productClass = typ;
+    subcategory = sub;
+  } else if (!cls && sub && typ && looksLikeSchedule(typ) && PIPE_MATERIALS.has(sub.toLowerCase())) {
+    type = sub;
+    productClass = typ;
+  } else if (!productClass && typ && looksLikeSchedule(typ)) {
+    productClass = typ;
+  }
+
+  return {
+    type: type || undefined,
+    productClass: productClass || undefined,
+    subcategory: subcategory || undefined,
+  };
+}
+
+/** GST cell: 0.18 → 18%, 18 → 18%. */
+export function gstToPercent(value: number | undefined): number | undefined {
+  if (value == null || Number.isNaN(value)) return undefined;
+  if (value > 0 && value <= 1) return Math.round(value * 10000) / 100;
+  return value;
+}
+
+export function findHeaderRowIndex(table: string[][]): number {
+  for (let i = 0; i < Math.min(table.length, 8); i++) {
+    const norm = table[i].map((h) => normalizeHeader(String(h || "")));
+    if (
+      norm.includes("category") ||
+      norm.includes("product_name") ||
+      norm.includes("product_code") ||
+      norm.includes("name")
+    ) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+export function tableToRowRecords(table: string[][]): Record<string, string>[] {
+  if (table.length < 2) return [];
+  const headerIdx = findHeaderRowIndex(table);
+  const header = table[headerIdx].map((h) => normalizeHeader(String(h || "")));
+  const rows: Record<string, string>[] = [];
+  for (let i = headerIdx + 1; i < table.length; i++) {
+    const cells = table[i];
+    if (!cells.some((c) => String(c || "").trim())) continue;
+    const row: Record<string, string> = {};
+    header.forEach((h, idx) => {
+      if (h) row[h] = String(cells[idx] ?? "").trim();
+    });
+    rows.push(row);
+  }
+  return rows;
+}
+
 /** Size cell like `15 MM (½")` — keep full label, split mm / inch when present. */
 export function parseSizeCell(raw: string): { size?: string; sizeMm?: number; sizeInch?: string } {
   const size = raw.trim();
@@ -320,7 +386,9 @@ export function rowsToItems(rows: Record<string, string>[]): {
       sizeInch: sizeParsed.sizeInch || recoverSizeInch(cell(r, "size_inch", "sizeinch")) || undefined,
       productCode: stripCode(cell(r, "product_code", "productcode", "sku", "code")),
       length: clean(cell(r, "length")),
-      stdPkg: numberOrUndefined(cell(r, "std_pkg_nos", "std_pkg", "stdpkg", "packing", "pack_qty")),
+      stdPkg: numberOrUndefined(
+        cell(r, "pack_size", "packsize", "std_pkg_nos", "std_pkg", "stdpkg", "packing", "pack_qty"),
+      ),
       mrp,
       sellingPrice: numberOrUndefined(sellingRaw) ?? rate,
       purchasePrice: numberOrUndefined(cell(r, "purchase_price", "purchaseprice")),
@@ -350,8 +418,79 @@ export type MasterImportItem = {
   length?: string;
   productCode?: string;
   imageUrl?: string;
+  hsnCode?: string;
+  gstRate?: number;
+  stdPkg?: number;
+  mrpPkg?: number;
+  mrp?: number;
+  discount?: number;
+  sellingPrice?: number;
   isActive?: boolean;
 };
+
+function masterRowFields(r: Record<string, string>, name: string, productName: string) {
+  const subRaw = cell(r, "sub_category", "subcategory");
+  const typeRaw = cell(r, "type");
+  const classRaw = cell(r, "class", "product_class", "productclass");
+  const tax = mapClientTaxonomy(subRaw, typeRaw, classRaw);
+  const sizeParsed = parseSizeCell(
+    cell(r, "size_cm", "sizecm", "size_mm", "sizemm", "size", "size_inch", "sizeinch"),
+  );
+  const sizeMm = sizeParsed.sizeMm ?? numberOrUndefined(cell(r, "size_mm", "sizemm"));
+  const mrp = numberOrUndefined(
+    cell(r, "mrp_rs_per_nos", "mrp_rs_per_pc", "mrp_rs_per_pc_", "mrp", "price_rs_per_pc", "price_per_pc"),
+  );
+  const discount = discountToPercent(
+    numberOrUndefined(cell(r, "discount", "discount_percent", "discount_")),
+  );
+  const sellingRaw = cell(
+    r,
+    "selling_price",
+    "sellingprice",
+    "standard_rate",
+    "standardrate",
+    "rate",
+    "price",
+  );
+  let sellingPrice = numberOrUndefined(sellingRaw);
+  if (sellingPrice == null && mrp != null) {
+    sellingPrice = Math.round(mrp * (1 - Math.max(0, discount || 0) / 100) * 100) / 100;
+  }
+  return {
+    name,
+    productName: productName || name,
+    category: clean(cell(r, "category")),
+    unit: cell(r, "unit", "uom") || "pcs",
+    type: clean(tax.type) || clean(typeRaw),
+    subcategory: clean(tax.subcategory) || clean(subRaw),
+    productClass:
+      clean(tax.productClass) ||
+      clean(classRaw) ||
+      inferProductClass({ name, productName, productClass: classRaw }),
+    productGroup: clean(cell(r, "product_group", "productgroup")),
+    brand: clean(cell(r, "brand")),
+    size: sizeParsed.size,
+    sizeMm,
+    sizeCm:
+      numberOrUndefined(cell(r, "size_cm", "sizecm")) && !/\(/u.test(cell(r, "size_cm"))
+        ? numberOrUndefined(cell(r, "size_cm", "sizecm"))
+        : undefined,
+    sizeInch: sizeParsed.sizeInch || recoverSizeInch(cell(r, "size_inch", "sizeinch")) || undefined,
+    productCode: stripCode(cell(r, "product_code", "productcode", "sku", "code")),
+    length: clean(cell(r, "length")),
+    imageUrl: clean(cell(r, "image_url", "imageurl", "image", "photo")),
+    hsnCode: clean(cell(r, "hsn_code", "hsncode", "hsn")),
+    gstRate: gstToPercent(numberOrUndefined(cell(r, "gst", "gst_rate", "gst_percent"))),
+    stdPkg: numberOrUndefined(
+      cell(r, "pack_size", "packsize", "std_pkg_nos", "std_pkg", "stdpkg", "packing", "pack_qty"),
+    ),
+    mrpPkg: numberOrUndefined(cell(r, "mrp_pkg", "mrppkg", "mrp_package")),
+    mrp,
+    discount,
+    sellingPrice,
+    isActive: parseBoolean(cell(r, "is_active", "isactive")),
+  };
+}
 
 export type PricingImportItem = {
   productCode: string;
@@ -379,31 +518,7 @@ export function rowsToMasterItems(rows: Record<string, string>[]): {
       invalid++;
       continue;
     }
-    const sizeParsed = parseSizeCell(
-      cell(r, "size_cm", "sizecm", "size_mm", "sizemm", "size", "size_inch", "sizeinch"),
-    );
-    const sizeMm = sizeParsed.sizeMm ?? numberOrUndefined(cell(r, "size_mm", "sizemm"));
-    items.push({
-      name,
-      productName: productName || name,
-      category: clean(cell(r, "category")),
-      unit: cell(r, "unit", "uom") || "pcs",
-      type: clean(cell(r, "type")),
-      subcategory: clean(cell(r, "sub_category", "subcategory")),
-      productClass: clean(cell(r, "class", "product_class", "productclass")) || inferProductClass({ name, productName }),
-      productGroup: clean(productGroup),
-      brand: clean(cell(r, "brand")),
-      size: sizeParsed.size,
-      sizeMm,
-      sizeCm: numberOrUndefined(cell(r, "size_cm", "sizecm")) && !/\(/u.test(cell(r, "size_cm"))
-        ? numberOrUndefined(cell(r, "size_cm", "sizecm"))
-        : undefined,
-      sizeInch: sizeParsed.sizeInch || recoverSizeInch(cell(r, "size_inch", "sizeinch")) || undefined,
-      productCode: stripCode(cell(r, "product_code", "productcode", "sku", "code")),
-      length: clean(cell(r, "length")),
-      imageUrl: clean(cell(r, "image_url", "imageurl", "image", "photo")),
-      isActive: parseBoolean(cell(r, "is_active", "isactive")),
-    });
+    items.push(masterRowFields(r, name, productName || name));
   }
   return { items, invalid };
 }

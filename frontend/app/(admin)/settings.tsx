@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
+import { useRouter } from "expo-router";
+
 import { Header, Card, Button, ErrorModal } from "@/src/components/UI";
 import { PasscodeConfirmModal } from "@/src/components/PasscodeConfirmModal";
 import { colors, font, pointer, radii, spacing } from "@/src/theme";
@@ -11,6 +13,7 @@ import { wipeCatalogAll } from "@/src/api/endpoints";
 import { ApiError } from "@/src/api/client";
 
 export default function AdminSettings() {
+  const router = useRouter();
   const [tabs, setTabs] = useState<TaxonomyTabs>({ showProductType: true, showProductClass: true });
   const [wipeOpen, setWipeOpen] = useState(false);
   const [wiping, setWiping] = useState(false);
