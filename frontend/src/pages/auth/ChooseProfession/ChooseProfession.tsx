@@ -71,7 +71,7 @@ export function ChooseProfession() {
 
     setFromAuth({
       id: `user-mobile-${args.mobileNumber}`,
-      email: '',
+      email: args.email ?? '',
       fullName: args.fullName,
       mobileNumber: args.mobileNumber,
       role: option.role,

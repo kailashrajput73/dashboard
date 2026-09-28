@@ -57,6 +57,11 @@ export const NameFieldWrap = styled.div`
   margin-top: ${({ theme }) => theme.spacing.space8}px;
 `;
 
+/** SizedBox(space5) + LoginFlowOutlinedField('Email Address') */
+export const EmailFieldWrap = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.space5}px;
+`;
+
 /** SizedBox(space5) + LoginFlowOutlinedField('Referral Code') */
 export const ReferralFieldWrap = styled.div`
   margin-top: ${({ theme }) => theme.spacing.space5}px;

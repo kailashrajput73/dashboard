@@ -32,6 +32,7 @@ export interface OtpVerificationArgs {
 export interface SignupFlowArgs {
   mobileNumber: string;
   fullName: string;
+  email?: string;
   /** Optional referral code entered during signup. */
   referralCode?: string;
   /** True when chooseLocation is opened from Home to change the saved address. */

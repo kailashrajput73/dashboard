@@ -16,6 +16,7 @@ import {
   Title,
   Subtitle,
   NameFieldWrap,
+  EmailFieldWrap,
   ReferralFieldWrap,
   Spacer,
   FooterWrap,
@@ -28,6 +29,7 @@ export function CreateAccount() {
   const args = location.state as SignupFlowArgs | null;
 
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [referral, setReferral] = useState('');
 
   const handleContinue = () => {
@@ -42,6 +44,7 @@ export function CreateAccount() {
     const nextArgs: SignupFlowArgs = {
       mobileNumber: mobile,
       fullName: name.trim(),
+      email: email.trim(),
       referralCode: referralCode === '' ? undefined : referralCode,
     };
     navigate(AppRoutes.chooseLocation, { state: nextArgs });
@@ -70,6 +73,16 @@ export function CreateAccount() {
               prefixIcon="pi pi-user"
             />
           </NameFieldWrap>
+          <EmailFieldWrap>
+            <LoginFlowOutlinedField
+              label="Email Address"
+              value={email}
+              onChanged={setEmail}
+              hintText="Enter your email address"
+              inputMode="email"
+              prefixIcon="pi pi-envelope"
+            />
+          </EmailFieldWrap>
           <ReferralFieldWrap>
             <LoginFlowOutlinedField
               label="Referral Code (Optional)"
