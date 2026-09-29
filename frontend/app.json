@@ -1,29 +1,31 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "Shivani Admin",
+    "slug": "shivani-admin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "shivaniadmin",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.emergent.quotationexpo.bc9mwu"
+      "bundleIdentifier": "com.shivaniconstructions.admin"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#1E3A8A"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.emergent.quotationexpo.bc9mwu"
+      "package": "com.shivaniconstructions.admin"
     },
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "Shivani Admin",
+      "shortName": "Shivani"
     },
     "plugins": [
       "expo-router",
@@ -33,7 +35,7 @@
           "image": "./assets/images/splash-image.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#1E3A8A"
         }
       ]
     ],

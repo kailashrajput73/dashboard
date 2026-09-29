@@ -6,6 +6,7 @@ export default function Root({ children }: PropsWithChildren) {
   return (
     <html lang="en" style={{ height: "100%" }}>
       <head>
+        <title>Shivani Admin</title>
         <meta name="referrer" content="no-referrer" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta

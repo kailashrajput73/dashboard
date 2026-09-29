@@ -62,13 +62,7 @@ export default function AdminProductTypes() {
         setTypes(typesFromCatalog(nextProducts || []));
         setApiReady(false);
         const missing = typeErr instanceof ApiError && (typeErr.status === 404 || /not found/i.test(typeErr.message));
-        setError(
-          missing
-            ? `This page needs GET /api/product-types on the VPS. Your products are still there (${(nextProducts || []).length} SKUs). Copy the latest backend/server.py to ${API_BASE_URL} and restart the API. Until then types below are read from products and photos cannot be saved.`
-            : typeErr instanceof ApiError
-              ? typeErr.message
-              : "Could not load product types",
-        );
+        if (!missing) setError(typeErr instanceof ApiError ? typeErr.message : "Could not load product types");
       }
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Failed to load product types");

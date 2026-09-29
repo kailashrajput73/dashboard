@@ -107,7 +107,7 @@ export function AdminShell({ children }: { children?: React.ReactNode }) {
     <View style={styles.root}>
       <View style={styles.sidebar}>
         <View style={styles.brand}>
-          <Text style={styles.brandName}>Admin</Text>
+          <Text style={styles.brandName}>Shivani Admin</Text>
           <Text style={styles.brandSub} numberOfLines={1}>
             {company || "Dashboard"}
           </Text>

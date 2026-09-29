@@ -20,7 +20,7 @@ export default function Index() {
   return (
     <View style={styles.container} testID="bootstrap-screen">
       <ActivityIndicator size="large" color={colors.primary} />
-      <Text style={styles.hint}>Loading Quotation Generator…</Text>
+      <Text style={styles.hint}>Loading Shivani Admin…</Text>
     </View>
   );
 }
