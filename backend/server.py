@@ -9,7 +9,8 @@ without any code change (just switch API_BASE_URL on the client).
 Collections & documents (mirrored):
 - users          { _id, role, name, phone, address, companyName, gstin, contactNumber, passcodeHash, createdAt }
 - catalog        { _id, name, category, unit, standardRate, createdAt, updatedAt }
-- categories     { _id, name, isDefault }
+- categories     { _id, name, isDefault, imageUrl }
+- product_types  { _id, id, name, imageUrl, isActive }
 - money_config   { _id, adminId, discountPercent, gstPercent, specialDiscountPercent,
                    showDiscount, showGst, showSpecialDiscount }
 
@@ -132,6 +133,41 @@ def infer_product_class(*texts) -> Optional[str]:
         if re.search(pattern, blob, re.I):
             return label
     return None
+
+
+def looks_like_schedule(value: Optional[str]) -> bool:
+    return bool(re.match(r"^\s*(sch(?:edule)?\s*\d+|sdr\s*[\d.]+)\s*$", str(value or ""), re.I))
+
+
+def infer_product_type(*texts) -> Optional[str]:
+    """PVC / CPVC / UPVC from Type, Sub-Category, or product name. Match UPVC before PVC."""
+    blob = " ".join(str(t) for t in texts if t)
+    if not blob.strip():
+        return None
+    for label in ("UPVC", "CPVC", "PPR", "HDPE", "PVC", "PE", "PP"):
+        if re.search(rf"\b{re.escape(label)}\b", blob, re.I):
+            return label
+    return None
+
+
+def resolve_product_taxonomy(
+    type_val: Optional[str],
+    subcategory: Optional[str],
+    product_class: Optional[str],
+    *name_texts,
+) -> tuple[Optional[str], Optional[str]]:
+    """Client sheet: Sub-Category = UPVC, Type = Sch 40 → type UPVC, class Sch 40."""
+    type_raw = (type_val or "").strip() or None
+    sub_raw = (subcategory or "").strip() or None
+    class_raw = (product_class or "").strip() or None
+    names = name_texts
+    if looks_like_schedule(type_raw):
+        out_class = class_raw or infer_product_class(type_raw, class_raw, *names) or type_raw
+        out_type = infer_product_type(sub_raw, *names)
+        return out_type, out_class
+    out_type = infer_product_type(type_raw) or infer_product_type(type_raw, sub_raw, *names) or type_raw
+    out_class = class_raw or infer_product_class(class_raw, type_raw, *names)
+    return out_type, out_class
 
 
 def now_iso() -> str:
@@ -275,6 +311,17 @@ class BrandUpdateIn(BaseModel):
     name: str
     isActive: bool
     logoUrl: Optional[str] = None
+
+
+class ProductTypeIn(BaseModel):
+    name: str
+    imageUrl: Optional[str] = None
+
+
+class ProductTypeUpdateIn(BaseModel):
+    name: str
+    isActive: bool
+    imageUrl: Optional[str] = None
 
 
 class ProductGroupIn(BaseModel):
@@ -842,6 +889,8 @@ async def ensure_indexes() -> None:
         (db.subcategories, [("categoryId", 1)], {"name": "subcategories_categoryId"}),
         (db.brands, [("id", 1)], {"unique": True, "name": "brands_id_uq"}),
         (db.brands, [("name", 1)], {"name": "brands_name"}),
+        (db.product_types, [("id", 1)], {"unique": True, "name": "product_types_id_uq"}),
+        (db.product_types, [("name", 1)], {"name": "product_types_name"}),
         (db.product_groups, [("id", 1)], {"unique": True, "name": "product_groups_id_uq"}),
         (db.product_groups, [("name", 1)], {"name": "product_groups_name"}),
         (db.racks, [("id", 1)], {"unique": True, "name": "racks_id_uq"}),
@@ -892,11 +941,55 @@ async def ensure_default_categories():
     return
 
 
+async def ensure_product_type(name: Optional[str]) -> Optional[dict]:
+    cleaned = (name or "").strip()
+    if not cleaned:
+        return None
+    existing = await db.product_types.find_one({"name": {"$regex": f"^{re.escape(cleaned)}$", "$options": "i"}})
+    if existing:
+        return existing
+    doc = {
+        "id": new_id(),
+        "name": cleaned,
+        "isActive": True,
+        "imageUrl": None,
+        "createdAt": now_iso(),
+        "updatedAt": now_iso(),
+    }
+    await db.product_types.insert_one(doc.copy())
+    return doc
+
+
+async def sync_product_types_from_catalog():
+    async for item in db.catalog.find(
+        {},
+        {"_id": 0, "id": 1, "type": 1, "subcategory": 1, "productClass": 1, "name": 1, "productName": 1},
+    ):
+        resolved_type, resolved_class = resolve_product_taxonomy(
+            item.get("type"),
+            item.get("subcategory"),
+            item.get("productClass"),
+            item.get("name"),
+            item.get("productName"),
+        )
+        updates = {}
+        if resolved_type and item.get("type") != resolved_type:
+            updates["type"] = resolved_type
+        if resolved_class and item.get("productClass") != resolved_class:
+            updates["productClass"] = resolved_class
+        if updates:
+            await db.catalog.update_one({"id": item["id"]}, {"$set": updates})
+        await ensure_product_type(resolved_type or item.get("type"))
+    for raw in await db.catalog.distinct("type"):
+        await ensure_product_type(raw if isinstance(raw, str) else None)
+
+
 async def reset_catalog_tree():
     """Wipe products and the tree the sheet rebuilds: categories, subcategories, groups, prices."""
     catalog = await db.catalog.delete_many({})
     categories = await db.categories.delete_many({})
     subcategories = await db.subcategories.delete_many({})
+    product_types = await db.product_types.delete_many({})
     groups = await db.product_groups.delete_many({})
     brands = await db.brands.delete_many({})
     pricing = await db.pricing.delete_many({})
@@ -914,6 +1007,7 @@ async def reset_catalog_tree():
         "catalog": catalog.deleted_count,
         "categories": categories.deleted_count,
         "subcategories": subcategories.deleted_count,
+        "productTypes": product_types.deleted_count,
         "productGroups": groups.deleted_count,
         "brands": brands.deleted_count,
         "pricing": pricing.deleted_count,
@@ -922,9 +1016,10 @@ async def reset_catalog_tree():
 
 
 @api.get("/categories")
-async def list_categories():
+async def list_categories(active_only: bool = False):
     await ensure_default_categories()
-    cursor = db.categories.find({}, {"_id": 0}).sort("name", 1)
+    query: dict = {"isActive": {"$ne": False}} if active_only else {}
+    cursor = db.categories.find(query, {"_id": 0}).sort("name", 1)
     items = []
     async for category in cursor:
         category.setdefault("isActive", True)
@@ -1067,6 +1162,115 @@ async def delete_brand_cascade(brand_id: str, body: AdminPasscodeIn):
     })
     await db.brands.delete_one({"id": brand_id})
     return envelope({"deleted": True, "id": brand_id, "productsRemoved": removed.deleted_count})
+
+
+# ---------- Product types (CPVC / PVC / UPVC tiles — photos set in admin, not Excel) ----------
+
+@api.get("/product-types")
+async def list_product_types(active_only: bool = False):
+    await sync_product_types_from_catalog()
+    query: dict = {"isActive": {"$ne": False}} if active_only else {}
+    items = []
+    async for row in db.product_types.find(query, {"_id": 0}).sort("name", 1):
+        row.setdefault("isActive", True)
+        row["productCount"] = await db.catalog.count_documents({
+            "type": {"$regex": f"^{re.escape(row['name'])}$", "$options": "i"},
+        })
+        items.append(row)
+    return envelope(items)
+
+
+@api.post("/product-types")
+async def create_product_type(body: ProductTypeIn):
+    name = body.name.strip()
+    if not name:
+        return JSONResponse(status_code=400, content=envelope(None, False, "Name required"))
+    if await db.product_types.find_one({"name": {"$regex": f"^{re.escape(name)}$", "$options": "i"}}):
+        return JSONResponse(status_code=409, content=envelope(None, False, "Product type already exists"))
+    doc = {
+        "id": new_id(),
+        "name": name,
+        "isActive": True,
+        "imageUrl": (body.imageUrl or "").strip() or None,
+        "productCount": 0,
+        "createdAt": now_iso(),
+        "updatedAt": now_iso(),
+    }
+    await db.product_types.insert_one(doc.copy())
+    return envelope(doc)
+
+
+@api.put("/product-types/{type_id}")
+async def update_product_type(type_id: str, body: ProductTypeUpdateIn):
+    name = body.name.strip()
+    if not name:
+        return JSONResponse(status_code=400, content=envelope(None, False, "Name required"))
+    if await db.product_types.find_one({"id": {"$ne": type_id}, "name": {"$regex": f"^{re.escape(name)}$", "$options": "i"}}):
+        return JSONResponse(status_code=409, content=envelope(None, False, "Product type already exists"))
+    current = await db.product_types.find_one({"id": type_id})
+    if not current:
+        return JSONResponse(status_code=404, content=envelope(None, False, "Product type not found"))
+    updates = {"name": name, "isActive": body.isActive, "updatedAt": now_iso()}
+    if "imageUrl" in body.model_fields_set:
+        updates["imageUrl"] = (body.imageUrl or "").strip() or None
+    await db.product_types.update_one({"id": type_id}, {"$set": updates})
+    if current["name"] != name:
+        await db.catalog.update_many(
+            {"type": {"$regex": f"^{re.escape(current['name'])}$", "$options": "i"}},
+            {"$set": {"type": name}},
+        )
+    row = await db.product_types.find_one({"id": type_id}, {"_id": 0})
+    row["productCount"] = await db.catalog.count_documents({
+        "type": {"$regex": f"^{re.escape(row['name'])}$", "$options": "i"},
+    })
+    return envelope(row)
+
+
+@api.get("/catalog/tree")
+async def catalog_tree(active_only: bool = True):
+    """Partner home browse: only categories/types that exist in DB (no mock tiles)."""
+    await sync_product_types_from_catalog()
+    type_docs: dict[str, dict] = {}
+    async for row in db.product_types.find({}, {"_id": 0}):
+        type_docs[(row.get("name") or "").strip().lower()] = row
+    cat_query: dict = {"isActive": {"$ne": False}} if active_only else {}
+    categories = []
+    async for cat in db.categories.find(cat_query, {"_id": 0}).sort("name", 1):
+        cat_name = cat.get("name") or ""
+        pipeline = [
+            {
+                "$match": {
+                    "category": {"$regex": f"^{re.escape(cat_name)}$", "$options": "i"},
+                    "isActive": {"$ne": False},
+                }
+            },
+            {"$group": {"_id": "$type", "count": {"$sum": 1}}},
+        ]
+        types = []
+        async for grouped in db.catalog.aggregate(pipeline):
+            raw = grouped.get("_id")
+            tname = raw.strip() if isinstance(raw, str) else ""
+            if not tname:
+                continue
+            tdoc = type_docs.get(tname.lower()) or {}
+            if active_only and tdoc.get("isActive") is False:
+                continue
+            types.append({
+                "id": tdoc.get("id"),
+                "name": tdoc.get("name") or tname,
+                "imageUrl": tdoc.get("imageUrl"),
+                "productCount": grouped.get("count") or 0,
+            })
+        types.sort(key=lambda item: item["name"].lower())
+        categories.append({
+            "id": cat.get("id"),
+            "name": cat_name,
+            "imageUrl": cat.get("imageUrl"),
+            "isActive": cat.get("isActive", True),
+            "productCount": sum(item["productCount"] for item in types),
+            "types": types,
+        })
+    return envelope({"categories": categories})
 
 
 # ---------- Product Groups ----------
@@ -1636,6 +1840,24 @@ async def list_catalog(
         if inferred_class and item.get("productClass") != inferred_class:
             item["productClass"] = inferred_class
             await db.catalog.update_one({"id": item.get("id")}, {"$set": {"productClass": inferred_class}})
+        resolved_type, resolved_class = resolve_product_taxonomy(
+            item.get("type"),
+            item.get("subcategory"),
+            item.get("productClass"),
+            item.get("name"),
+            item.get("productName"),
+        )
+        type_updates = {}
+        if resolved_type and item.get("type") != resolved_type:
+            item["type"] = resolved_type
+            type_updates["type"] = resolved_type
+        if resolved_class and item.get("productClass") != resolved_class:
+            item["productClass"] = resolved_class
+            type_updates["productClass"] = resolved_class
+        if type_updates:
+            await db.catalog.update_one({"id": item.get("id")}, {"$set": type_updates})
+            if resolved_type:
+                await ensure_product_type(resolved_type)
         pricing = await db.pricing.find_one({"productCode": item.get("productCode")}, {"_id": 0})
         if pricing:
             item.update({
@@ -1646,6 +1868,13 @@ async def list_catalog(
                 "standardRate": pricing.get("sellingPrice", item.get("standardRate")),
                 "priceUpdatedAt": pricing.get("updatedAt"),
             })
+            # Pricing row may have mrp but selling 0 — partner app needs a sell price.
+            sp = float(item.get("sellingPrice") or 0)
+            mrp_v = item.get("mrp")
+            if sp <= 0 and mrp_v is not None:
+                derived = selling_from(mrp_v, item.get("discount"), None, item.get("standardRate") or 0)
+                item["sellingPrice"] = derived
+                item["standardRate"] = derived
         items.append(item)
     return envelope(items)
 
@@ -1662,6 +1891,9 @@ async def create_catalog(body: CatalogItemIn):
         return JSONResponse(status_code=400, content=envelope(None, False, "Brand not found"))
     product_code = (body.productCode or "").strip() or f"PRD-{uuid.uuid4().hex[:10].upper()}"
     selling = selling_from(body.mrp, body.discount, body.sellingPrice, body.standardRate)
+    resolved_type, resolved_class = resolve_product_taxonomy(
+        body.type, body.subcategory, body.productClass, body.name, body.productName
+    )
     doc = {
         "id": new_id(),
         "name": body.name.strip(),
@@ -1677,8 +1909,8 @@ async def create_catalog(body: CatalogItemIn):
         "brand": brand["name"] if brand else None,
         "productCode": product_code,
         "productName": body.productName or body.name.strip(),
-        "type": body.type,
-        "productClass": body.productClass,
+        "type": resolved_type,
+        "productClass": resolved_class or body.productClass,
         "productGroup": body.productGroup,
         "subcategory": body.subcategory,
         "subcategoryId": body.subcategoryId,
@@ -1707,6 +1939,7 @@ async def create_catalog(body: CatalogItemIn):
     # Ensure category exists too
     if not await db.categories.find_one({"name": doc["category"]}):
         await db.categories.insert_one({"id": new_id(), "name": doc["category"], "isDefault": False, "isActive": True})
+    await ensure_product_type(doc.get("type"))
     return envelope({k: v for k, v in doc.items()})
 
 
@@ -1760,6 +1993,17 @@ async def update_catalog(item_id: str, body: CatalogItemIn):
         "isActive": body.isActive,
         "updatedAt": now_iso(),
     }
+    resolved_type, resolved_class = resolve_product_taxonomy(
+        updates.get("type"),
+        updates.get("subcategory"),
+        updates.get("productClass"),
+        updates.get("productName"),
+        body.name,
+    )
+    if resolved_type:
+        updates["type"] = resolved_type
+    if resolved_class:
+        updates["productClass"] = resolved_class
     if body.stock is not None:
         updates["stock"] = body.stock
     result = await db.catalog.update_one({"id": item_id}, {"$set": updates})
@@ -1767,6 +2011,7 @@ async def update_catalog(item_id: str, body: CatalogItemIn):
         return JSONResponse(status_code=404, content=envelope(None, False, "Item not found"))
     if not await db.categories.find_one({"name": updates["category"]}):
         await db.categories.insert_one({"id": new_id(), "name": updates["category"], "isDefault": False})
+    await ensure_product_type(updates.get("type"))
     doc = await db.catalog.find_one({"id": item_id}, {"_id": 0})
     await upsert_pricing(doc.get("productCode"), body.mrp, selling, body.purchasePrice, body.discount)
     return envelope(doc)
@@ -1978,6 +2223,12 @@ async def import_catalog(body: CatalogImportIn):
                     }
                     await db.subcategories.insert_one(subcategory_doc.copy())
                 subcategory_cache[sub_key] = subcategory_doc
+        resolved_type, resolved_class = resolve_product_taxonomy(
+            it.type, it.subcategory, it.productClass, it.name, it.productName
+        )
+        if existing:
+            resolved_type = resolved_type or existing.get("type")
+            resolved_class = resolved_class or existing.get("productClass")
         doc = {
             "id": existing.get("id") if existing else new_id(),
             "name": it.name.strip(),
@@ -1993,8 +2244,8 @@ async def import_catalog(body: CatalogImportIn):
             "brandId": brand["id"] if brand else (existing.get("brandId") if existing else None),
             "brand": brand["name"] if brand else (existing.get("brand") if existing else None),
             "productCode": product_code or (existing.get("productCode") if existing else f"PRD-{uuid.uuid4().hex[:10].upper()}"),
-            "type": it.type,
-            "productClass": (it.productClass or "").strip() or infer_product_class(it.productClass, it.name, it.productName),
+            "type": resolved_type,
+            "productClass": resolved_class or infer_product_class(it.productClass, it.name, it.productName),
             "subcategory": subcategory_doc["name"] if subcategory_doc else (existing.get("subcategory") if existing else None),
             "subcategoryId": subcategory_doc["id"] if subcategory_doc else (existing.get("subcategoryId") if existing else None),
             "productGroup": it.productGroup,
@@ -2027,6 +2278,7 @@ async def import_catalog(body: CatalogImportIn):
         if cat not in categories_created and not await db.categories.find_one({"name": cat}):
             await db.categories.insert_one({"id": new_id(), "name": cat, "isDefault": False, "isActive": True})
             categories_created.add(cat)
+        await ensure_product_type(doc.get("type"))
 
     for group in group_cache.values():
         ids = list(dict.fromkeys(group.get("productIds") or []))
@@ -2131,6 +2383,12 @@ async def _run_master_catalog_import(body: CatalogMasterImportIn):
                     }
                     await db.subcategories.insert_one(subcategory_doc.copy())
                 subcategory_cache[sub_key] = subcategory_doc
+        resolved_type, resolved_class = resolve_product_taxonomy(
+            it.type, it.subcategory, it.productClass, it.name, it.productName
+        )
+        if existing:
+            resolved_type = resolved_type or existing.get("type")
+            resolved_class = resolved_class or existing.get("productClass")
         doc = {
             "id": existing.get("id") if existing else new_id(),
             "name": it.name.strip(),
@@ -2146,8 +2404,8 @@ async def _run_master_catalog_import(body: CatalogMasterImportIn):
             "brandId": brand["id"] if brand else (existing.get("brandId") if existing else None),
             "brand": brand["name"] if brand else (existing.get("brand") if existing else None),
             "productCode": product_code,
-            "type": it.type,
-            "productClass": (it.productClass or "").strip() or infer_product_class(it.productClass, it.name, it.productName),
+            "type": resolved_type,
+            "productClass": resolved_class or infer_product_class(it.productClass, it.name, it.productName),
             "subcategory": subcategory_doc["name"] if subcategory_doc else (existing.get("subcategory") if existing else None),
             "subcategoryId": subcategory_doc["id"] if subcategory_doc else (existing.get("subcategoryId") if existing else None),
             "productGroup": it.productGroup,
@@ -2183,6 +2441,7 @@ async def _run_master_catalog_import(body: CatalogMasterImportIn):
         if cat not in categories_created and not await db.categories.find_one({"name": cat}):
             await db.categories.insert_one({"id": new_id(), "name": cat, "isDefault": False, "isActive": True})
             categories_created.add(cat)
+        await ensure_product_type(doc.get("type"))
 
     for group in group_cache.values():
         ids = list(dict.fromkeys(group.get("productIds") or []))

@@ -1,6 +1,6 @@
 # Partner mobile app — login, catalog, RFQ (send to frontend developer)
 
-**API base:** `https://python-api-6aft.onrender.com/api`  
+**API base:** `http://YOUR_VPS_IP/api` or `https://api.yourdomain.com/api` — **must match admin** `EXPO_PUBLIC_BACKEND_URL` / `env.ts`.
 **Envelope:** every JSON response is `{ "success", "data", "error" }`.
 
 **Dashboard (admin) sees:**

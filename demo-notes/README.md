@@ -11,6 +11,7 @@ Use these before a client demo or handoff. Each file is a **single release or fe
 | [2026-09-23-05-mongodb-indexes.md](./2026-09-23-05-mongodb-indexes.md) | MongoDB indexes; catalog Class (`productClass`); Category/Brand photos on edit (not Excel); Manage Catalog Category chips + Filter |
 | [2026-09-23-06-database-flow-simple.md](./2026-09-23-06-database-flow-simple.md) | **Database flow (simple)** — send to frontend/UI for design |
 | [2026-09-23-06-database-flow-handoff.md](./2026-09-23-06-database-flow-handoff.md) | Database flow (technical) — APIs, collections, diagrams |
+| [2026-09-26-07-category-type-photos.md](./2026-09-26-07-category-type-photos.md) | Category + type home photos (not Excel); `GET /catalog/tree`; drop mock app tiles |
 
 **Deploy reminder:** With `USE_CLOUD_PREVIEW = true` in `frontend/src/config/env.ts`, Render must run the same `backend/server.py` as local or new routes fail with 404.
 

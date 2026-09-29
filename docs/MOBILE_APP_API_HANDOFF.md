@@ -2,7 +2,8 @@
 
 Give this file to your frontend developer (or paste into her AI). It describes **what the admin team uploads** and **what JSON you get back** when you call the API.
 
-**Live API (default):** `https://python-api-6aft.onrender.com`  
+**Live API (default):** set the same base URL as admin — e.g. `http://YOUR_VPS_IP` or `https://api.yourdomain.com`  
+(Old Render default: `https://python-api-6aft.onrender.com` — **not** the same database as your VPS.)
 **Prefix:** every route is `/api/...`  
 **Full route list:** see [README.md](../README.md) (backend source of truth: `backend/server.py`).
 
@@ -190,16 +191,70 @@ TypeScript mirror: `frontend/src/api/endpoints.ts` → `CatalogItem`.
 
 ---
 
-## 4. Taxonomy endpoints (filters / chips)
+## 4. Home / browse taxonomy (no mock data)
+
+**Do not hardcode** “Pipes & Tubing / Fittings / Valves / Sanitary Wares” or PVC/CPVC/UPVC tiles. Those screenshots used mock images. The app must **only render what this API returns**. If a category is not in the admin upload, it must not appear.
+
+### Home “Shop by Category” + type sidebar (preferred)
+
+```http
+GET /api/catalog/tree
+```
+
+Default: active records only. Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "categories": [
+      {
+        "id": "...",
+        "name": "Pipes & Fitting",
+        "imageUrl": "https://... or data:image/... or null",
+        "productCount": 86,
+        "types": [
+          {
+            "id": "...",
+            "name": "CPVC",
+            "imageUrl": "https://... or null",
+            "productCount": 40
+          },
+          { "id": "...", "name": "PVC", "imageUrl": null, "productCount": 22 },
+          { "id": "...", "name": "UPVC", "imageUrl": null, "productCount": 24 }
+        ]
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+| UI | Field |
+| --- | --- |
+| Home category tile photo | `categories[].imageUrl` — if `null`, show a placeholder, **do not** substitute another category |
+| Home category title / count | `name`, `productCount` |
+| After tap: Type list (PVC / CPVC / UPVC) | `categories[].types[]` — **only types that exist under that category in the sheet** |
+| Type icon / photo | `types[].imageUrl` |
+
+New categories from a later master upload **appear automatically** on the next `GET /catalog/tree`. Same for new types (CPVC, PVC, …).
+
+Admin sets **category home photos** and **type photos** in the dashboard (file or URL). The product Excel `image_url` column is **SKU photos only** — it does **not** fill home/type tiles.
+
+### Other lists
 
 ```http
 GET /api/categories
+GET /api/product-types
 GET /api/subcategories?category_id=
-GET /api/brands
+GET /api/brands          // brand.logoUrl
 GET /api/product-groups
+GET /api/catalog?category=&type=&subcategory=&product_class=&brand=
 ```
 
-Use these to build category chips, brand filters, and “shop by group” — same data admin maintains.
+`GET /categories` includes `imageUrl`. `GET /product-types` includes `imageUrl`. Optional `?active_only=true`.
+
+Brand logos: `GET /brands` → `logoUrl` (also set in dashboard, not Excel).
 
 ---
 
@@ -343,12 +398,13 @@ If a route returns **404**, the deployed API is behind local code — admin must
 ## 10. Quick checklist for her AI
 
 1. All JSON under `/api`, envelope `{ success, data, error }`.
-2. **Products = `GET /catalog`** — includes merged price + stock + `qrCode`.
-3. **Upload columns** in section 2 explain admin data; no separate “upload API” for the partner app.
-4. **RFQ:** `POST /rfqs`, `GET /rfqs?partner_id=`.
-5. **Partner:** `POST /partners/register`, `GET /partners/{id}/rewards`.
-6. **QR:** encode `qrCode` client-side.
-7. Types: copy from `frontend/src/api/endpoints.ts` or generate from examples above.
+2. **Home tiles = `GET /catalog/tree`** — no mock categories/types; use `imageUrl` or a blank placeholder.
+3. **Products = `GET /catalog`** — includes merged price + stock + `qrCode`. Filter `?category=` + `?type=`.
+4. **Upload columns** in section 2 explain admin data; no separate “upload API” for the partner app. Home/type photos are **not** in the sheet.
+5. **RFQ:** `POST /rfqs`, `GET /rfqs?partner_id=`.
+6. **Partner:** `POST /partners/register`, `GET /partners/{id}/rewards`.
+7. **QR:** encode `qrCode` client-side.
+8. Types: copy from `frontend/src/api/endpoints.ts` or generate from examples above.
 
 ---
 
@@ -368,4 +424,4 @@ async function loadBrowse(category) {
 
 ---
 
-*Last updated: 2026-09-23 — matches split master/price/stock imports and catalog `qrCode`.*
+*Last updated: 2026-09-26 — catalog tree + category/type photos; drop mock home tiles.*

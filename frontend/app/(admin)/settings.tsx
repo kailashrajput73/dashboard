@@ -38,7 +38,7 @@ export default function AdminSettings() {
       const res = await wipeCatalogAll(credentials);
       setWipeOpen(false);
       setMessage(
-        `Removed ${res.catalog} products, ${res.categories} categories, ${res.subcategories} subcategories, ${res.brands} brands, ${res.productGroups} groups.`,
+        `Removed ${res.catalog} products, ${res.categories} categories, ${res.subcategories} subcategories, ${res.productTypes ?? 0} types, ${res.brands} brands, ${res.productGroups} groups.`,
       );
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not wipe catalog");

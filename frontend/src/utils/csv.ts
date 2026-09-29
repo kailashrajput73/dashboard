@@ -336,9 +336,10 @@ export function rowsToItems(rows: Record<string, string>[]): {
     const name = displayProductName(productName, productGroup);
     const category = cell(r, "category");
     const unit = cell(r, "unit", "uom") || "pcs";
-    const type = cell(r, "type");
+    const type = cell(r, "type", "product_type", "producttype", "material");
     const subcategory = cell(r, "sub_category", "subcategory");
     const productClass = cell(r, "class", "product_class", "productclass");
+    const tax = mapClientTaxonomy(subcategory, type, productClass);
     const sellingRaw = cell(
       r,
       "selling_price",
@@ -373,9 +374,9 @@ export function rowsToItems(rows: Record<string, string>[]): {
       category: category || undefined,
       unit,
       standardRate: rate,
-      type: clean(type),
-      subcategory: clean(subcategory),
-      productClass: clean(productClass) || inferProductClass({ name, productName, productClass }),
+      type: clean(tax.type) || clean(type),
+      subcategory: clean(tax.subcategory) || clean(subcategory),
+      productClass: clean(tax.productClass) || clean(productClass) || inferProductClass({ name, productName, productClass }),
       productGroup: clean(productGroup),
       brand: clean(cell(r, "brand")),
       size: sizeParsed.size,
@@ -430,7 +431,7 @@ export type MasterImportItem = {
 
 function masterRowFields(r: Record<string, string>, name: string, productName: string) {
   const subRaw = cell(r, "sub_category", "subcategory");
-  const typeRaw = cell(r, "type");
+  const typeRaw = cell(r, "type", "product_type", "producttype", "material");
   const classRaw = cell(r, "class", "product_class", "productclass");
   const tax = mapClientTaxonomy(subRaw, typeRaw, classRaw);
   const sizeParsed = parseSizeCell(

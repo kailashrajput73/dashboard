@@ -88,3 +88,8 @@ android-sdk/
 credentials.json
 *.key
 .credentials
+
+# Local refactor copy — do not push
+backend_refactor/
+demo-notes/
+docs/   

@@ -248,7 +248,7 @@ export default function AdminDashboard() {
             <ActionRow
               testID="nav-product-type-manage"
               title="Product type"
-              subtitle="CPVC, PVC, UPVC and products in each type"
+              subtitle="Type photos (PVC / CPVC / UPVC) — file or URL"
               icon="funnel-outline"
               onPress={() => router.push("/(admin)/product-types")}
             />

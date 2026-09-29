@@ -20,7 +20,16 @@ export type Category = {
   imageUrl?: string | null;
 };
 
-export type Brand = { id: string; name: string; isActive: boolean; productCount: number; logoUrl?: string | null };
+export type ProductType = { id: string; name: string; isActive: boolean; productCount: number; imageUrl?: string | null };
+export type CatalogBrowseType = { id?: string | null; name: string; imageUrl?: string | null; productCount: number };
+export type CatalogBrowseCategory = {
+  id: string;
+  name: string;
+  imageUrl?: string | null;
+  isActive?: boolean;
+  productCount: number;
+  types: CatalogBrowseType[];
+};
 export type ProductGroup = { id: string; name: string; productIds: string[]; productCount: number };
 export type RackSlot = { code: string; productId: string | null };
 export type Rack = { id: string; name: string; rows: number; columns: number; slots: RackSlot[] };
@@ -212,6 +221,17 @@ export function updateCategory(id: string, body: { name: string; isActive: boole
 export function listBrands() { return apiRequest<Brand[]>("/brands"); }
 export function createBrand(name: string, logoUrl?: string | null) { return apiRequest<Brand>("/brands", { method: "POST", body: { name, logoUrl: logoUrl || null } }); }
 export function updateBrand(id: string, body: { name: string; isActive: boolean; logoUrl?: string | null }) { return apiRequest<Brand>(`/brands/${id}`, { method: "PUT", body }); }
+
+export function listProductTypes() { return apiRequest<ProductType[]>("/product-types"); }
+export function createProductType(name: string, imageUrl?: string | null) {
+  return apiRequest<ProductType>("/product-types", { method: "POST", body: { name, imageUrl: imageUrl || null } });
+}
+export function updateProductType(id: string, body: { name: string; isActive: boolean; imageUrl?: string | null }) {
+  return apiRequest<ProductType>(`/product-types/${id}`, { method: "PUT", body });
+}
+export function listCatalogTree() {
+  return apiRequest<{ categories: CatalogBrowseCategory[] }>("/catalog/tree");
+}
 
 export function listProductGroups() { return apiRequest<ProductGroup[]>("/product-groups"); }
 export function createProductGroup(body: { name: string; productIds: string[] }) { return apiRequest<ProductGroup>("/product-groups", { method: "POST", body }); }
@@ -434,6 +454,7 @@ export function wipeCatalogAll(body: { contactNumber: string; passcode: string }
     catalog: number;
     categories: number;
     subcategories: number;
+    productTypes: number;
     productGroups: number;
     brands: number;
     pricing: number;
