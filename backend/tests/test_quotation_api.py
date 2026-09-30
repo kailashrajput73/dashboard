@@ -451,6 +451,74 @@ class TestCatalog:
         row = next(x for x in _env_ok(api_client.get(f"{API}/catalog"))["data"] if x.get("productCode") == code)
         assert float(row["stock"]) == 7
 
+    def test_master_import_saves_reorder_level(self, api_client):
+        brand = api_client.post(f"{API}/brands", json={"name": f"TEST_RolBrand_{uuid.uuid4().hex[:6]}"}).json()["data"]
+        code = f"ROL-{uuid.uuid4().hex[:8].upper()}"
+        created = api_client.post(f"{API}/catalog", json={
+            "name": "ROL Product",
+            "category": "General",
+            "unit": "pcs",
+            "standardRate": 50,
+            "brandId": brand["id"],
+            "productCode": code,
+            "mrp": 50,
+            "stock": 9,
+            "reorderLevel": 4,
+        })
+        assert created.status_code == 200, created.text
+
+        updated = api_client.post(f"{API}/catalog/import/master", json={
+            "categoryMode": "fromCsv",
+            "overrideCategory": "",
+            "items": [{
+                "name": "ROL Product Updated",
+                "unit": "pcs",
+                "category": "General",
+                "productCode": code,
+                "brand": brand["name"],
+                "mrp": 999,
+                "sellingPrice": 1,
+                "reorderLevel": 15,
+            }],
+        })
+        assert updated.status_code == 200, updated.text
+        row = next(x for x in _env_ok(api_client.get(f"{API}/catalog"))["data"] if x.get("productCode") == code)
+        assert float(row["reorderLevel"]) == 15
+        assert float(row["stock"]) == 9
+        assert float(row["standardRate"]) == 50
+
+        blank = api_client.post(f"{API}/catalog/import/master", json={
+            "categoryMode": "fromCsv",
+            "overrideCategory": "",
+            "items": [{
+                "name": "ROL Product Updated",
+                "unit": "pcs",
+                "category": "General",
+                "productCode": code,
+                "brand": brand["name"],
+            }],
+        })
+        assert blank.status_code == 200, blank.text
+        row = next(x for x in _env_ok(api_client.get(f"{API}/catalog"))["data"] if x.get("productCode") == code)
+        assert float(row["reorderLevel"]) == 15
+        assert float(row["stock"]) == 9
+
+        fresh_code = f"ROLNEW-{uuid.uuid4().hex[:8].upper()}"
+        inserted = api_client.post(f"{API}/catalog/import/master", json={
+            "categoryMode": "fromCsv",
+            "overrideCategory": "",
+            "items": [{
+                "name": "New ROL Product",
+                "unit": "pcs",
+                "category": "General",
+                "productCode": fresh_code,
+                "reorderLevel": 8,
+            }],
+        })
+        assert inserted.status_code == 200, inserted.text
+        fresh = next(x for x in _env_ok(api_client.get(f"{API}/catalog"))["data"] if x.get("productCode") == fresh_code)
+        assert float(fresh["reorderLevel"]) == 8
+
 
 # ---------- Money Config ----------
 

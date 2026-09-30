@@ -12,6 +12,9 @@ Use these before a client demo or handoff. Each file is a **single release or fe
 | [2026-09-23-06-database-flow-simple.md](./2026-09-23-06-database-flow-simple.md) | **Database flow (simple)** — send to frontend/UI for design |
 | [2026-09-23-06-database-flow-handoff.md](./2026-09-23-06-database-flow-handoff.md) | Database flow (technical) — APIs, collections, diagrams |
 | [2026-09-26-07-category-type-photos.md](./2026-09-26-07-category-type-photos.md) | Category + type home photos (not Excel); `GET /catalog/tree`; drop mock app tiles |
+| [SHEET-FORMAT.md](./SHEET-FORMAT.md) | **Final master Excel columns** (Type vs class, ROL, image_url) |
+| [2026-09-30-08-master-sheet-type-class-rol.md](./2026-09-30-08-master-sheet-type-class-rol.md) | Sheet column fix, ROL import, taxonomy mapping + re-import note |
+| [2026-09-30-09-product-form-gaps.md](./2026-09-30-09-product-form-gaps.md) | Product form: save ROL on master import, QR image, subcategory picker, Hindi and Gujarati names |
 
 **Deploy reminder:** With `USE_CLOUD_PREVIEW = true` in `frontend/src/config/env.ts`, Render must run the same `backend/server.py` as local or new routes fail with 404.
 

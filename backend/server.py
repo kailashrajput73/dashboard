@@ -156,13 +156,21 @@ def resolve_product_taxonomy(
     product_class: Optional[str],
     *name_texts,
 ) -> tuple[Optional[str], Optional[str]]:
-    """Client sheet: Sub-Category = UPVC, Type = Sch 40 → type UPVC, class Sch 40."""
+    """
+    Sheet (final): Type = material (UPVC), Sub-Category = line under category, class = Sch 40 / SDR11.
+    Legacy: if class empty and Type looks like Sch 40, infer from old swapped columns.
+    """
     type_raw = (type_val or "").strip() or None
     sub_raw = (subcategory or "").strip() or None
     class_raw = (product_class or "").strip() or None
     names = name_texts
+
+    if class_raw:
+        out_type = infer_product_type(type_raw, sub_raw, *names) or type_raw
+        return out_type, class_raw
+
     if looks_like_schedule(type_raw):
-        out_class = class_raw or infer_product_class(type_raw, class_raw, *names) or type_raw
+        out_class = infer_product_class(type_raw, class_raw, *names) or type_raw
         out_type = infer_product_type(sub_raw, *names)
         return out_type, out_class
     out_type = infer_product_type(type_raw) or infer_product_type(type_raw, sub_raw, *names) or type_raw
@@ -495,6 +503,7 @@ class MasterImportRow(BaseModel):
     mrp: Optional[float] = None
     discount: Optional[float] = None
     sellingPrice: Optional[float] = None
+    reorderLevel: Optional[float] = None
     isActive: bool = True
 
     @field_validator("sizeMm", "sizeCm", mode="before")
@@ -2256,6 +2265,7 @@ async def import_catalog(body: CatalogImportIn):
             "sizeInch": it.sizeInch,
             "length": it.length,
             "stdPkg": it.stdPkg if it.stdPkg is not None else (existing.get("stdPkg") if existing else None),
+            "reorderLevel": it.reorderLevel if it.reorderLevel is not None else (existing.get("reorderLevel", 0) if existing else 0),
             "imageUrl": (it.imageUrl or "").strip() or None,
             "isActive": True if it.isActive is None else it.isActive,
             "createdAt": existing.get("createdAt") if existing else now_iso(),
@@ -2416,6 +2426,7 @@ async def _run_master_catalog_import(body: CatalogMasterImportIn):
             "sizeInch": it.sizeInch,
             "length": it.length,
             "stdPkg": it.stdPkg if it.stdPkg is not None else (existing.get("stdPkg") if existing else None),
+            "reorderLevel": it.reorderLevel if it.reorderLevel is not None else (existing.get("reorderLevel", 0) if existing else 0),
             "hsnCode": (it.hsnCode or "").strip() or (existing.get("hsnCode") if existing else None),
             "gstRate": it.gstRate if it.gstRate is not None else (existing.get("gstRate") if existing else None),
             "mrpPkg": it.mrpPkg if it.mrpPkg is not None else (existing.get("mrpPkg") if existing else None),

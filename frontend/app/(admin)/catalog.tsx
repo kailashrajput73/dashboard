@@ -31,23 +31,27 @@ import {
   listCatalog,
   listCategories,
   listBrands,
+  listSubcategories,
   updateCatalogItem,
   updateCatalogPricing,
   applyCatalogPricingBulk,
   type CatalogItem,
   type Category,
   type Brand,
+  type Subcategory,
 } from "@/src/api/endpoints";
 import { ApiError } from "@/src/api/client";
 import { formatMoney } from "@/src/utils/money";
 import { discountFromMrpSelling, sellingFromMrpDiscount } from "@/src/utils/pricing";
 import { sizeInchLabel, sizeLengthLabel, sizeMmLabel, parseSizeMm } from "@/src/utils/size";
 import { inferProductClass } from "@/src/utils/csv";
+import { ProductQr } from "@/src/components/ProductQr";
 
 export default function AdminCatalog() {
   const router = useRouter();
   const [cats, setCats] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [subs, setSubs] = useState<Subcategory[]>([]);
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [selectedCat, setSelectedCat] = useState<string>("All");
   const [selectedType, setSelectedType] = useState<string>("All");
@@ -62,21 +66,6 @@ export default function AdminCatalog() {
   const [refreshing, setRefreshing] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-
-function parseLanguageNames(value: string): Record<string, string> {
-  if (!value.trim()) return {};
-  try {
-    const parsed = JSON.parse(value);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
-    const names: Record<string, string> = {};
-    for (const [language, name] of Object.entries(parsed)) {
-      if (typeof name === "string") names[language] = name;
-    }
-    return names;
-  } catch {
-    return {};
-  }
-}
 
 async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promise<string> {
   if (Platform.OS === "web") {
@@ -124,15 +113,19 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   const [fSizeInch, setFSizeInch] = useState("");
   const [fLength, setFLength] = useState("");
   const [fCategory, setFCategory] = useState<string>("");
+  const [fSubcategoryId, setFSubcategoryId] = useState("");
+  const [fSubcategoryName, setFSubcategoryName] = useState("");
   const [fBrandId, setFBrandId] = useState<string>("");
   const [fAliases, setFAliases] = useState("");
-  const [fLanguages, setFLanguages] = useState("");
+  const [fNameHi, setFNameHi] = useState("");
+  const [fNameGu, setFNameGu] = useState("");
   const [fSequence, setFSequence] = useState("0");
   const [fRol, setFRol] = useState("0");
   const [fDiscount, setFDiscount] = useState("0");
   const [fImageUrl, setFImageUrl] = useState<string | undefined>();
   const [fImageName, setFImageName] = useState<string | undefined>();
   const [showCatPicker, setShowCatPicker] = useState(false);
+  const [showSubPicker, setShowSubPicker] = useState(false);
   const [showBrandPicker, setShowBrandPicker] = useState(false);
   const [creatingCat, setCreatingCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
@@ -143,10 +136,11 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
 
   const load = useCallback(async () => {
     try {
-      const [c, b, i] = await Promise.all([listCategories(), listBrands(), listCatalog()]);
+      const [c, b, i, s] = await Promise.all([listCategories(), listBrands(), listCatalog(), listSubcategories()]);
       setCats(c || []);
       setBrands(b || []);
       setItems(i || []);
+      setSubs(s || []);
     } catch (e: any) {
       setErr(e instanceof ApiError ? e.message : "Failed to load catalog");
     }
@@ -177,8 +171,9 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
      setFMrp(""); setFSellingPrice(""); setFPurchasePrice(""); setFPriceDiscount(""); setFStock(""); setFProductCode("");
     setFSize(""); setFSizeInch(""); setFLength("");
     setFCategory(cats[0]?.name || "");
+    setFSubcategoryId(""); setFSubcategoryName("");
     setFBrandId(brands.find((brand) => brand.isActive)?.id || "");
-    setFAliases(""); setFLanguages(""); setFSequence("0"); setFRol("0"); setFDiscount("0");
+    setFAliases(""); setFNameHi(""); setFNameGu(""); setFSequence("0"); setFRol("0"); setFDiscount("0");
     setFImageUrl(undefined); setFImageName(undefined);
     setAddOpen(true);
   }
@@ -198,8 +193,17 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
      setFSizeInch(it.sizeInch || "");
      setFLength(it.length || "");
     setFCategory(it.category);
+    const matchedSub = subs.find((sub) => sub.id === it.subcategoryId)
+      || subs.find((sub) =>
+        sub.name.toLowerCase() === (it.subcategory || "").toLowerCase()
+        && sub.category.toLowerCase() === (it.category || "").toLowerCase(),
+      );
+    setFSubcategoryId(matchedSub?.id || it.subcategoryId || "");
+    setFSubcategoryName(matchedSub?.name || it.subcategory || "");
     setFBrandId(it.brandId || "");
-    setFAliases((it.aliases || []).join(", ")); setFLanguages(JSON.stringify(it.multilingualNames || {}));
+    setFAliases((it.aliases || []).join(", "));
+    setFNameHi(it.multilingualNames?.hi || "");
+    setFNameGu(it.multilingualNames?.gu || "");
     setFSequence(String(it.displaySequence || 0)); setFRol(String(it.reorderLevel || 0)); setFDiscount(String(it.regularDiscount || 0));
     setFImageUrl(it.imageUrl); setFImageName(it.imageName);
     setActionSheet(null);
@@ -218,9 +222,15 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     }
     setSaving(true);
     try {
+      const selectedSub = subs.find((sub) => sub.id === fSubcategoryId);
+      const multilingualNames: Record<string, string> = {};
+      if (fNameHi.trim()) multilingualNames.hi = fNameHi.trim();
+      if (fNameGu.trim()) multilingualNames.gu = fNameGu.trim();
       const body = {
         name: fName.trim(),
         category: fCategory.trim(),
+        subcategory: selectedSub?.name || fSubcategoryName.trim(),
+        subcategoryId: selectedSub?.id || fSubcategoryId,
         unit: fUnit.trim(),
         standardRate: rate,
         productCode: fProductCode.trim() || undefined,
@@ -235,7 +245,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
         stock: fStock.trim() ? Number(fStock) : 0,
         brandId: fBrandId,
         aliases: fAliases.split(",").map((alias) => alias.trim()).filter(Boolean),
-        multilingualNames: parseLanguageNames(fLanguages),
+        multilingualNames,
         displaySequence: Number(fSequence) || 0,
         reorderLevel: Number(fRol) || 0,
         regularDiscount: Number(fDiscount) || 0,
@@ -271,6 +281,23 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     if (!value.trim()) setFImageName(undefined);
   }
 
+  function categorySubs(categoryName: string) {
+    const category = cats.find((item) => item.name === categoryName);
+    return subs.filter((sub) => {
+      if (category && sub.categoryId === category.id) return true;
+      return sub.category.toLowerCase() === categoryName.trim().toLowerCase();
+    });
+  }
+
+  function applyCategory(name: string) {
+    setFCategory(name);
+    const allowed = categorySubs(name);
+    if (!allowed.some((sub) => sub.id === fSubcategoryId)) {
+      setFSubcategoryId("");
+      setFSubcategoryName("");
+    }
+  }
+
   async function submitNewCategory() {
     if (!newCatName.trim()) return;
     setCreatingCat(true);
@@ -278,6 +305,8 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
       const c = await createCategory(newCatName.trim());
       setNewCatName("");
       setFCategory(c.name);
+      setFSubcategoryId("");
+      setFSubcategoryName("");
       const next = await listCategories();
       setCats(next || []);
       setShowCatPicker(false);
@@ -537,6 +566,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
               testID={`admin-item-${item.id}`}
             >
               <RemoteImage uri={item.imageUrl} style={styles.productThumb} placeholderSize={22} />
+              <ProductQr value={item.qrCode || item.productCode || ""} inline />
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowName} numberOfLines={2}>
                   {item.name}
@@ -658,6 +688,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
             <Input testID="item-product-code-input" label="Product code (optional)" value={fProductCode} onChangeText={setFProductCode} autoCapitalize="characters" />
           </View>
         </View>
+        <ProductQr value={fProductCode} />
         <View style={styles.formRow}>
           <View style={styles.formCol}>
             <Input testID="item-size-input" label="Size mm" value={fSize} onChangeText={setFSize} placeholder="e.g. 5mm" />
@@ -754,9 +785,28 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
         </TouchableOpacity>
 
+        <Text style={styles.inputLabel}>Subcategory</Text>
+        <TouchableOpacity
+          testID="item-subcategory-picker"
+          style={styles.selectBox}
+          onPress={() => setShowSubPicker(true)}
+        >
+          <Text style={{ color: fSubcategoryName ? colors.textPrimary : colors.textMuted, fontSize: 15 }}>
+            {fSubcategoryName || (fCategory ? "Select a subcategory" : "Select a category first")}
+          </Text>
+          <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+        </TouchableOpacity>
+
         <View style={{ height: spacing.md }} />
         <Input testID="item-aliases-input" label="Aliases (comma separated)" value={fAliases} onChangeText={setFAliases} placeholder="Local or alternate names" />
-        <Input testID="item-language-input" label="Multilingual names (JSON)" value={fLanguages} onChangeText={setFLanguages} placeholder='{"hi":"सीमेंट"}' autoCapitalize="none" />
+        <View style={styles.formRow}>
+          <View style={styles.formCol}>
+            <Input testID="item-name-hi-input" label="Hindi (hi)" value={fNameHi} onChangeText={setFNameHi} placeholder="Hindi name" />
+          </View>
+          <View style={styles.formCol}>
+            <Input testID="item-name-gu-input" label="Gujarati (gu)" value={fNameGu} onChangeText={setFNameGu} placeholder="Gujarati name" />
+          </View>
+        </View>
         <Input testID="item-sequence-input" label="Display sequence" value={fSequence} onChangeText={setFSequence} keyboardType="numeric" />
         <Input testID="item-rol-input" label="Reorder level (ROL)" value={fRol} onChangeText={setFRol} keyboardType="decimal-pad" />
         <Input testID="item-discount-input" label="Regular discount (%)" value={fDiscount} onChangeText={setFDiscount} keyboardType="decimal-pad" />
@@ -773,6 +823,26 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           loading={saving}
           fullWidth
         />
+      </AppModal>
+
+      <AppModal testID="subcategory-picker-modal" visible={showSubPicker} onClose={() => setShowSubPicker(false)} title="Select subcategory">
+        {categorySubs(fCategory).length === 0 ? (
+          <Text style={styles.filterHint}>{fCategory ? `No subcategories under ${fCategory}.` : "Select a category first."}</Text>
+        ) : categorySubs(fCategory).map((sub) => (
+          <TouchableOpacity
+            key={sub.id}
+            style={styles.catOption}
+            onPress={() => {
+              setFSubcategoryId(sub.id);
+              setFSubcategoryName(sub.name);
+              setShowSubPicker(false);
+            }}
+            testID={`pick-sub-${sub.id}`}
+          >
+            <Text style={styles.catOptionText}>{sub.name}</Text>
+            {fSubcategoryId === sub.id ? <Ionicons name="checkmark" size={18} color={colors.primary} /> : null}
+          </TouchableOpacity>
+        ))}
       </AppModal>
 
       <AppModal testID="brand-picker-modal" visible={showBrandPicker} onClose={() => setShowBrandPicker(false)} title="Select brand">
@@ -796,7 +866,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
             key={c.id}
             style={styles.catOption}
             onPress={() => {
-              setFCategory(c.name);
+              applyCategory(c.name);
               setShowCatPicker(false);
             }}
             testID={`pick-cat-${c.name}`}
@@ -844,6 +914,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           {actionSheet?.category} · per {actionSheet?.unit} · ₹
           {formatMoney(actionSheet?.standardRate || 0)}
         </Text>
+        <ProductQr value={actionSheet?.qrCode || actionSheet?.productCode || ""} />
         <Button
           testID="edit-item-btn"
           title="Edit Item"
@@ -971,6 +1042,7 @@ function PricingRow(props: {
             {item.productCode || "No code"} · {item.brand || "No brand"} · {item.category}
           </Text>
         </View>
+        <ProductQr value={item.qrCode || item.productCode || ""} inline />
       </View>
       <Text style={styles.sizeCell} numberOfLines={1}>{sizeMmLabel(item) || "—"}</Text>
       <Text style={styles.sizeCell} numberOfLines={1}>{sizeInchLabel(item) || "—"}</Text>

@@ -1,10 +1,11 @@
 import { Platform, Linking } from "react-native";
 
-/** Client master sheet (UPVC Pipe Master) — keep in sync with csv mappers. */
+/** Final client master sheet (2026-09-30) — keep in sync with csv mappers + demo-notes/SHEET-FORMAT.md */
 export const MASTER_TEMPLATE_HEADERS = [
   "Category",
-  "Sub-Category",
   "Type",
+  "Sub-Category",
+  "class",
   "Brand",
   "Product Name",
   "Size (cm)",
@@ -18,7 +19,8 @@ export const MASTER_TEMPLATE_HEADERS = [
   "Selling Price",
   "Pack Size",
   "MRP Pkg",
-  "Image_url",
+  "ROL",
+  "image_url",
 ];
 
 export const PRICING_TEMPLATE_HEADERS = [

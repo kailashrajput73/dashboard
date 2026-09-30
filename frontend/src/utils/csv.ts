@@ -246,11 +246,20 @@ function looksLikeSchedule(value: string): boolean {
   return /^(sch\s*\d+|sdr\s*[\d.]+|schedule\s*\d+)/i.test(String(value || "").trim());
 }
 
-/** Client sheet: Sub-Category = UPVC, Type = Sch 40 — map to admin Type + Class. */
+/** Map sheet columns → admin / API fields. Prefer explicit `class` column (Sch 40). Legacy swap only if class empty. */
 export function mapClientTaxonomy(subCategory: string, typeCol: string, classCol: string) {
   const sub = subCategory.trim();
   const typ = typeCol.trim();
   const cls = classCol.trim();
+
+  if (cls) {
+    return {
+      type: typ || undefined,
+      productClass: cls,
+      subcategory: sub || undefined,
+    };
+  }
+
   let type = typ;
   let productClass = cls;
   let subcategory = sub;
@@ -423,6 +432,7 @@ export type MasterImportItem = {
   gstRate?: number;
   stdPkg?: number;
   mrpPkg?: number;
+  reorderLevel?: number;
   mrp?: number;
   discount?: number;
   sellingPrice?: number;
@@ -486,6 +496,7 @@ function masterRowFields(r: Record<string, string>, name: string, productName: s
       cell(r, "pack_size", "packsize", "std_pkg_nos", "std_pkg", "stdpkg", "packing", "pack_qty"),
     ),
     mrpPkg: numberOrUndefined(cell(r, "mrp_pkg", "mrppkg", "mrp_package")),
+    reorderLevel: numberOrUndefined(cell(r, "rol", "reorder_level", "reorderlevel", "reorder")),
     mrp,
     discount,
     sellingPrice,

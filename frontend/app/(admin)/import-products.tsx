@@ -11,7 +11,7 @@ export default function ImportProducts() {
       title="Import products (full catalog)"
       subtitle="Client master sheet — merge by Product Code"
       showCategoryMode
-      columnHelp={`${MASTER_COLUMNS}. Sub-Category = material (UPVC); Type = class (Sch 40). Image_url can be empty until you have URLs. Re-import updates details; existing stock and prices stay unless the product is new.`}
+      columnHelp={`${MASTER_COLUMNS}. Type = material (UPVC/CPVC/PVC). class = Sch 40 / SDR11. Sub-Category = subcategory line. ROL → reorder level (low stock). image_url optional. Re-import updates details; existing stock/prices unchanged — use Prices/Stock imports.`}
     />
   );
 }

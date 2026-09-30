@@ -315,6 +315,7 @@ export function createCatalogItem(body: {
   unit: string;
   standardRate: number;
   brandId: string;
+  subcategory?: string;
   subcategoryId?: string;
   aliases?: string[];
   multilingualNames?: Record<string, string>;
@@ -350,6 +351,7 @@ export function updateCatalogItem(id: string, body: {
   unit: string;
   standardRate: number;
   brandId: string;
+  subcategory?: string;
   subcategoryId?: string;
   aliases?: string[];
   multilingualNames?: Record<string, string>;
@@ -556,6 +558,7 @@ export type MasterImportRow = {
   mrp?: number;
   discount?: number;
   sellingPrice?: number;
+  reorderLevel?: number;
   isActive?: boolean;
 };
 
