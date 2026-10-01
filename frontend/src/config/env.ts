@@ -23,7 +23,7 @@
 
 function normalizeBaseUrl(raw: string): string {
   const trimmed = raw.trim().replace(/\/+$/, "");
-  if (!trimmed) return "http://127.0.0.1:8001";
+  if (!trimmed) return "http://127.0.0.1:8000";
   if (!/^https?:\/\//i.test(trimmed)) {
     return `http://${trimmed}`;
   }
@@ -31,7 +31,7 @@ function normalizeBaseUrl(raw: string): string {
 }
 
 /** Override via frontend/.env: EXPO_PUBLIC_BACKEND_URL=http://187.127.148.44 */
-const DEFAULT_BACKEND_URL = "http://187.127.148.44";
+const DEFAULT_BACKEND_URL = "http://127.0.0.1:8000";
 
 export const API_BASE_URL: string = normalizeBaseUrl(
   process.env.EXPO_PUBLIC_BACKEND_URL || DEFAULT_BACKEND_URL,

@@ -17,6 +17,15 @@ Collections & documents (mirrored):
 Response envelope for every endpoint: { success: bool, data: any, error: str|None }
 """
 
+import sys
+from pathlib import Path
+
+# So `uvicorn server:app` works from this folder AND
+# `uvicorn backend_refactor.server:app` works from the repo root (VPS/local).
+_ROOT = Path(__file__).resolve().parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
