@@ -31,7 +31,7 @@ function normalizeBaseUrl(raw: string): string {
 }
 
 /** Override via frontend/.env: EXPO_PUBLIC_BACKEND_URL=http://187.127.148.44 */
-const DEFAULT_BACKEND_URL = "http://187.127.148.44:8000";
+const DEFAULT_BACKEND_URL = "http://187.127.148.44";
 
 export const API_BASE_URL: string = normalizeBaseUrl(
   process.env.EXPO_PUBLIC_BACKEND_URL || DEFAULT_BACKEND_URL,
