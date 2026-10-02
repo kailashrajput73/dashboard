@@ -20,18 +20,11 @@ Response envelope for every endpoint: { success: bool, data: any, error: str|Non
 import sys
 from pathlib import Path
 
-<<<<<<< Updated upstream
 # So `uvicorn server:app` works from this folder AND
-# `uvicorn backend_refactor.server:app` works from the repo root (VPS/local).
-_ROOT = Path(__file__).resolve().parent
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
-=======
-# Required when started as: uvicorn backend_refactor.server:app  (from repo root)
+# `uvicorn backend_refactor.server:app` works from the repo root (VPS workers).
 _ROOT = str(Path(__file__).resolve().parent)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
->>>>>>> Stashed changes
 
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
