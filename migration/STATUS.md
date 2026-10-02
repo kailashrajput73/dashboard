@@ -36,7 +36,7 @@ Statuses: Not started → Built → Done.
 | 0a | Fast-forward this branch onto `restore-brand-imports`. Add this tracker. | Done | [dev/2026-10-01-00-branch-and-tracker.md](dev/2026-10-01-00-branch-and-tracker.md) |
 | 0b | Put `INVENTORY.md` and `AGENTS.md` in the repo. Copy `demo-notes/SHEET-FORMAT.md` into `migration/` (demo-notes is gitignored, and the office PC may not have it). | Done | [dev/2026-10-02-0b-inventory-and-sheet-spec.md](dev/2026-10-02-0b-inventory-and-sheet-spec.md) |
 | 1a | Vite + React app in `web/`, backend URL setting, colours and theme. Expo still runs. | Done | [dev/2026-10-02-1a-vite-theme.md](dev/2026-10-02-1a-vite-theme.md) |
-| 1b | Storage, session, API client with all the endpoint functions. | Not started | |
+| 1b | Storage, session, API client with all the endpoint functions. | Built | [dev/2026-10-02-1b-storage-session-api.md](dev/2026-10-02-1b-storage-session-api.md) |
 | 1c | Basic parts: button, input, card, chip, header, empty state, message and error popups, icons. | Not started | |
 | 1d | Menu shell (sidebar) and an empty page for every menu item. | Not started | |
 | 1e | Start-up redirect and admin login. | Not started | |
