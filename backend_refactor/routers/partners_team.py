@@ -1,7 +1,11 @@
 from typing import Optional
 from fastapi import APIRouter
-import services.partners_team_service as svc
-from utils import PartnerIn, PartnerReviewIn, TeamUserIn, TeamUserUpdateIn
+try:
+    from ..services import partners_team_service as svc
+    from ..utils import PartnerIn, PartnerReviewIn, TeamUserIn, TeamUserUpdateIn
+except ImportError:
+    import services.partners_team_service as svc
+    from utils import PartnerIn, PartnerReviewIn, TeamUserIn, TeamUserUpdateIn
 
 router = APIRouter(prefix="/api")
 

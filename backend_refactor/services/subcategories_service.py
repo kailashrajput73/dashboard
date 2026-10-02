@@ -1,6 +1,9 @@
 from typing import Any, List, Optional
 from fastapi.responses import JSONResponse, Response
-from utils import *
+try:
+    from ..utils import *
+except ImportError:
+    from utils import *
 
 def subcategory_response(doc: dict, product_count: int = 0) -> dict:
     result = strip_mongo(doc)

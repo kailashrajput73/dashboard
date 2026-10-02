@@ -1,6 +1,10 @@
 from fastapi import APIRouter
-import services.config_dashboard_service as svc
-from utils import MoneyConfigIn
+try:
+    from ..services import config_dashboard_service as svc
+    from ..utils import MoneyConfigIn
+except ImportError:
+    import services.config_dashboard_service as svc
+    from utils import MoneyConfigIn
 
 router = APIRouter(prefix="/api")
 

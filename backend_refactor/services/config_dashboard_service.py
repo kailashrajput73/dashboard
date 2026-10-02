@@ -1,6 +1,9 @@
 from typing import Any, List, Optional
 from fastapi.responses import JSONResponse, Response
-from utils import *
+try:
+    from ..utils import *
+except ImportError:
+    from utils import *
 
 async def get_money_config(admin_id: str):
     mc = await db.money_config.find_one({"adminId": admin_id}, {"_id": 0})

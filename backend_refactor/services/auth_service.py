@@ -1,6 +1,9 @@
 from typing import Any, List, Optional
 from fastapi.responses import JSONResponse, Response
-from utils import *
+try:
+    from ..utils import *
+except ImportError:
+    from utils import *
 
 async def requester_register(body: RequesterRegisterIn):
     user_id = new_id()

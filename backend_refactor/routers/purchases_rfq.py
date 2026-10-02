@@ -1,7 +1,11 @@
 from typing import Optional
 from fastapi import APIRouter
-import services.purchases_rfq_service as svc
-from utils import PurchaseIn, RfqIn, RfqApprovalIn
+try:
+    from ..services import purchases_rfq_service as svc
+    from ..utils import PurchaseIn, RfqIn, RfqApprovalIn
+except ImportError:
+    import services.purchases_rfq_service as svc
+    from utils import PurchaseIn, RfqIn, RfqApprovalIn
 
 router = APIRouter(prefix="/api")
 

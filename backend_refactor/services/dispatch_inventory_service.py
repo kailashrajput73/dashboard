@@ -1,6 +1,9 @@
 from typing import Any, List, Optional
 from fastapi.responses import JSONResponse, Response
-from utils import *
+try:
+    from ..utils import *
+except ImportError:
+    from utils import *
 
 async def prepare_dispatch_lines(lines: List[DispatchLineIn]):
     errors = []

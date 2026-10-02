@@ -1,6 +1,9 @@
 from typing import Any, List, Optional
 from fastapi.responses import JSONResponse, Response
-from utils import *
+try:
+    from ..utils import *
+except ImportError:
+    from utils import *
 
 async def catalog_tree(active_only: bool = True):
     """Partner home browse: only categories/types that exist in DB (no mock tiles)."""

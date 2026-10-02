@@ -1,7 +1,11 @@
 from typing import Optional
 from fastapi import APIRouter, Header
-import services.auth_service as svc
-from utils import RequesterRegisterIn, AdminRegisterIn, AdminLoginIn, PartnerRegisterIn, PartnerLoginIn
+try:
+    from ..services import auth_service as svc
+    from ..utils import RequesterRegisterIn, AdminRegisterIn, AdminLoginIn, PartnerRegisterIn, PartnerLoginIn
+except ImportError:
+    import services.auth_service as svc
+    from utils import RequesterRegisterIn, AdminRegisterIn, AdminLoginIn, PartnerRegisterIn, PartnerLoginIn
 
 router = APIRouter(prefix="/api")
 

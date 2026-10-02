@@ -1,7 +1,11 @@
 from typing import Optional
 from fastapi import APIRouter
-import services.subcategories_service as svc
-from utils import SubcategoryIn, SubcategoryUpdateIn, SubcategoryImportIn, AdminPasscodeIn
+try:
+    from ..services import subcategories_service as svc
+    from ..utils import SubcategoryIn, SubcategoryUpdateIn, SubcategoryImportIn, AdminPasscodeIn
+except ImportError:
+    import services.subcategories_service as svc
+    from utils import SubcategoryIn, SubcategoryUpdateIn, SubcategoryImportIn, AdminPasscodeIn
 
 router = APIRouter(prefix="/api")
 

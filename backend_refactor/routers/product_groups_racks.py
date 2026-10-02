@@ -1,6 +1,10 @@
 from fastapi import APIRouter
-import services.product_groups_racks_service as svc
-from utils import ProductGroupIn, RackIn, RackAssignmentIn, AdminPasscodeIn
+try:
+    from ..services import product_groups_racks_service as svc
+    from ..utils import ProductGroupIn, RackIn, RackAssignmentIn, AdminPasscodeIn
+except ImportError:
+    import services.product_groups_racks_service as svc
+    from utils import ProductGroupIn, RackIn, RackAssignmentIn, AdminPasscodeIn
 
 router = APIRouter(prefix="/api")
 

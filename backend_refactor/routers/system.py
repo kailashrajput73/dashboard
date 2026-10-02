@@ -1,5 +1,8 @@
 from fastapi import APIRouter
-import services.system_service as svc
+try:
+    from ..services import system_service as svc
+except ImportError:
+    import services.system_service as svc
 
 router = APIRouter(prefix="/api")
 

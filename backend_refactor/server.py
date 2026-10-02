@@ -20,26 +20,48 @@ Response envelope for every endpoint: { success: bool, data: any, error: str|Non
 import sys
 from pathlib import Path
 
+<<<<<<< Updated upstream
 # So `uvicorn server:app` works from this folder AND
 # `uvicorn backend_refactor.server:app` works from the repo root (VPS/local).
 _ROOT = Path(__file__).resolve().parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
+=======
+# Required when started as: uvicorn backend_refactor.server:app  (from repo root)
+_ROOT = str(Path(__file__).resolve().parent)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+>>>>>>> Stashed changes
 
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from utils import client, logger, ensure_indexes, ensure_default_categories
-from routers.auth import router as auth_router
-from routers.partners_team import router as partners_team_router
-from routers.taxonomy import router as taxonomy_router
-from routers.product_groups_racks import router as product_groups_racks_router
-from routers.purchases_rfq import router as purchases_rfq_router
-from routers.dispatch_inventory import router as dispatch_inventory_router
-from routers.subcategories import router as subcategories_router
-from routers.catalog import router as catalog_router
-from routers.config_dashboard import router as config_dashboard_router
-from routers.system import router as system_router
+# Package import (VPS: uvicorn backend_refactor.server:app --workers N).
+# Flat import (local: cd backend_refactor && uvicorn server:app).
+if __package__:
+    from .utils import client, logger, ensure_indexes, ensure_default_categories
+    from .routers.auth import router as auth_router
+    from .routers.partners_team import router as partners_team_router
+    from .routers.taxonomy import router as taxonomy_router
+    from .routers.product_groups_racks import router as product_groups_racks_router
+    from .routers.purchases_rfq import router as purchases_rfq_router
+    from .routers.dispatch_inventory import router as dispatch_inventory_router
+    from .routers.subcategories import router as subcategories_router
+    from .routers.catalog import router as catalog_router
+    from .routers.config_dashboard import router as config_dashboard_router
+    from .routers.system import router as system_router
+else:
+    from utils import client, logger, ensure_indexes, ensure_default_categories
+    from routers.auth import router as auth_router
+    from routers.partners_team import router as partners_team_router
+    from routers.taxonomy import router as taxonomy_router
+    from routers.product_groups_racks import router as product_groups_racks_router
+    from routers.purchases_rfq import router as purchases_rfq_router
+    from routers.dispatch_inventory import router as dispatch_inventory_router
+    from routers.subcategories import router as subcategories_router
+    from routers.catalog import router as catalog_router
+    from routers.config_dashboard import router as config_dashboard_router
+    from routers.system import router as system_router
 
 app = FastAPI(title="Quotation Generator API (Mirror)")
 

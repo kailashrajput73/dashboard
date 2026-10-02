@@ -1,6 +1,10 @@
 from fastapi import APIRouter
-import services.taxonomy_service as svc
-from utils import CategoryIn, CategoryUpdateIn, BrandIn, BrandUpdateIn, ProductTypeIn, ProductTypeUpdateIn, AdminPasscodeIn
+try:
+    from ..services import taxonomy_service as svc
+    from ..utils import CategoryIn, CategoryUpdateIn, BrandIn, BrandUpdateIn, ProductTypeIn, ProductTypeUpdateIn, AdminPasscodeIn
+except ImportError:
+    import services.taxonomy_service as svc
+    from utils import CategoryIn, CategoryUpdateIn, BrandIn, BrandUpdateIn, ProductTypeIn, ProductTypeUpdateIn, AdminPasscodeIn
 
 router = APIRouter(prefix="/api")
 

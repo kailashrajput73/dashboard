@@ -1,17 +1,31 @@
 from typing import Optional
 from fastapi import APIRouter
-import services.catalog_service as svc
-from utils import (
-    CatalogItemIn,
-    CatalogPricingIn,
-    CatalogBulkPricingIn,
-    AdminPasscodeIn,
-    CatalogFieldPurgeIn,
-    CatalogImportIn,
-    CatalogMasterImportIn,
-    CatalogPricingImportIn,
-    CatalogStockImportIn,
-)
+try:
+    from ..services import catalog_service as svc
+    from ..utils import (
+        CatalogItemIn,
+        CatalogPricingIn,
+        CatalogBulkPricingIn,
+        AdminPasscodeIn,
+        CatalogFieldPurgeIn,
+        CatalogImportIn,
+        CatalogMasterImportIn,
+        CatalogPricingImportIn,
+        CatalogStockImportIn,
+    )
+except ImportError:
+    import services.catalog_service as svc
+    from utils import (
+        CatalogItemIn,
+        CatalogPricingIn,
+        CatalogBulkPricingIn,
+        AdminPasscodeIn,
+        CatalogFieldPurgeIn,
+        CatalogImportIn,
+        CatalogMasterImportIn,
+        CatalogPricingImportIn,
+        CatalogStockImportIn,
+    )
 
 router = APIRouter(prefix="/api")
 

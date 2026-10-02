@@ -1,6 +1,10 @@
 from fastapi import APIRouter
-import services.dispatch_inventory_service as svc
-from utils import DispatchIn
+try:
+    from ..services import dispatch_inventory_service as svc
+    from ..utils import DispatchIn
+except ImportError:
+    import services.dispatch_inventory_service as svc
+    from utils import DispatchIn
 
 router = APIRouter(prefix="/api")
 
