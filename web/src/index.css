@@ -1,3 +1,38 @@
 body {
   margin: 0;
 }
+
+.web-ui-input::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.web-ionicon {
+  display: block;
+  flex-shrink: 0;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.web-ionicon .ionicon-fill-none {
+  fill: none;
+}
+
+.web-ionicon .ionicon-stroke-width {
+  stroke-width: 32px;
+}
+
+.web-button-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: web-spinner 0.7s linear infinite;
+}
+
+@keyframes web-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
