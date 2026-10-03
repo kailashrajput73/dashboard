@@ -1,13 +1,16 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AdminShell } from "./components/AdminShell";
 import { EmptyPage } from "./components/EmptyPage";
+import { StartupRedirect } from "./components/StartupRedirect";
+import LoginPage from "./pages/LoginPage";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<EmptyPage title="Home" />} />
-        <Route path="/login" element={<EmptyPage title="Login" />} />
+        <Route path="/" element={<StartupRedirect />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<EmptyPage title="Register" />} />
         <Route element={<AdminShell />}>
           <Route path="/dashboard" element={<EmptyPage title="Dashboard" />} />
           <Route path="/catalog" element={<EmptyPage title="Products" />} />

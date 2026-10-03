@@ -39,7 +39,7 @@ Statuses: Not started → Built → Done.
 | 1b | Storage, session, API client with all the endpoint functions. | Done | [dev/2026-10-02-1b-storage-session-api.md](dev/2026-10-02-1b-storage-session-api.md) |
 | 1c | Basic parts: button, input, card, chip, header, empty state, message and error popups, icons. | Done | [dev/2026-10-02-1c-basic-ui-components.md](dev/2026-10-02-1c-basic-ui-components.md) |
 | 1d | Menu shell (sidebar) and an empty page for every menu item. | Done | [dev/2026-10-02-1d-menu-shell.md](dev/2026-10-02-1d-menu-shell.md) |
-| 1e | Start-up redirect and admin login; also remove `web/src/DevPreview.tsx` and restore `App.tsx`. | Not started | |
+| 1e | Start-up redirect and admin login; also remove `web/src/DevPreview.tsx` and restore `App.tsx`. | Done | [dev/2026-10-03-1e-startup-login.md](dev/2026-10-03-1e-startup-login.md) |
 | 2 | Categories (list, search, filter, create, edit, photo, active, delete with its products). Photo field and linked-products parts are built here. | Not started | |
 | 3a | Subcategories: list, create, edit, delete | Not started | |
 | 3b | Subcategories: CSV import | Not started | |
