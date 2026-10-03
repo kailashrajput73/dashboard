@@ -4,6 +4,7 @@ import { EmptyPage } from "./components/EmptyPage";
 import { StartupRedirect } from "./components/StartupRedirect";
 import CategoriesPage from "./pages/CategoriesPage";
 import LoginPage from "./pages/LoginPage";
+import SubcategoriesPage from "./pages/SubcategoriesPage";
 
 export default function App() {
   return (
@@ -17,7 +18,7 @@ export default function App() {
           <Route path="/catalog" element={<EmptyPage title="Products" />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/product-types" element={<EmptyPage title="Product type" />} />
-          <Route path="/subcategories" element={<EmptyPage title="Subcategories" />} />
+          <Route path="/subcategories" element={<SubcategoriesPage />} />
           <Route path="/product-classes" element={<EmptyPage title="Product class" />} />
           <Route path="/brands" element={<EmptyPage title="Brands" />} />
           <Route path="/product-groups" element={<EmptyPage title="Product groups" />} />
