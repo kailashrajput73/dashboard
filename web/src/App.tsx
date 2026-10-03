@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AdminShell } from "./components/AdminShell";
 import { EmptyPage } from "./components/EmptyPage";
 import { StartupRedirect } from "./components/StartupRedirect";
+import CategoriesPage from "./pages/CategoriesPage";
 import LoginPage from "./pages/LoginPage";
 
 export default function App() {
@@ -14,7 +15,7 @@ export default function App() {
         <Route element={<AdminShell />}>
           <Route path="/dashboard" element={<EmptyPage title="Dashboard" />} />
           <Route path="/catalog" element={<EmptyPage title="Products" />} />
-          <Route path="/categories" element={<EmptyPage title="Categories" />} />
+          <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/product-types" element={<EmptyPage title="Product type" />} />
           <Route path="/subcategories" element={<EmptyPage title="Subcategories" />} />
           <Route path="/product-classes" element={<EmptyPage title="Product class" />} />

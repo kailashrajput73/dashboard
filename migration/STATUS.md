@@ -40,7 +40,7 @@ Statuses: Not started → Built → Done.
 | 1c | Basic parts: button, input, card, chip, header, empty state, message and error popups, icons. | Done | [dev/2026-10-02-1c-basic-ui-components.md](dev/2026-10-02-1c-basic-ui-components.md) |
 | 1d | Menu shell (sidebar) and an empty page for every menu item. | Done | [dev/2026-10-02-1d-menu-shell.md](dev/2026-10-02-1d-menu-shell.md) |
 | 1e | Start-up redirect and admin login; also remove `web/src/DevPreview.tsx` and restore `App.tsx`. | Done | [dev/2026-10-03-1e-startup-login.md](dev/2026-10-03-1e-startup-login.md) |
-| 2 | Categories (list, search, filter, create, edit, photo, active, delete with its products). Photo field and linked-products parts are built here. | Not started | |
+| 2 | Categories (list, search, filter, create, edit, photo, active, delete with its products). Photo field and linked-products parts are built here. | Done | [dev/2026-10-03-2-categories.md](dev/2026-10-03-2-categories.md) |
 | 3a | Subcategories: list, create, edit, delete | Not started | |
 | 3b | Subcategories: CSV import | Not started | |
 | 3c | Subcategories: shelf price board | Not started | |
