@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   createSubcategory,
   deleteSubcategoryCascade,
+  importSubcategories,
   listCatalog,
   listCategories,
   listSubcategories,
@@ -24,9 +25,12 @@ import {
   Input,
 } from "../components/UI";
 import { colors, font, radii, spacing } from "../theme";
+import { parseCsvBytes } from "../utils/csv-reader";
+import { downloadCsv } from "../utils/download-csv";
 
 export default function SubcategoriesPage() {
   const navigate = useNavigate();
+  const importInput = useRef<HTMLInputElement>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Subcategory[]>([]);
   const [products, setProducts] = useState<CatalogItem[]>([]);
@@ -186,6 +190,52 @@ export default function SubcategoriesPage() {
     }
   }
 
+  function exportCsv() {
+    const csv = [
+      "name,category",
+      ...items.map((item) => `${csvCell(item.name)},${csvCell(item.category)}`),
+    ].join("\n");
+    try {
+      downloadCsv(csv, "subcategories.csv");
+    } catch {
+      setError("Could not open the CSV export.");
+    }
+  }
+
+  async function importCsv(file: File) {
+    try {
+      const parsed = parseCsvBytes(new Uint8Array(await file.arrayBuffer()));
+      if (!parsed.ok) {
+        setError(parsed.error);
+        return;
+      }
+      const payload = parsed.rows
+        .map((row) => ({
+          name: (row.name || row.subcategory || "").trim(),
+          category: (row.category || row["parent category"] || "").trim(),
+        }))
+        .filter((row) => row.name && row.category);
+      if (!payload.length) {
+        setError("CSV needs name and category columns.");
+        return;
+      }
+      setSaving(true);
+      const result = await importSubcategories(payload);
+      await load();
+      setError(`Subcategory import: ${result.inserted} added, ${result.skipped} skipped.`);
+    } catch (cause) {
+      setError(cause instanceof ApiError ? cause.message : "Subcategory import failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function onImportFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (file) void importCsv(file);
+  }
+
   return (
     <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
       <Header
@@ -193,16 +243,55 @@ export default function SubcategoriesPage() {
         subtitle={`${filtered.length} of ${items.length}`}
         onBack={() => navigate(-1)}
         right={
-          <button
-            type="button"
-            data-testid="open-add-subcategory"
-            aria-label="Add subcategory"
-            onClick={openCreate}
-            style={iconActionStyle}
-          >
-            <Icon name="add-circle" size={26} color={colors.primary} />
-          </button>
+          <div style={headerActionsStyle}>
+            <button
+              type="button"
+              data-testid="download-subcategory-template"
+              aria-label="Download subcategory template"
+              title="Download subcategory template"
+              onClick={() => downloadCsv("\uFEFFname,category\n", "subcategories-template.csv")}
+              style={iconActionStyle}
+            >
+              <Icon name="document-outline" size={23} color={colors.primary} />
+            </button>
+            <button
+              type="button"
+              data-testid="import-subcategories"
+              aria-label="Import subcategories"
+              title="Import subcategories"
+              onClick={() => importInput.current?.click()}
+              style={iconActionStyle}
+            >
+              <Icon name="cloud-upload-outline" size={23} color={colors.primary} />
+            </button>
+            <button
+              type="button"
+              data-testid="export-subcategories"
+              aria-label="Export subcategories"
+              title="Export subcategories"
+              onClick={exportCsv}
+              style={iconActionStyle}
+            >
+              <Icon name="download-outline" size={23} color={colors.primary} />
+            </button>
+            <button
+              type="button"
+              data-testid="open-add-subcategory"
+              aria-label="Add subcategory"
+              onClick={openCreate}
+              style={iconActionStyle}
+            >
+              <Icon name="add-circle" size={26} color={colors.primary} />
+            </button>
+          </div>
         }
+      />
+      <input
+        ref={importInput}
+        type="file"
+        onChange={onImportFileChange}
+        style={{ display: "none" }}
+        data-testid="subcategory-csv-input"
       />
 
       <div style={{ padding: `${spacing.md}px ${spacing.lg}px 0` }}>
@@ -242,7 +331,7 @@ export default function SubcategoriesPage() {
           />
         </div>
       ) : filtered.length ? (
-        <div style={{ padding: `${spacing.sm}px ${spacing.lg}px 40px` }}>
+        <div style={{ padding: `${spacing.sm}px ${spacing.lg}px 88px` }}>
           {filtered.map((item) => {
             const open = openId === item.id;
             const listed = productsFor(item);
@@ -301,6 +390,17 @@ export default function SubcategoriesPage() {
       ) : (
         <div style={emptyStyle}>No subcategories match your search.</div>
       )}
+
+      <div style={importBarStyle}>
+        <Button
+          testID="nav-batch-product-import"
+          title="Import products (batch sheet)"
+          icon="cloud-upload-outline"
+          onPress={() => navigate("/import-products-batch")}
+          size="sm"
+          fullWidth
+        />
+      </div>
 
       <AppModal
         testID="subcategory-editor"
@@ -383,6 +483,24 @@ export default function SubcategoriesPage() {
     </main>
   );
 }
+
+function csvCell(value: string) {
+  return /[,"\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
+const headerActionsStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: spacing.md,
+};
+
+const importBarStyle: React.CSSProperties = {
+  position: "fixed",
+  zIndex: 2,
+  bottom: 12,
+  left: spacing.lg,
+  right: spacing.lg,
+};
 
 const iconActionStyle: React.CSSProperties = {
   display: "inline-flex",

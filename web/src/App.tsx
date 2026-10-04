@@ -23,6 +23,7 @@ export default function App() {
           <Route path="/brands" element={<EmptyPage title="Brands" />} />
           <Route path="/product-groups" element={<EmptyPage title="Product groups" />} />
           <Route path="/csv-import" element={<EmptyPage title="Spreadsheet imports" />} />
+          <Route path="/import-products-batch" element={<EmptyPage title="Import products (batch sheet)" />} />
           <Route path="/racks" element={<EmptyPage title="Racks" />} />
           <Route path="/purchases" element={<EmptyPage title="Purchases" />} />
           <Route path="/inventory" element={<EmptyPage title="Inventory" />} />
