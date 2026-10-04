@@ -25,6 +25,10 @@ import {
   Input,
 } from "../components/UI";
 import { colors, font, radii, spacing } from "../theme";
+import {
+  SHELF_PRICE_BOARD_ENABLED,
+  ShelfPriceBoard,
+} from "../features/shelf-price-board";
 import { parseCsvBytes } from "../utils/csv-reader";
 import { downloadCsv } from "../utils/download-csv";
 
@@ -122,6 +126,17 @@ export default function SubcategoriesPage() {
         (item.type || "").toLowerCase() === subcategoryName;
       return sameCategory && sameSubcategory;
     });
+  }
+
+  function boardsFor(listed: CatalogItem[]) {
+    const map = new Map<string, CatalogItem[]>();
+    for (const item of listed) {
+      const key = (item.productGroup || "Ungrouped").trim() || "Ungrouped";
+      const list = map.get(key) || [];
+      list.push(item);
+      map.set(key, list);
+    }
+    return [...map.entries()];
   }
 
   function openCreate() {
@@ -378,10 +393,21 @@ export default function SubcategoriesPage() {
                   </button>
                 </div>
                 {open ? (
-                  <ProductPeekList
-                    products={listed}
-                    emptyText={`No products in ${item.name}.`}
-                  />
+                  SHELF_PRICE_BOARD_ENABLED && listed.length ? (
+                    boardsFor(listed).map(([groupName, groupItems]) => (
+                      <ShelfPriceBoard
+                        key={groupName}
+                        title={groupName}
+                        products={groupItems}
+                        onSaved={load}
+                      />
+                    ))
+                  ) : (
+                    <ProductPeekList
+                      products={listed}
+                      emptyText={`No products in ${item.name}.`}
+                    />
+                  )
                 ) : null}
               </div>
             );

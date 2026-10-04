@@ -1,0 +1,1 @@
+export const SHELF_PRICE_BOARD_ENABLED = true;

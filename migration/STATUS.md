@@ -43,7 +43,7 @@ Statuses: Not started → Built → Done.
 | 2 | Categories (list, search, filter, create, edit, photo, active, delete with its products). Photo field and linked-products parts are built here. | Done | [dev/2026-10-03-2-categories.md](dev/2026-10-03-2-categories.md) |
 | 3a | Subcategories: list, create, edit, delete | Done | [dev/2026-10-03-3a-subcategories.md](dev/2026-10-03-3a-subcategories.md) |
 | 3b | Subcategories: CSV import | Done| [dev/2026-10-04-3b-subcategory-csv-import.md](dev/2026-10-04-3b-subcategory-csv-import.md) |
-| 3c | Subcategories: shelf price board | Not started | |
+| 3c | Subcategories: shelf price board | Done | [dev/2026-10-04-3c-shelf-price-board.md](dev/2026-10-04-3c-shelf-price-board.md) |
 | 4 | Brands (logo, active, delete) | Not started | |
 | 5 | Product types | Not started | |
 | 6 | Product classes | Not started | |
