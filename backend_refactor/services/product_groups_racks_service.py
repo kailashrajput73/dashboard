@@ -169,8 +169,8 @@ async def assign_rack_slot(rack_id: str, body: RackAssignmentIn):
         return JSONResponse(status_code=404, content=envelope(None, False, "Rack or product not found"))
     if not any(slot["code"] == body.slotCode for slot in rack.get("slots", [])):
         return JSONResponse(status_code=400, content=envelope(None, False, "Slot does not exist in this rack"))
-    await db.racks.update_one({"id": rack_id}, {"$set": {"slots.$[slot].productId": body.productId}}, {"array_filters": [{"slot.code": body.slotCode}]})
-    await db.racks.update_many({"id": {"$ne": rack_id}}, {"$set": {"slots.$[slot].productId": None}}, {"array_filters": [{"slot.productId": body.productId}]})
+    await db.racks.update_one({"id": rack_id}, {"$set": {"slots.$[slot].productId": body.productId}}, array_filters=[{"slot.code": body.slotCode}])
+    await db.racks.update_many({"id": {"$ne": rack_id}}, {"$set": {"slots.$[slot].productId": None}}, array_filters=[{"slot.productId": body.productId}])
     await db.catalog.update_one({"id": body.productId}, {"$set": {"rackId": rack_id, "rackName": rack["name"], "rackSlot": body.slotCode}})
     return envelope({"rackId": rack_id, "rackName": rack["name"], "slotCode": body.slotCode, "productId": body.productId})
 

@@ -1,4 +1,6 @@
-# IMPORTS — bug fix & policy notes
+# IMPORTS — reference only (not in active fix queue)
+
+**Owner decision (2026-10-04):** Uploads are **fine**. Agents must **not** implement FIX-03, FIX-04, or FIX-11 unless the owner reopens them. See `AGENT-WORKFLOW.md`.
 
 ## Split upload rules (expected behavior)
 

@@ -5,11 +5,10 @@ This folder was written on the **home PC** after VPS **backend_refactor** testin
 ## Copy-paste for a new Cursor chat
 
 ```text
-Read migration/bug_fix/README.md first, then the FIX-xx file for the task.
+Read migration/bug_fix/AGENT-WORKFLOW.md first, then README.md.
 
-Backend: backend_refactor on VPS (not backend/server.py).
-Pick one FIX-xx item unless I say otherwise.
-No refactor route audit — already done.
+Fix ONLY the FIX id I give you (one at a time). Do not change imports/uploads.
+Backend: backend_refactor/. Stop after one fix; I test; then I say next or commit.
 ```
 
 ## Get this folder on the office PC

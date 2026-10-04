@@ -53,6 +53,7 @@ type ReqOpts = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: any;
   query?: Record<string, string | number | undefined | null>;
+  cache?: RequestCache;
   /** Set false to skip attaching the admin bearer token. */
   auth?: boolean;
 };
@@ -74,7 +75,7 @@ export async function apiRequest<T = any>(
   path: string,
   opts: ReqOpts = {},
 ): Promise<T> {
-  const { method = "GET", body, query, auth = true } = opts;
+  const { method = "GET", body, query, cache, auth = true } = opts;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -94,6 +95,7 @@ export async function apiRequest<T = any>(
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
+      cache,
     });
   } catch (netErr: any) {
     const mixed = isMixedContentRisk();

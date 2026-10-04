@@ -426,6 +426,17 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     );
     const csv = [header, ...rows].join("\n");
     try {
+      if (Platform.OS === "web" && typeof document !== "undefined") {
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "catalog.csv";
+        anchor.click();
+        URL.revokeObjectURL(url);
+        return;
+      }
+
       await Linking.openURL(`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`);
     } catch {
       setErr("Could not export catalog CSV.");

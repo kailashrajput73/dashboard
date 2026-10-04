@@ -11,10 +11,15 @@
 1. Pull latest git on branch you use for this project (see repo `migration/STATUS.md` if present).
 2. Read this file end to end.
 3. API base URL should point at **VPS refactor**, not the old monolith.
-4. Fix one **FIX-xx** item per chat unless the user groups them.
-5. Do not redo refactor route parity — routes already matched 76/76; issues below are **behavior/UI** bugs or **product decisions**.
+4. Follow **`AGENT-WORKFLOW.md`** — **one FIX at a time**; owner tests; then **next**.
+5. Do not redo refactor route parity — routes already matched 76/76.
+
+### Uploads — out of scope for bug-fix agents
+
+Owner sign-off: **master / prices / stock / subcategory uploads are fine.** Do **not** change import rules or “fix” master vs discount behavior. **FIX-03, FIX-04, FIX-11 are deferred.**
 
 ---
+
 
 ## Summary
 
@@ -40,7 +45,7 @@ You have enough to **keep refactor on the VPS** and **not rely on `backend/serve
 
 **Master with 49% not changing 45% is correct, not a bug.**
 
-If the **Prices** sheet was used twice with 49% and discount stayed 45% → **likely bug** (or wrong column/product code). Fix in a dedicated chat: one product code, prices file only, check before/after on product screen or `GET /api/catalog`.
+If the **Prices** sheet was used twice with 49% and discount stayed 45% → noted as **FIX-03** but **deferred** — owner decided uploads are OK for now; do not fix unless reopened.
 
 ### “Master should do stock + price + discount”
 
@@ -107,7 +112,7 @@ Tested. Feature **unused** (leftover from old quotation demo). **Remove from adm
 | Partner API 29–31 (FIX-09) | When app ready |
 | Product groups, settings taxonomy | Quick spot-check if used |
 
-**Before client demo (priority):** rack assign, catalog download, confirm prices import bug.
+**Before client demo (active bugs):** FIX-01 rack assign, FIX-02 catalog download. See **`AGENT-WORKFLOW.md`** for order.
 
 ---
 
@@ -117,15 +122,15 @@ Tested. Feature **unused** (leftover from old quotation demo). **Remove from adm
 |----|------|--------|--------|----------|
 | FIX-01 | Rack / API | Assign product to slot → server API error | 12 | P1 demo |
 | FIX-02 | Catalog UI | Download button does nothing | 28 | P1 demo |
-| FIX-03 | Import | Prices sheet 49% not applied (confirm with prices-only test) | 7 | P1 |
-| FIX-04 | Purchase | CSV upload UX/format/message | 11 | P2 |
+| FIX-03 | Import | Prices 49% — **deferred** (uploads OK) | 7 | — |
+| FIX-04 | Purchase | CSV UX — **deferred** (uploads OK) | 11 | — |
 | FIX-05 | Admin | Remove unused money config screen | 2 | P2 |
 | FIX-06 | Team | May show old data — verify | 27 | P2 |
 | FIX-07 | Product | QR scanner (later); download OK | 9 | P3 |
 | FIX-08 | Partner | App login / KYC flow design | 18–19 | P2 product |
 | FIX-09 | Partner API | Login, catalog, RFQ when app ready | 29–31 | P2 mobile |
 | FIX-10 | Security | Wipe + destructive actions before production | 21 | P0 go-live |
-| FIX-11 | Import policy | Master vs full upload (stock+price) — decision A/B/C | 4 | Discuss |
+| FIX-11 | Import policy | Master vs full upload — **deferred** | 4 | — |
 
 See also:
 
@@ -154,4 +159,4 @@ See also:
 - `route/server-routes.md` — all API paths
 - `docs/migration/INVENTORY.md` — admin screens (if present on disk; `docs/` may be gitignored)
 - `demo-notes/SHEET-FORMAT.md` — master column layout
-- `docs/PARTNER_APP_INTEGRATION.md` — partner API (if present)
+- `docs/PARTNER-API.md` — partner API (if present)

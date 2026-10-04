@@ -5,7 +5,7 @@
 List and KYC work on refactor VPS. **Open design topic:** partner registers/logs in on mobile app → KYC pending → admin approves → app active → RFQ. Document end-to-end when mobile UX is defined.
 
 **Admin screen:** `frontend/app/(admin)/partners.tsx`  
-**Docs:** `docs/PARTNER_APP_INTEGRATION.md`, `docs/MOBILE_APP_API_HANDOFF.md` (may be gitignored on some clones — copy from home if missing).
+**Docs:** `docs/PARTNER-API.md` (may be gitignored on some clones — copy from home if missing).
 
 ---
 

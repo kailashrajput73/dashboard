@@ -258,7 +258,7 @@ export function registerPartner(body: Omit<Partner, "id" | "kycStatus" | "locati
 export function listPartners(params?: { search?: string; kyc_status?: string; sales_manager?: string }) { return apiRequest<Partner[]>("/partners", { query: params }); }
 export function reviewPartnerKyc(id: string, body: { approved: boolean; locationVerified: boolean; rejectionReason?: string }) { return apiRequest<Partner>(`/partners/${id}/kyc`, { method: "PUT", body }); }
 export function getPartnerRewards(id: string) { return apiRequest<RewardWallet>(`/partners/${id}/rewards`); }
-export function listTeamUsers() { return apiRequest<TeamUser[]>("/team/users"); }
+export function listTeamUsers() { return apiRequest<TeamUser[]>("/team/users", { cache: "no-store" }); }
 export function createTeamUser(body: { name: string; contactNumber: string; role: TeamUser["role"]; passcode: string; permissions?: string[] }) { return apiRequest<TeamUser>("/team/users", { method: "POST", body }); }
 export function updateTeamUser(id: string, body: { name: string; contactNumber: string; role: TeamUser["role"]; isActive: boolean; permissions?: string[] }) { return apiRequest<TeamUser>(`/team/users/${id}`, { method: "PUT", body }); }
 

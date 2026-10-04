@@ -59,7 +59,6 @@ function buildNav(tabs: TaxonomyTabs): NavSection[] {
         { href: "/rfqs", label: "RFQs", icon: "document-text-outline", testID: "sidebar-rfqs" },
         { href: "/partners", label: "Partners", icon: "people-outline", testID: "sidebar-partners" },
         { href: "/dispatches", label: "Dispatch", icon: "barcode-outline", testID: "sidebar-dispatches" },
-        { href: "/money-config", label: "Money config", icon: "cash-outline", testID: "sidebar-money-config" },
       ],
     },
     {
