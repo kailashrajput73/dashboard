@@ -31,7 +31,7 @@ interface StorefrontHeaderProps {
 
 /**
  * The app-wide web header: navy bar with the Shivani brand, search, account
- * rewards, cart and notifications. Every web page renders this one so the chrome stays identical.
+ * rewards, cart, wishlist and notifications. Every web page renders this one so the chrome stays identical.
  */
 export function StorefrontHeader({ webOnly, sticky = true }: StorefrontHeaderProps) {
   const navigate = useNavigate();
@@ -81,6 +81,14 @@ export function StorefrontHeader({ webOnly, sticky = true }: StorefrontHeaderPro
           >
             <i className="pi pi-shopping-cart" aria-hidden />
             {count > 0 && <CartBadge key={count}>{capBadge(count, 99)}</CartBadge>}
+          </CartButton>
+          <CartButton
+            type="button"
+            title={_tooltips.wishlist}
+            aria-label={_tooltips.wishlist}
+            onClick={() => navigate(AppRoutes.main, { state: { tab: 'wishlist' } })}
+          >
+            <i className="pi pi-heart" aria-hidden />
           </CartButton>
           <CartButton
             type="button"

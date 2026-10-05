@@ -15,16 +15,6 @@
         "tab": "wishlist",
         "icon": "pi-heart",
         "label": "Wishlist"
-      },
-      {
-        "tab": "quotation",
-        "icon": "pi-file-edit",
-        "label": "Quotation"
-      },
-      {
-        "tab": "profile",
-        "icon": "pi-user",
-        "label": "Profile"
       }
     ]
   },

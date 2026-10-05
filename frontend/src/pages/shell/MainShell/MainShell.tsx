@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppRoutes } from '../../../routes/appRoutes';
 import type { CategoryBrowseArgs } from '../../../routes/appRoutes';
 import type { HomeCategory } from '../../../services/catalog/catalogModels';
 import catalogMock from '../../../mocks/catalog_mock_data.json';
 import { HomeDashboard } from '../../home/HomeDashboard';
-import { ProfileContent } from '../../profile/Profile';
 import { StorefrontHeader } from '../../../shared/StorefrontHeader';
 import mock from './MainShell.mock.json';
 import {
@@ -41,16 +40,31 @@ const tabs = mock.AppBottomNavigation.tabs;
 /** Web shows the first five catalog categories only. */
 const categories: HomeCategory[] = catalogMock.categories.slice(0, 5);
 const sidebar = mock._webSidebar;
+/** Web side menu drops Wishlist — it lives in the `StorefrontHeader` instead. */
+const sidebarTabs = tabs.filter((tab) => tab.tab !== 'wishlist');
+const tabIndex = (tab?: string) =>
+  Math.max(
+    0,
+    tabs.findIndex((t) => t.tab === tab),
+  );
 
 /**
  * Flutter `MainShell` — root shell after authentication. Mobile keeps the
  * bottom `NavigationBar` + AI assistant FAB (Home tab only). Web (≥ md) moves
- * the tabs into a side menu under the app-wide `StorefrontHeader`, with the catalog
- * categories listed under them and the FAB as a card at the bottom.
+ * Home + Categories into a side menu under the app-wide `StorefrontHeader`
+ * (Wishlist opens from the header's heart icon), with the catalog categories
+ * listed under them and the FAB as a card at the bottom.
  */
 export function MainShell() {
   const navigate = useNavigate();
-  const [index, setIndex] = useState(0);
+  const location = useLocation();
+  const requestedTab = (location.state as { tab?: string } | null)?.tab;
+  const [index, setIndex] = useState(() => tabIndex(requestedTab));
+
+  // Header icons (e.g. Wishlist) open a tab via router state, also while already on this page.
+  useEffect(() => {
+    if (requestedTab) setIndex(tabIndex(requestedTab));
+  }, [requestedTab, location.key]);
 
   const openCategory = (category: HomeCategory) => {
     const args: CategoryBrowseArgs = { categoryId: category.id };
@@ -70,21 +84,24 @@ export function MainShell() {
           <SidebarScroll>
             <SidebarLabel>{sidebar.menuLabel}</SidebarLabel>
             <NavList>
-              {tabs.map((tab, i) => (
-                <li key={tab.tab}>
-                  <NavItem
-                    type="button"
-                    $active={i === index}
-                    aria-current={i === index ? 'page' : undefined}
-                    onClick={() => setIndex(i)}
-                  >
-                    <NavIcon $active={i === index}>
-                      <i className={`pi ${tab.icon}`} aria-hidden="true" />
-                    </NavIcon>
-                    {tab.label}
-                  </NavItem>
-                </li>
-              ))}
+              {sidebarTabs.map((tab) => {
+                const i = tabs.indexOf(tab);
+                return (
+                  <li key={tab.tab}>
+                    <NavItem
+                      type="button"
+                      $active={i === index}
+                      aria-current={i === index ? 'page' : undefined}
+                      onClick={() => setIndex(i)}
+                    >
+                      <NavIcon $active={i === index}>
+                        <i className={`pi ${tab.icon}`} aria-hidden="true" />
+                      </NavIcon>
+                      {tab.label}
+                    </NavItem>
+                  </li>
+                );
+              })}
             </NavList>
 
             <SidebarLabel>{sidebar.categoriesLabel}</SidebarLabel>
@@ -119,10 +136,8 @@ export function MainShell() {
         <Main>
           {index === 0 ? (
             <HomeDashboard categories={categories} onCategoryTap={openCategory} />
-          ) : current.tab === 'profile' ? (
-            <ProfileContent />
           ) : (
-            // Tabs 1–3 are not converted yet — Flutter `_TabScaffold` title only.
+            // Tabs 1–2 are not converted yet — Flutter `_TabScaffold` title only.
             <>
               <TabHeader>
                 <TabTitle>{current.label}</TabTitle>
