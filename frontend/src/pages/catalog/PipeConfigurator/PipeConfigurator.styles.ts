@@ -126,9 +126,18 @@ export const SearchPill = styled.button`
     font-size: 18px;
   }
 
+  /* Web: the app header carries search. */
   ${({ theme }) => theme.media.md} {
-    max-width: 480px;
-    margin-left: auto;
+    display: none;
+  }
+`;
+
+/** Mobile only — on web the app header carries the cart. */
+export const MobileCartSlot = styled.div`
+  display: contents;
+
+  ${({ theme }) => theme.media.md} {
+    display: none;
   }
 `;
 

@@ -35,3 +35,15 @@ export interface CartItem {
   variant: ProductVariant;
   quantity: number;
 }
+
+/** Flutter `HomeCategory` (home_models.dart) — a catalog category as Home shows it. */
+export interface HomeCategory {
+  id: string;
+  name: string;
+  itemCount: number;
+  /** primeicons class (Flutter icon name mapped). */
+  icon: string;
+  iconColor: string;
+  iconBackground: string;
+  imageAsset: string;
+}

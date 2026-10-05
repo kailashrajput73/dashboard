@@ -1,0 +1,16 @@
+{
+  "_brand": {
+    "name": "Shivani",
+    "accent": " Constructions",
+    "logo": "/assets/images/branding/shivani_icon_mark.png"
+  },
+  "_searchPlaceholder": "Search for products, brands and more...",
+  "_accountLabel": "My Account",
+  "_rewardPoints": 0,
+  "_notificationCount": 3,
+  "_tooltips": {
+    "rewards": "My Rewards",
+    "cart": "Cart",
+    "notifications": "Notifications"
+  }
+}

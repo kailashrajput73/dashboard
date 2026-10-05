@@ -6,15 +6,30 @@ export const AppRoutes = {
   chooseLocation: '/choose-location',
   chooseProfession: '/choose-profession',
   otpVerification: '/otp-verification',
+  /** Post-auth shell (Home + navigation). Flutter keeps both names. */
   homePlaceholder: '/home-placeholder',
+  main: '/main',
 
   search: '/search',
+  categories: '/categories',
+  profile: '/profile',
+  notifications: '/notifications',
+  myRewards: '/my-rewards',
+  aiAssistant: '/ai-assistant',
   categoryBrowse: '/category-browse',
   /**
    * Web-only path. Flutter pushes `_PipeConfiguratorScreen` with an anonymous
    * `MaterialPageRoute` (no named route), so a URL is needed for the browser.
    */
   pipeConfigurator: '/category-browse/pipe-configurator',
+
+  cart: '/cart',
+  /** Flutter `AppRoutes.selectAddress` — checkout step 2 (address + delivery option). */
+  selectAddress: '/checkout/address',
+  /** Flutter `AppRoutes.payment` — step 3; router state is `PaymentArgs`. */
+  payment: '/checkout/payment',
+  /** Flutter `AppRoutes.orderConfirmation` — step 4; router state is `OrderConfirmationArgs`. */
+  orderConfirmation: '/checkout/confirmation',
 } as const;
 
 /** Flutter `OtpPurpose` (passwordReset dropped with screens 7–9). */

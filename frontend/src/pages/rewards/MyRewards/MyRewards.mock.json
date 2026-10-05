@@ -1,0 +1,21 @@
+{
+  "_title": "Rewards",
+  "_refreshTooltip": "Refresh",
+  "_backLabel": "Back",
+  "_webSubtitle": "Earn points on every confirmed sale and track them here.",
+  "_pointsCard": {
+    "badge": "Reward Points",
+    "balanceLabel": "Available balance",
+    "unit": "pts",
+    "totalEarnedLabel": "Total earned",
+    "redeemedLabel": "Redeemed"
+  },
+  "_historyTitle": "Reward History",
+  "_empty": {
+    "title": "No reward points earned yet.",
+    "subtitle": "Complete a purchase to start earning rewards."
+  },
+  "_quotationPrefix": "Quotation #",
+  "_defaultDescription": "Sale confirmed",
+  "_quotationSuffix": "quotation"
+}

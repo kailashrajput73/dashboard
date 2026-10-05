@@ -18,7 +18,7 @@ export function Splash() {
   // Flutter: wait splashDuration, then pushReplacementNamed(next).
   useEffect(() => {
     const timer = setTimeout(() => {
-      const nextRoute = isLoggedIn ? AppRoutes.homePlaceholder : AppRoutes.login;
+      const nextRoute = isLoggedIn ? AppRoutes.main : AppRoutes.login;
       navigate(nextRoute, { replace: true });
     }, splashDurationMs);
     return () => clearTimeout(timer);

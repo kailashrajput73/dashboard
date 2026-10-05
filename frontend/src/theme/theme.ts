@@ -90,6 +90,27 @@ const brand = {
   highlight: '#A6EBD9',
 } as const;
 
+// ── Storefront chrome (web-only checkout header + payment marks) ──────
+const storefront = {
+  headerBackground: '#1B2A47',
+  headerForeground: '#FFFFFF',
+  headerMuted: '#C9D3E6',
+  brandAccent: '#F59E0B',
+  // Card network / UPI wordmarks in the "payment is secure" box.
+  visa: '#1A1F71',
+  mastercardRed: '#EB001B',
+  mastercardOrange: '#F79E1B',
+  rupay: '#1E4AA8',
+  upi: '#6B7280',
+} as const;
+
+// ── My Rewards points card (my_rewards_screen.dart `_RewardPointsCard`) ─
+const rewards = {
+  cardGradient: ['#0B1F4D', '#1A3F9E', colors.primary],
+  gold: '#FBBF24',
+  earnedGreen: '#4ADE80',
+} as const;
+
 // ── AppSpacing (8-point scale, px) ─────────────────────────────────────
 const spacing = {
   space1: 4,
@@ -272,6 +293,50 @@ const layout = {
   // Web (≥ md): full-bleed configurator — image pane left, details pane right.
   pipeConfiguratorDetailsMinWidth: 420,
   pipeConfiguratorDetailsMaxWidth: 560,
+
+  // Cart (checkout step 1): item thumb, qty stepper, line-total column (≥ md).
+  cartThumbSize: 56,
+  cartThumbSizeWide: 64,
+  cartStepperButtonSize: 32,
+  cartLineTotalWidth: 110,
+
+  // Checkout (Address step, web): header bar, content cap, summary column, thumbs.
+  checkoutHeaderHeight: 76,
+  checkoutMaxWidth: 1440,
+  checkoutSingleColumnWidth: 880,
+  checkoutSearchMaxWidth: 720,
+  checkoutSummaryWidth: 500,
+  checkoutThumbSize: 64,
+  checkoutRadioSize: 20,
+  checkoutDialogWidth: 720,
+  checkoutMapHeight: 200,
+  checkoutPaymentFieldsWidth: 480,
+  checkoutContinueButtonWidth: 320,
+
+  // Main shell (Home): Flutter bottom NavigationBar height; web side menu.
+  bottomNavHeight: 64,
+  bottomNavIndicatorWidth: 64,
+  shellSidebarWidth: 280,
+  shellSidebarThumbSize: 28,
+  // Home: Flutter HomeCategoryCard image height; web top bar + category tiles.
+  homeCategoryImageHeight: 88,
+  homeTopBarHeight: 80,
+  homeLocationMaxWidth: 560,
+  homeCategoryTileMinWidth: 280,
+  homeCategoryTileHeight: 232,
+  fabSize: 56,
+
+  // My Rewards (web ≥ md): content cap + sticky points-card column.
+  rewardsMaxWidth: 1200,
+  rewardsSummaryWidth: 420,
+
+  // My Profile: content cap, avatar, section icon tile, mobile label column.
+  profileMaxWidth: 1200,
+  profileAvatarSize: 76,
+  profileAvatarSizeWide: 64,
+  profileSectionIconSize: 40,
+  profileLabelWidth: 128,
+  profileBannerMaxWidth: 460,
 } as const;
 
 const media = {
@@ -284,6 +349,8 @@ export const theme = {
   colors,
   loginFlow,
   brand,
+  storefront,
+  rewards,
   spacing,
   radius,
   elevation,

@@ -78,7 +78,7 @@ export function ChooseProfession() {
       referralCode: args.referralCode,
     });
 
-    navigate(AppRoutes.categoryBrowse, { replace: true });
+    navigate(AppRoutes.main, { replace: true });
   };
 
   return (

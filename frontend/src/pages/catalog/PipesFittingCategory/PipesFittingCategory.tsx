@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'styled-components';
 import { AppRoutes } from '../../../routes/appRoutes';
 import { useMaybePop } from '../../../hooks/useMaybePop';
+import { CartIconButton } from '../../../shared/CartIconButton';
+import { StorefrontHeader } from '../../../shared/StorefrontHeader';
 import { CircularProgress } from '../../../shared/CircularProgress';
 import { CategoryImage } from '../../../shared/CategoryImage';
 import { loadPipesFittingCatalog } from '../../../services/catalog/pipesFittingRepository';
@@ -14,6 +16,7 @@ import type { PipeConfiguratorArgs } from '../PipeConfigurator';
 import pipesMock from './PipesFittingCategory.mock.json';
 import {
   Screen,
+  AppHeaderSlot,
   Header,
   HeaderInner,
   BackSlot,
@@ -99,12 +102,13 @@ const filterSizes = [
   ...pipesMock.PipeFilterSizes.rightColumn,
 ];
 const filterBrands = pipesMock.PipeFilterBrands.names;
+const filterClassesByType = pipesMock.PipeFilterClasses.byType as Record<string, string[]>;
 const { unit: groupUnit, discountLabel } = pipesMock._CategoryProductGroup;
 
 /** Flutter `Icons.plumbing_rounded` has no primeicons match — nearest glyph. */
 const plumbingIcon = 'pi-wrench';
 
-type OpenMenu = 'sort' | 'size' | 'brand' | null;
+type OpenMenu = 'sort' | 'size' | 'brand' | 'class' | null;
 
 // ── Pure helpers (ported 1:1 from _PipesFittingCategoryScreenState) ────
 
@@ -155,6 +159,7 @@ function groupsForSection(
         groups.push({
           title: `${type.type} ${sub.subCategory} (${cls.className})`,
           subCategory: sub.subCategory,
+          className: cls.className,
           products: cls.products,
           imageAsset: imageForType(type.type),
           unit: groupUnit,
@@ -178,6 +183,20 @@ function matchesSize(group: CategoryProductGroup, sizeLabel: string): boolean {
     return raw.toLowerCase().includes(`${Math.trunc(targetMm)}`);
   });
 }
+
+/** `PipeFilterClasses.forType` — the Type's classes, or every distinct class for All. */
+function classesForType(typeName: string | null): string[] {
+  if (typeName != null) return filterClassesByType[typeName] ?? [];
+  const names: string[] = [];
+  for (const classes of Object.values(filterClassesByType)) {
+    for (const name of classes) if (!names.includes(name)) names.push(name);
+  }
+  return names;
+}
+
+/** `PipeFilterClasses.matches` — case- and space-insensitive, so "4kg" equals "4 kg". */
+const classMatches = (a: string, b: string) =>
+  a.replace(/\s/g, '').toLowerCase() === b.replace(/\s/g, '').toLowerCase();
 
 const pluralize = (value: string) => (value.toLowerCase().endsWith('s') ? value : `${value}s`);
 
@@ -481,12 +500,14 @@ export function PipesFittingCategory() {
   const [sort, setSort] = useState<PipeModuleSort>('all');
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [size, setSize] = useState<string | null>(null);
+  const [selectedClass, setSelectedClass] = useState<string | null>(null);
 
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
   const sortButtonRef = useRef<HTMLButtonElement>(null);
   const sizeButtonRef = useRef<HTMLButtonElement>(null);
   const brandButtonRef = useRef<HTMLButtonElement>(null);
+  const classButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -505,6 +526,9 @@ export function PipesFittingCategory() {
     let result = groupsForSection(catalog, section, subCategory);
     if (selectedBrand != null) result = result.filter((g) => matchesBrand(g, selectedBrand));
     if (size != null && size !== '') result = result.filter((g) => matchesSize(g, size));
+    if (selectedClass != null) {
+      result = result.filter((g) => classMatches(g.className, selectedClass));
+    }
 
     switch (sort) {
       case 'priceLowHigh':
@@ -517,7 +541,7 @@ export function PipesFittingCategory() {
       default:
         return result;
     }
-  }, [catalog, section, subCategory, selectedBrand, size, sort]);
+  }, [catalog, section, subCategory, selectedBrand, size, selectedClass, sort]);
 
   const subCategories = useMemo(() => (catalog ? subCategoryNames(catalog) : []), [catalog]);
 
@@ -555,9 +579,10 @@ export function PipesFittingCategory() {
     sort: { ref: sortButtonRef, width: 240 },
     size: { ref: sizeButtonRef, width: 200 },
     brand: { ref: brandButtonRef, width: 220 },
+    class: { ref: classButtonRef, width: 200 },
   } as const;
 
-  /** `_toggleSortMenu` / `_toggleSizeMenu` / `_toggleBrandMenu`. */
+  /** `_toggleSortMenu` / `_toggleSizeMenu` / `_toggleBrandMenu` / `_toggleClassMenu`. */
   const toggleMenu = (menu: Exclude<OpenMenu, null>) => {
     if (openMenu === menu) {
       setOpenMenu(null);
@@ -580,6 +605,13 @@ export function PipesFittingCategory() {
   const onSectionSelected = (next: CatSection) => {
     setSection(next);
     if (next === 'all') setSubCategory(null);
+    // Drop a class the newly picked Type doesn't offer.
+    if (
+      selectedClass != null &&
+      !classesForType(typeNameForSection(next)).some((c) => classMatches(c, selectedClass))
+    ) {
+      setSelectedClass(null);
+    }
   };
 
   const openConfigurator = (index: number) => {
@@ -644,6 +676,40 @@ export function PipesFittingCategory() {
           ]}
         />
       );
+    } else if (openMenu === 'class') {
+      menu = (
+        <DropdownMenu
+          position={menuPosition}
+          searchHint="Search class..."
+          onClose={closeMenu}
+          buildTiles={(query) => [
+            ...(query === ''
+              ? [
+                  {
+                    key: '__all',
+                    label: 'All Classes',
+                    selected: selectedClass == null,
+                    onSelect: () => {
+                      setSelectedClass(null);
+                      closeMenu();
+                    },
+                  },
+                ]
+              : []),
+            ...classesForType(typeLabel)
+              .filter((c) => c.toLowerCase().includes(query.toLowerCase()))
+              .map((c) => ({
+                key: c,
+                label: c,
+                selected: selectedClass === c,
+                onSelect: () => {
+                  setSelectedClass(c);
+                  closeMenu();
+                },
+              })),
+          ]}
+        />
+      );
     } else {
       menu = (
         <DropdownMenu
@@ -683,6 +749,9 @@ export function PipesFittingCategory() {
 
   return (
     <Screen>
+      <AppHeaderSlot>
+        <StorefrontHeader sticky={false} />
+      </AppHeaderSlot>
       <Header>
         <HeaderInner>
           <BackSlot>
@@ -717,6 +786,11 @@ export function PipesFittingCategory() {
               label={selectedBrand ?? 'Brand'}
               onClick={() => toggleMenu('brand')}
             />
+            <FilterDropdownButton
+              buttonRef={classButtonRef}
+              label={selectedClass ?? 'Class'}
+              onClick={() => toggleMenu('class')}
+            />
           </FilterRow>
           <SearchSlot>
             <HeaderIconButton
@@ -726,6 +800,7 @@ export function PipesFittingCategory() {
             >
               <i className="pi pi-search" aria-hidden="true" />
             </HeaderIconButton>
+            <CartIconButton />
           </SearchSlot>
         </HeaderInner>
       </Header>
@@ -785,6 +860,16 @@ export function PipesFittingCategory() {
                   onClick={() => setSelectedBrand(null)}
                 >
                   {selectedBrand}
+                  <i className="pi pi-times" aria-hidden="true" />
+                </FilterChip>
+              )}
+              {selectedClass != null && (
+                <FilterChip
+                  type="button"
+                  aria-label={`Clear class ${selectedClass}`}
+                  onClick={() => setSelectedClass(null)}
+                >
+                  {selectedClass}
                   <i className="pi pi-times" aria-hidden="true" />
                 </FilterChip>
               )}

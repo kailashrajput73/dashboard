@@ -42,5 +42,12 @@
   },
   "PipeFilterBrands": {
     "names": ["Astral", "Finolex", "Cera", "Anchor", "king"]
+  },
+  "PipeFilterClasses": {
+    "byType": {
+      "UPVC": ["Sch 40", "Sch 80"],
+      "PVC": ["4 kg", "6 kg", "8 kg", "10 kg"],
+      "CPVC": ["SDR11", "SDR13.5", "Sch 40", "Sch 80"]
+    }
   }
 }

@@ -1,6 +1,7 @@
 {
   "_addToCart": {
-    "snackBarDurationMs": 2000
+    "snackBarDurationMs": 3000,
+    "viewCartLabel": "View Cart"
   },
   "_webLabels": {
     "size": "Size",

@@ -12,6 +12,13 @@ import { CreateAccount } from './pages/auth/CreateAccount';
 import { ChooseLocation } from './pages/auth/ChooseLocation';
 import { ChooseProfession } from './pages/auth/ChooseProfession';
 import { PipeConfigurator } from './pages/catalog/PipeConfigurator';
+import { Cart } from './pages/cart/Cart';
+import { Checkout } from './pages/checkout/Checkout';
+import { Payment } from './pages/checkout/Payment';
+import { OrderConfirmation } from './pages/checkout/OrderConfirmation';
+import { MainShell } from './pages/shell/MainShell';
+import { MyRewards } from './pages/rewards/MyRewards';
+import { Profile } from './pages/profile/Profile';
 import { RoutePlaceholder } from './shared/RoutePlaceholder';
 
 function App() {
@@ -33,15 +40,28 @@ function App() {
               <Route path={AppRoutes.categoryBrowse} element={<CategoryBrowseRoute />} />
               <Route path={AppRoutes.pipeConfigurator} element={<PipeConfigurator />} />
 
+              {/* Cart / checkout */}
+              <Route path={AppRoutes.cart} element={<Cart />} />
+              <Route path={AppRoutes.selectAddress} element={<Checkout />} />
+              <Route path={AppRoutes.payment} element={<Payment />} />
+              <Route path={AppRoutes.orderConfirmation} element={<OrderConfirmation />} />
+
+              {/* Post-auth shell (Home + side menu / bottom nav) */}
+              <Route path={AppRoutes.homePlaceholder} element={<MainShell />} />
+              <Route path={AppRoutes.main} element={<MainShell />} />
+
+              <Route path={AppRoutes.myRewards} element={<MyRewards />} />
+              <Route path={AppRoutes.profile} element={<Profile />} />
+
               {/* Out of module — stubs only. */}
-              <Route
-                path={AppRoutes.homePlaceholder}
-                element={<RoutePlaceholder route={AppRoutes.homePlaceholder} />}
-              />
-              <Route
-                path={AppRoutes.search}
-                element={<RoutePlaceholder route={AppRoutes.search} />}
-              />
+              {[
+                AppRoutes.search,
+                AppRoutes.categories,
+                AppRoutes.notifications,
+                AppRoutes.aiAssistant,
+              ].map((route) => (
+                <Route key={route} path={route} element={<RoutePlaceholder route={route} />} />
+              ))}
             </Routes>
           </BrowserRouter>
         </CartProvider>

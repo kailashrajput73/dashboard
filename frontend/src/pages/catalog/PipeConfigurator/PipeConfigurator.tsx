@@ -5,6 +5,8 @@ import { AppRoutes } from '../../../routes/appRoutes';
 import { useMaybePop } from '../../../hooks/useMaybePop';
 import { useCart } from '../../../session/CartContext';
 import { CategoryImage } from '../../../shared/CategoryImage';
+import { CartIconButton } from '../../../shared/CartIconButton';
+import { StorefrontHeader } from '../../../shared/StorefrontHeader';
 import { SnackBar } from '../../../shared/SnackBar';
 import { typeLabelFor, variantFor } from '../../../services/catalog/pipeCategoryGroups';
 import type { CategoryProductGroup } from '../../../services/catalog/pipeCategoryGroups';
@@ -17,6 +19,7 @@ import {
   BackButton,
   TopBarContext,
   SearchPill,
+  MobileCartSlot,
   Body,
   Media,
   Details,
@@ -228,6 +231,7 @@ function PipeConfiguratorView({ groups, initialGroupIndex }: PipeConfiguratorArg
 
   return (
     <Screen>
+      <StorefrontHeader webOnly sticky={false} />
       <TopBar>
         <TopBarInner>
           <BackButton type="button" aria-label="Back" onClick={maybePop}>
@@ -238,6 +242,9 @@ function PipeConfiguratorView({ groups, initialGroupIndex }: PipeConfiguratorArg
             <i className="pi pi-search" aria-hidden="true" />
             Search products
           </SearchPill>
+          <MobileCartSlot>
+            <CartIconButton />
+          </MobileCartSlot>
         </TopBarInner>
       </TopBar>
 
@@ -302,6 +309,10 @@ function PipeConfiguratorView({ groups, initialGroupIndex }: PipeConfiguratorArg
           onDismissed={dismissSnackBar}
           durationMs={configuratorMock._addToCart.snackBarDurationMs}
           webAlign="center"
+          action={{
+            label: configuratorMock._addToCart.viewCartLabel,
+            onPressed: () => navigate(AppRoutes.cart),
+          }}
         />
       )}
     </Screen>

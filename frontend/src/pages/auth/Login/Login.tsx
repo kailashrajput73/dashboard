@@ -68,8 +68,8 @@ export function Login() {
     if (!mounted.current) return;
     if (result.success && result.user) {
       setFromAuth(result.user);
-      // pushNamedAndRemoveUntil(homePlaceholder, (_) => false)
-      navigate(AppRoutes.categoryBrowse, { replace: true });
+      // pushNamedAndRemoveUntil(main, (_) => false)
+      navigate(AppRoutes.main, { replace: true });
     }
   };
 

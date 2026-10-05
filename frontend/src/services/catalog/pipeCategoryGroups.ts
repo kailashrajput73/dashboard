@@ -6,6 +6,7 @@ import type { PipesFittingProduct } from './pipesFittingModels';
 export interface CategoryProductGroup {
   title: string;
   subCategory: string;
+  className: string;
   products: PipesFittingProduct[];
   imageAsset: string;
   /** Flutter getter `unit` — always `'pcs'`. */

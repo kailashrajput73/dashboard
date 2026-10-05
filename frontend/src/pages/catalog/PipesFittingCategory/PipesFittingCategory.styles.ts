@@ -36,9 +36,21 @@ export const Screen = styled.div`
 
   ${({ theme }) => theme.media.md} {
     grid-template-columns: ${({ theme }) => theme.layout.pipeSidebarWideWidth}px minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
     grid-template-areas:
+      'app app'
       'sidebar header'
       'sidebar content';
+  }
+`;
+
+/** Web-only slot for the app-wide `StorefrontHeader` (spans both columns). */
+export const AppHeaderSlot = styled.div`
+  display: none;
+
+  ${({ theme }) => theme.media.md} {
+    display: block;
+    grid-area: app;
   }
 `;
 
@@ -72,8 +84,8 @@ export const HeaderInner = styled.div`
   padding: ${({ theme }) => `${theme.spacing.space2}px ${theme.spacing.space3}px`};
 
   ${({ theme }) => theme.media.md} {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas: 'heading filters search';
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'heading filters';
     column-gap: ${({ theme }) => theme.spacing.space3}px;
     min-height: ${({ theme }) => theme.layout.catalogToolbarHeight}px;
     padding: ${({ theme }) => `${theme.spacing.space3}px ${theme.spacing.space8}px`};
@@ -88,8 +100,15 @@ export const BackSlot = styled.div`
   }
 `;
 
+/** Mobile only — on web the app header carries search + cart. */
 export const SearchSlot = styled.div`
   grid-area: search;
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.space2}px;
+
+  ${({ theme }) => theme.media.md} {
+    display: none;
+  }
 `;
 
 /** titleMedium w800 onBackground, 1 line ellipsis. */
@@ -118,15 +137,15 @@ export const ToolbarHeading = styled.div`
   }
 `;
 
-/** Row(mainAxisAlignment: end) of three Expanded filter buttons. */
+/** Row(mainAxisAlignment: end) of four Expanded filter buttons. */
 export const FilterRow = styled.div`
   grid-area: filters;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: ${({ theme }) => theme.spacing.space2}px;
 
   ${({ theme }) => theme.media.md} {
-    grid-template-columns: repeat(3, minmax(128px, auto));
+    grid-template-columns: repeat(4, minmax(120px, auto));
   }
 `;
 

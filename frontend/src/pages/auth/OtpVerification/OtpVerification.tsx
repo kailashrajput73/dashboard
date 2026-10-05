@@ -100,8 +100,8 @@ export function OtpVerification() {
         // Existing user — verified mock account already carries a profile,
         // so skip straight to the home shell instead of the signup steps.
         if (result.user) setFromAuth(result.user);
-        // pushNamedAndRemoveUntil(homePlaceholder, (_) => false)
-        navigate(AppRoutes.categoryBrowse, { replace: true });
+        // pushNamedAndRemoveUntil(main, (_) => false)
+        navigate(AppRoutes.main, { replace: true });
         return;
       case 'registration': {
         const signupArgs: SignupFlowArgs = { mobileNumber: rawMobile, fullName: '' };

@@ -1,0 +1,30 @@
+{
+  "_steps": [
+    { "label": "Cart", "subtitle": "Review items" },
+    { "label": "Address", "subtitle": "Shipping details" },
+    { "label": "Payment", "subtitle": "Choose method" },
+    { "label": "Confirm", "subtitle": "Order placed" }
+  ],
+  "_summary": {
+    "orderSummary": "Order Summary",
+    "itemsCount": "{count} items",
+    "itemCount": "{count} item",
+    "qty": "Qty: {qty}",
+    "perUnit": "{price} / {unit}",
+    "subtotal": "Subtotal",
+    "discount": "Coupon discount ({code})",
+    "shipping": "Shipping Charges",
+    "freeShippingHint": "Add {amount} more for free shipping",
+    "free": "FREE",
+    "tax": "Tax (GST 18%)",
+    "total": "Total Amount",
+    "haveCoupon": "Have a Coupon?",
+    "couponPlaceholder": "Enter code (e.g. BUILD10)",
+    "apply": "Apply",
+    "remove": "Remove",
+    "invalidCoupon": "That code isn't valid. Try BUILD10 or FREESHIP.",
+    "emptyCoupon": "Enter a coupon code first.",
+    "secureTitle": "Your payment is secure",
+    "secureBody": "We use 256-bit SSL encryption to keep your information safe."
+  }
+}
