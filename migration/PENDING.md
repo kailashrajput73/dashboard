@@ -57,3 +57,15 @@ Create disposable `ZZ` catalog products assigned to a subcategory, using at leas
 6. Expand a subcategory with no matched products and confirm the linked-product empty message is shown rather than a price board.
 7. Temporarily set `SHELF_PRICE_BOARD_ENABLED` to `false` in the web feature flag, confirm the linked-product list is shown instead of the board, then restore it to `true` without committing the temporary change.
 8. Confirm the Settings page has no shelf-price-board switch and that Product Groups remains unchanged in this row.
+
+### Row 4: brands (Built)
+
+Use only disposable test data with names beginning `ZZ`. Do not delete or alter real brands or products.
+
+1. Create a `ZZ` brand with a logo file, then create another with a picture URL. Confirm thumbnails appear in the list. Remove or replace a logo through edit.
+2. Search for each brand and check **All**, **Active**, and **Inactive** filters. Toggle a `ZZ` brand inactive and active; confirm its status and filter membership update.
+3. Link disposable catalog products to a `ZZ` brand. Confirm the count and expanded linked list include products matched by brand ID and by case-insensitive brand name.
+4. Edit a `ZZ` brand name. Confirm the page only sends the brand update and the backend updates linked products' brand text; reload and verify the linked count/list remain correct.
+5. Try saving a blank brand name and confirm `Brand name is required.`. Try a duplicate name and confirm the API error is shown.
+6. Start delete on a disposable `ZZ` brand. Confirm the dialog says `Deletes this brand and every product linked to it.`, pre-fills the signed-in admin contact, and requires the passcode. Cancel and confirm nothing was removed.
+7. Delete the disposable brand with valid credentials. Confirm only that brand and its linked test products are removed, and the success message reports the product count. Never use a real brand for this check.

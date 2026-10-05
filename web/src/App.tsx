@@ -3,6 +3,7 @@ import { AdminShell } from "./components/AdminShell";
 import { EmptyPage } from "./components/EmptyPage";
 import { StartupRedirect } from "./components/StartupRedirect";
 import CategoriesPage from "./pages/CategoriesPage";
+import BrandsPage from "./pages/BrandsPage";
 import LoginPage from "./pages/LoginPage";
 import SubcategoriesPage from "./pages/SubcategoriesPage";
 
@@ -20,7 +21,7 @@ export default function App() {
           <Route path="/product-types" element={<EmptyPage title="Product type" />} />
           <Route path="/subcategories" element={<SubcategoriesPage />} />
           <Route path="/product-classes" element={<EmptyPage title="Product class" />} />
-          <Route path="/brands" element={<EmptyPage title="Brands" />} />
+          <Route path="/brands" element={<BrandsPage />} />
           <Route path="/product-groups" element={<EmptyPage title="Product groups" />} />
           <Route path="/csv-import" element={<EmptyPage title="Spreadsheet imports" />} />
           <Route path="/import-products-batch" element={<EmptyPage title="Import products (batch sheet)" />} />
