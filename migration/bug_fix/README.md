@@ -76,7 +76,7 @@ Tested. Feature **unused** (leftover from old quotation demo). **Remove from adm
 | 3–6 | Master / prices / stock / subcategory imports | Pass | |
 | 4 | ROL + discount on master | ROL pass; 49% on master ignored | **Expected** |
 | 7 | Subcategory + 49% discount | Subcategory does not set discount | If **prices** import also failed → FIX-03 |
-| 8–10 | Product form, QR | Pass | Scanner later (FIX-07) |
+| 8–10 | Product form, QR | Pass | 2026-10-05: master-shaped catalog export and HSN/GST/pack/MRP-per-pack form fields implemented; smoke verification pending. Scanner later (FIX-07) |
 | 11 | Purchase CSV | Fix later | FIX-04 |
 | 12 | Rack assign | **Bug** | API error when assigning product — FIX-01 |
 | 13–17 | RFQ, approve, edit, dispatch, retail | Pass | Heavy path OK |

@@ -15,6 +15,7 @@ Use these before a client demo or handoff. Each file is a **single release or fe
 | [SHEET-FORMAT.md](./SHEET-FORMAT.md) | **Final master Excel columns** (Type vs class, ROL, image_url) |
 | [2026-09-30-08-master-sheet-type-class-rol.md](./2026-09-30-08-master-sheet-type-class-rol.md) | Sheet column fix, ROL import, taxonomy mapping + re-import note |
 | [2026-09-30-09-product-form-gaps.md](./2026-09-30-09-product-form-gaps.md) | Product form: save ROL on master import, QR image, subcategory picker, Hindi and Gujarati names |
+| [2026-10-05-10-product-sow-export-and-billing-fields.md](./2026-10-05-10-product-sow-export-and-billing-fields.md) | Master-shaped catalog export and product form HSN/GST/package fields |
 
 **Deploy reminder:** With `USE_CLOUD_PREVIEW = true` in `frontend/src/config/env.ts`, Render must run the same `backend/server.py` as local or new routes fail with 404.
 

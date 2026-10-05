@@ -44,7 +44,8 @@ import { ApiError } from "@/src/api/client";
 import { formatMoney } from "@/src/utils/money";
 import { discountFromMrpSelling, sellingFromMrpDiscount } from "@/src/utils/pricing";
 import { sizeInchLabel, sizeLengthLabel, sizeMmLabel, parseSizeMm } from "@/src/utils/size";
-import { inferProductClass } from "@/src/utils/csv";
+import { gstToPercent, inferProductClass } from "@/src/utils/csv";
+import { MASTER_TEMPLATE_HEADERS } from "@/src/utils/import-templates";
 import { ProductQr } from "@/src/components/ProductQr";
 
 export default function AdminCatalog() {
@@ -107,6 +108,10 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   const [fSellingPrice, setFSellingPrice] = useState("");
   const [fPurchasePrice, setFPurchasePrice] = useState("");
   const [fPriceDiscount, setFPriceDiscount] = useState("");
+  const [fHsnCode, setFHsnCode] = useState("");
+  const [fGstRate, setFGstRate] = useState("");
+  const [fStdPkg, setFStdPkg] = useState("");
+  const [fMrpPkg, setFMrpPkg] = useState("");
   const [fStock, setFStock] = useState("");
   const [fProductCode, setFProductCode] = useState("");
   const [fSize, setFSize] = useState("");
@@ -169,6 +174,7 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     setFUnit("");
     setFRate("");
      setFMrp(""); setFSellingPrice(""); setFPurchasePrice(""); setFPriceDiscount(""); setFStock(""); setFProductCode("");
+    setFHsnCode(""); setFGstRate(""); setFStdPkg(""); setFMrpPkg("");
     setFSize(""); setFSizeInch(""); setFLength("");
     setFCategory(cats[0]?.name || "");
     setFSubcategoryId(""); setFSubcategoryName("");
@@ -187,6 +193,11 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
      setFSellingPrice(it.sellingPrice == null ? String(it.standardRate) : String(it.sellingPrice));
      setFPurchasePrice(it.purchasePrice == null ? "" : String(it.purchasePrice));
      setFPriceDiscount(it.discount == null ? "" : String(it.discount));
+    setFHsnCode(it.hsnCode || "");
+    const gstRate = gstToPercent(it.gstRate);
+    setFGstRate(gstRate == null ? "" : String(gstRate));
+    setFStdPkg(it.stdPkg == null ? "" : String(it.stdPkg));
+    setFMrpPkg(it.mrpPkg == null ? "" : String(it.mrpPkg));
      setFStock(it.stock == null ? "0" : String(it.stock));
      setFProductCode(it.productCode || "");
      setFSize(it.size || (it.sizeMm == null ? "" : String(it.sizeMm)));
@@ -224,6 +235,11 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
     try {
       const selectedSub = subs.find((sub) => sub.id === fSubcategoryId);
       const multilingualNames: Record<string, string> = {};
+      const optionalNumber = (value: string) => {
+        if (!value.trim()) return undefined;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : undefined;
+      };
       if (fNameHi.trim()) multilingualNames.hi = fNameHi.trim();
       if (fNameGu.trim()) multilingualNames.gu = fNameGu.trim();
       const body = {
@@ -242,6 +258,10 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
         sellingPrice: fSellingPrice.trim() ? Number(fSellingPrice) : rate,
         purchasePrice: fPurchasePrice.trim() ? Number(fPurchasePrice) : undefined,
         discount: fPriceDiscount.trim() ? Number(fPriceDiscount) : undefined,
+        hsnCode: fHsnCode.trim() || undefined,
+        gstRate: gstToPercent(optionalNumber(fGstRate)),
+        stdPkg: optionalNumber(fStdPkg),
+        mrpPkg: optionalNumber(fMrpPkg),
         stock: fStock.trim() ? Number(fStock) : 0,
         brandId: fBrandId,
         aliases: fAliases.split(",").map((alias) => alias.trim()).filter(Boolean),
@@ -405,26 +425,35 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
   const extraFilterCount = [selectedType, selectedClass, selectedBrand].filter((value) => value !== "All").length;
 
   async function exportCatalogCsv() {
-    const header = "productCode,name,category,type,subcategory,class,brand,unit,mrp,sellingPrice,discount,stock,imageUrl";
-    const cell = (v: string | number | undefined) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const header = MASTER_TEMPLATE_HEADERS.join(",");
+    const cell = (value: string | number | undefined) => {
+      const text = String(value ?? "");
+      return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
     const rows = listed.map((item) =>
       [
-        item.productCode,
-        item.name,
         item.category,
         item.type,
         item.subcategory,
         inferProductClass(item),
         item.brand,
+        item.name,
+        item.sizeCm ?? (item.sizeMm == null ? undefined : item.sizeMm / 10),
+        item.length,
+        item.productCode,
+        item.hsnCode,
+        gstToPercent(item.gstRate),
         item.unit,
         item.mrp,
-        item.sellingPrice ?? item.standardRate,
         item.discount,
-        item.stock,
-        item.imageUrl ? "(url)" : "",
+        item.sellingPrice ?? item.standardRate,
+        item.stdPkg,
+        item.mrpPkg,
+        item.reorderLevel,
+        item.imageUrl && /^https?:\/\//i.test(item.imageUrl) ? item.imageUrl : "",
       ].map(cell).join(","),
     );
-    const csv = [header, ...rows].join("\n");
+    const csv = `\uFEFF${[header, ...rows].join("\n")}`;
     try {
       if (Platform.OS === "web" && typeof document !== "undefined") {
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -748,6 +777,23 @@ async function assetToDataUrl(asset: DocumentPicker.DocumentPickerAsset): Promis
           </View>
           <View style={styles.formCol}>
             <Input testID="item-purchase-price-input" label="Purchase price" value={fPurchasePrice} onChangeText={setFPurchasePrice} keyboardType="decimal-pad" />
+          </View>
+        </View>
+        <Text style={styles.sectionTitle}>Billing and pack details</Text>
+        <View style={styles.formRow}>
+          <View style={styles.formCol}>
+            <Input testID="item-hsn-code-input" label="HSN Code" value={fHsnCode} onChangeText={setFHsnCode} />
+          </View>
+          <View style={styles.formCol}>
+            <Input testID="item-gst-rate-input" label="GST (%)" value={fGstRate} onChangeText={setFGstRate} keyboardType="decimal-pad" />
+          </View>
+        </View>
+        <View style={styles.formRow}>
+          <View style={styles.formCol}>
+            <Input testID="item-pack-size-input" label="Pack Size" value={fStdPkg} onChangeText={setFStdPkg} keyboardType="decimal-pad" />
+          </View>
+          <View style={styles.formCol}>
+            <Input testID="item-mrp-pack-input" label="MRP per pack" value={fMrpPkg} onChangeText={setFMrpPkg} keyboardType="decimal-pad" />
           </View>
         </View>
         <View style={styles.formRow}>
