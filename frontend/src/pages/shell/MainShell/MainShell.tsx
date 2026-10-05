@@ -37,8 +37,9 @@ import {
 } from './MainShell.styles';
 
 const tabs = mock.AppBottomNavigation.tabs;
-/** Web shows the first five catalog categories only. */
-const categories: HomeCategory[] = catalogMock.categories.slice(0, 5);
+/** Home shows every catalog category; the side menu lists the first five only. */
+const allCategories: HomeCategory[] = catalogMock.categories;
+const categories: HomeCategory[] = allCategories.slice(0, 5);
 const sidebar = mock._webSidebar;
 /** Web side menu drops Wishlist — it lives in the `StorefrontHeader` instead. */
 const sidebarTabs = tabs.filter((tab) => tab.tab !== 'wishlist');
@@ -135,7 +136,7 @@ export function MainShell() {
 
         <Main>
           {index === 0 ? (
-            <HomeDashboard categories={categories} onCategoryTap={openCategory} />
+            <HomeDashboard categories={allCategories}onCategoryTap={openCategory} />
           ) : (
             // Tabs 1–2 are not converted yet — Flutter `_TabScaffold` title only.
             <>
