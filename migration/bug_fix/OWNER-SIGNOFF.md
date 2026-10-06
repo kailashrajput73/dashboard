@@ -25,7 +25,7 @@ Until that pass, treat modules as **code complete — owner verify pending**.
 | Inventory / Stock | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
 | Team | Code complete (FIX-06 + teammate admin login) | ☐ final pass |
 | Dashboard & reports | Snapshot only | ☐ final pass |
-| Plumber / electrician | Not started | — |
+| Plumber / electrician | Service requests API + admin flow shipped (owner verify pending) | ☐ |
 
 ---
 
@@ -69,6 +69,12 @@ Use VPS **refactor** API URL. Tick when done.
 - [ ] Stock in/out tab shows clear IN/OUT direction and the date range filter works with the search
 - [ ] Web export matches the active tab: stock/low exports filtered product rows; stock moves exports filtered movement rows only
 - [ ] CSV opening is BOM-safe and no export dumps the full catalog while a filter is active
+
+### Service requests (owner verify pending)
+- [ ] Public POST `/api/service-requests` accepts plumber/electrician requests and returns a `pending` record
+- [ ] Admin list + filters by service type and status return the expected rows
+- [ ] Admin patch moves request to `in_progress` with recommended person + admin note and appends history
+- [ ] `completed` and `cancelled` states close the lifecycle with a final history event
 
 ### Sales path (legacy smoke — optional if RFQ section above passes)
 - [ ] RFQ approve → edit lines → dispatch → stock down

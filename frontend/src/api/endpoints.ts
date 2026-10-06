@@ -38,6 +38,31 @@ export type Purchase = { id: string; lines: (PurchaseLine & { productId: string;
 export type RfqLine = { productCode: string; quantity: number; productId?: string; productName?: string; unitPrice?: number };
 export type Rfq = { id: string; partnerId: string; lines: RfqLine[]; status: string; specialDiscountPercent: number; rewardPoints: number; grandTotal?: number; deliveryMode: "storePickup" | "homeDelivery"; scheduledAt?: string; createdAt: string; history?: any[] };
 export type Dispatch = { id: string; sourceRfqId?: string; customerName?: string; customerPhone?: string; lines: RfqLine[]; createdAt: string };
+export type ServiceRequestHistoryEntry = {
+  status: "pending" | "in_progress" | "completed" | "cancelled" | string;
+  actor: string;
+  at: string;
+  note?: string;
+  recommendedPerson?: { name?: string; phone?: string };
+};
+export type ServiceRequest = {
+  id: string;
+  serviceType: "plumber" | "electrician";
+  customerName: string;
+  customerPhone: string;
+  description: string;
+  address?: string;
+  pincode?: string;
+  city?: string;
+  area?: string;
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  recommendedName?: string;
+  recommendedPhone?: string;
+  adminNote?: string;
+  createdAt: string;
+  updatedAt?: string;
+  history: ServiceRequestHistoryEntry[];
+};
 export type InventoryRow = { productId: string; productCode?: string; name: string; category?: string; brand?: string; stock: number; reorderLevel: number; unitCost: number; valuation: number; rackName?: string; rackSlot?: string };
 export type InventoryTransaction = { type: "in" | "out"; referenceId: string; productCode: string; productName: string; quantity: number; at: string };
 export type PartnerKycHistoryEntry = {
@@ -306,6 +331,29 @@ export function approveRfq(id: string, body: { approved: boolean; specialDiscoun
 export function rfqHistory(id: string) { return apiRequest<any[]>(`/rfqs/${id}/history`); }
 export function listDispatches() { return apiRequest<Dispatch[]>("/dispatches"); }
 export function createDispatch(body: { lines: RfqLine[]; sourceRfqId?: string; customerName?: string; customerPhone?: string }) { return apiRequest<Dispatch>("/dispatches", { method: "POST", body }); }
+export function listServiceRequests(params?: { service_type?: string; status?: string; search?: string; created_from?: string; created_to?: string }) {
+  return apiRequest<ServiceRequest[]>("/service-requests", { query: params });
+}
+export function createServiceRequest(body: {
+  serviceType: "plumber" | "electrician";
+  customerName: string;
+  customerPhone: string;
+  description: string;
+  address?: string;
+  pincode?: string;
+  city?: string;
+  area?: string;
+}) { return apiRequest<ServiceRequest>("/service-requests", { method: "POST", body, auth: false }); }
+export function getServiceRequest(id: string) { return apiRequest<ServiceRequest>(`/service-requests/${id}`); }
+export function updateServiceRequest(id: string, body: {
+  status?: "pending" | "in_progress" | "completed" | "cancelled";
+  recommendedName?: string;
+  recommendedPhone?: string;
+  adminNote?: string;
+  actor?: string;
+  note?: string;
+}) { return apiRequest<ServiceRequest>(`/service-requests/${id}`, { method: "PATCH", body }); }
+export function serviceRequestHistory(id: string) { return apiRequest<ServiceRequestHistoryEntry[]>(`/service-requests/${id}/history`); }
 export function listInventory() { return apiRequest<InventoryRow[]>("/inventory"); }
 export function listLowStock() { return apiRequest<InventoryRow[]>("/inventory/low-stock"); }
 export function listInventoryTransactions() { return apiRequest<InventoryTransaction[]>("/inventory/transactions"); }
