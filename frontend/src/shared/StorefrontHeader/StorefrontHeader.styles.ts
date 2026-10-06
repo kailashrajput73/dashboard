@@ -91,7 +91,7 @@ export const BrandName = styled.span`
   white-space: nowrap;
   color: ${({ theme }) => theme.storefront.headerForeground};
 
-  /* Flutter header: "Shivani" bold + " Constructions" regular. */
+  /* Flutter header: "BuildMate" bold + " 24x7" regular. */
   span {
     font-weight: 400;
   }

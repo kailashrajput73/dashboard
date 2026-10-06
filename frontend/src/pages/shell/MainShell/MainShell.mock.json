@@ -22,10 +22,5 @@
     "tooltip": "AI Assistant",
     "icon": "pi-sparkles"
   },
-  "_webSidebar": {
-    "menuLabel": "Menu",
-    "categoriesLabel": "Categories",
-    "aiSubtitle": "Ask about products, sizes & quotes"
-  },
   "_webTabPlaceholder": "Comming Soon..."
 }

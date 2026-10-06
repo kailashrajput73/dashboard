@@ -30,7 +30,7 @@ interface StorefrontHeaderProps {
 }
 
 /**
- * The app-wide web header: navy bar with the Shivani brand, search, account
+ * The app-wide web header: navy bar with the BuildMate brand, search, account
  * rewards, cart, wishlist and notifications. Every web page renders this one so the chrome stays identical.
  */
 export function StorefrontHeader({ webOnly, sticky = true }: StorefrontHeaderProps) {

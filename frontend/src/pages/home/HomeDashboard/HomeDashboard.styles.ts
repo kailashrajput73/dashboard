@@ -411,13 +411,18 @@ export const ViewAll = styled.button`
   }
 `;
 
+/**
+ * Compact grid so every category fits on one screen: 4 per row on phones,
+ * then as many ~132px tiles as the width allows (8 across on a laptop).
+ */
 export const CategoryGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: ${({ theme }) => theme.spacing.space3}px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: ${({ theme }) => `${theme.spacing.space4}px ${theme.spacing.space2}px`};
 
   ${({ theme }) => theme.media.sm} {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: ${({ theme }) => `${theme.spacing.space5}px ${theme.spacing.space3}px`};
   }
 
   ${({ theme }) => theme.media.md} {
@@ -425,20 +430,29 @@ export const CategoryGrid = styled.div`
       auto-fill,
       minmax(${({ theme }) => theme.layout.homeCategoryTileMinWidth}px, 1fr)
     );
-    gap: ${({ theme }) => theme.spacing.space6}px;
+    gap: ${({ theme }) => `${theme.spacing.space6}px ${theme.spacing.space5}px`};
   }
 `;
 
+/** Square image box with a light border, as on quick-commerce home grids. */
 export const CardMedia = styled.span`
   display: block;
-  height: ${({ theme }) => theme.layout.homeCategoryImageHeight}px;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid ${({ theme }) => theme.colors.divider};
+  border-radius: ${({ theme }) => theme.radius.md}px;
+  background: ${({ theme }) => theme.colors.surface};
+  transition:
+    transform 0.2s ${({ theme }) => theme.motion.easeOutCubic},
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 `;
 
 export const CardBody = styled.span`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.space1}px;
-  padding: ${({ theme }) => theme.spacing.space3}px;
+  display: block;
+  margin-top: ${({ theme }) => theme.spacing.space2}px;
+  text-align: center;
 `;
 
 export const CardName = styled.span`
@@ -446,136 +460,45 @@ export const CardName = styled.span`
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  ${({ theme }) => textStyle(theme.typography.labelLarge)}
-  font-weight: 700;
+  ${({ theme }) => textStyle(theme.typography.labelMedium)}
+  font-weight: 600;
+  line-height: 1.25;
+  color: ${({ theme }) => theme.colors.onSurface};
+
+  ${({ theme }) => theme.media.md} {
+    ${({ theme }) => textStyle(theme.typography.labelLarge)}
+    font-weight: 600;
+    line-height: 1.3;
+  }
 `;
 
+/** Hidden in the compact grid; kept for screen readers. */
 export const CardCount = styled.span`
-  ${({ theme }) => textStyle(theme.typography.caption)}
-  color: ${({ theme }) => theme.colors.outline};
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 `;
 
-/**
- * Flutter `HomeCategoryCard` on mobile (white card, 88px image, name +
- * count). Web: an App Store–style colour tile — the category's accent as a
- * gradient, the photo as a tilted print top-right, white text bottom-left.
- */
+/** Compact category tile: square photo on top, centred name underneath. */
 export const CategoryCard = styled.button<{ $accent: string; $tint: string; $index: number }>`
   ${resetButton}
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  text-align: left;
-  background: ${({ theme }) => theme.colors.surface};
-  border: 1px solid ${({ theme }) => theme.colors.divider};
-  border-radius: ${({ theme }) => theme.radius.lg}px;
-  box-shadow: ${({ theme }) => theme.elevation.level1};
-  animation: ${fadeUp} 0.4s ${({ theme }) => theme.motion.easeOutCubic} both;
-  animation-delay: ${({ $index }) => $index * 45}ms;
+  align-items: stretch;
+  min-width: 0;
+  text-align: center;
+  border-radius: ${({ theme }) => theme.radius.md}px;
+  animation: ${fadeUp} 0.35s ${({ theme }) => theme.motion.easeOutCubic} both;
+  animation-delay: ${({ $index }) => $index * 30}ms;
   ${focusRing}
 
-  ${({ theme }) => theme.media.md} {
-    display: block;
-    height: ${({ theme }) => theme.layout.homeCategoryTileHeight}px;
-    border: 0;
-    border-radius: ${({ theme }) => theme.radius.xl}px;
-    background:
-      radial-gradient(
-        120% 90% at 0% 100%,
-        ${({ $accent }) => withAlpha($accent, 0.95)} 0%,
-        transparent 60%
-      ),
-      linear-gradient(
-        150deg,
-        color-mix(in srgb, ${({ $accent }) => $accent} 55%, ${({ $tint }) => $tint}) 0%,
-        ${({ $accent }) => $accent} 65%,
-        color-mix(in srgb, ${({ $accent }) => $accent} 78%, ${({ theme }) => theme.colors.black})
-          100%
-      );
-    box-shadow: 0 10px 24px ${({ $accent }) => withAlpha($accent, 0.28)};
-    transition:
-      transform 0.25s ${({ theme }) => theme.motion.easeOutCubic},
-      box-shadow 0.25s ease;
-
-    /* Soft light disc behind the photo. */
-    &::before {
-      content: '';
-      position: absolute;
-      top: -30%;
-      right: -12%;
-      width: 70%;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background: ${({ theme }) => withAlpha(theme.colors.white, 0.16)};
-    }
-
-    /* Bottom scrim so the white title stays readable on light accents. */
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to top,
-        ${({ theme }) => withAlpha(theme.colors.black, 0.28)} 0%,
-        transparent 55%
-      );
-      pointer-events: none;
-    }
-
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 18px 36px ${({ $accent }) => withAlpha($accent, 0.36)};
-    }
-
-    ${CardMedia} {
-      position: absolute;
-      z-index: 1;
-      top: ${({ theme }) => theme.spacing.space5}px;
-      right: ${({ theme }) => theme.spacing.space5}px;
-      height: 50%;
-      aspect-ratio: 11 / 10;
-      overflow: hidden;
-      border: 4px solid ${({ theme }) => theme.colors.white};
-      border-radius: ${({ theme }) => theme.radius.lg}px;
-      background: ${({ theme }) => theme.colors.white};
-      box-shadow: 0 10px 22px ${({ theme }) => withAlpha(theme.colors.black, 0.22)};
-      transform: rotate(4deg);
-      transition: transform 0.3s ${({ theme }) => theme.motion.easeOutCubic};
-    }
-
-    &:hover ${CardMedia} {
-      transform: rotate(0deg) scale(1.06);
-    }
-
-    ${CardBody} {
-      position: absolute;
-      z-index: 2;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      padding: ${({ theme }) => `0 ${theme.spacing.space5}px ${theme.spacing.space5}px`};
-      align-items: flex-start;
-      gap: ${({ theme }) => theme.spacing.space2}px;
-    }
-
-    ${CardName} {
-      max-width: 72%;
-      ${({ theme }) => textStyle(theme.typography.titleLarge)}
-      font-weight: 800;
-      line-height: 1.15;
-      color: ${({ theme }) => theme.colors.white};
-      text-shadow: 0 1px 2px ${({ theme }) => withAlpha(theme.colors.black, 0.2)};
-    }
-
-    ${CardCount} {
-      padding: 2px ${({ theme }) => theme.spacing.space2 + 2}px;
-      border-radius: ${({ theme }) => theme.radius.pill}px;
-      background: ${({ theme }) => withAlpha(theme.colors.white, 0.22)};
-      backdrop-filter: blur(4px);
-      ${({ theme }) => textStyle(theme.typography.labelMedium)}
-      font-weight: 600;
-      color: ${({ theme }) => theme.colors.white};
-    }
+  &:hover ${CardMedia} {
+    transform: translateY(-2px);
+    border-color: ${({ $accent }) => withAlpha($accent, 0.45)};
+    box-shadow: 0 8px 18px ${({ $accent }) => withAlpha($accent, 0.18)};
   }
 `;

@@ -1,5 +1,5 @@
 /**
- * Shivani Constructions theme — mirrors Flutter `lib/core/theme/*`
+ * BuildMate 24x7 theme — mirrors Flutter `lib/core/theme/*`
  * (AppColors, AppSpacing, AppRadius, AppElevation, AppTypography, AppTheme).
  *
  * Single source of truth: components must read values from `theme`,
@@ -81,7 +81,7 @@ const loginFlow = {
   backdropGradient: ['#EEF3FF', '#FFFFFF'],
 } as const;
 
-// ── Brand mark (public/assets/images/branding/shivani_icon_mark.png) ──
+// ── Brand mark (public/assets/images/branding/buildmate_logo.png) ──
 // Web-only: colours sampled from the logo's slate-blue → teal → green
 // sweep, darkened so white text on them stays readable. Used by the
 // desktop brand panel; mobile/Flutter-mirrored screens don't use these.
@@ -274,6 +274,7 @@ const breakpoints = {
   sm: 600,
   md: 900,
   lg: 1200,
+  xl: 1440,
 } as const;
 
 const layout = {
@@ -302,8 +303,6 @@ const layout = {
 
   // Checkout (Address step, web): header bar, content cap, summary column, thumbs.
   checkoutHeaderHeight: 76,
-  checkoutMaxWidth: 1440,
-  checkoutSingleColumnWidth: 880,
   checkoutSearchMaxWidth: 720,
   checkoutSummaryWidth: 500,
   checkoutThumbSize: 64,
@@ -318,12 +317,10 @@ const layout = {
   bottomNavIndicatorWidth: 64,
   shellSidebarWidth: 280,
   shellSidebarThumbSize: 28,
-  // Home: Flutter HomeCategoryCard image height; web top bar + category tiles.
-  homeCategoryImageHeight: 88,
+  // Home: web top bar + compact square category tiles (image box + label).
   homeTopBarHeight: 80,
   homeLocationMaxWidth: 560,
-  homeCategoryTileMinWidth: 280,
-  homeCategoryTileHeight: 232,
+  homeCategoryTileMinWidth: 132,
   fabSize: 56,
 
   // My Rewards (web ≥ md): content cap + sticky points-card column.
@@ -343,6 +340,7 @@ const media = {
   sm: `@media (min-width: ${breakpoints.sm}px)`,
   md: `@media (min-width: ${breakpoints.md}px)`,
   lg: `@media (min-width: ${breakpoints.lg}px)`,
+  xl: `@media (min-width: ${breakpoints.xl}px)`,
 } as const;
 
 export const theme = {

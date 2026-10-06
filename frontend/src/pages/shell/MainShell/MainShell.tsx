@@ -6,25 +6,11 @@ import type { HomeCategory } from '../../../services/catalog/catalogModels';
 import catalogMock from '../../../mocks/catalog_mock_data.json';
 import { HomeDashboard } from '../../home/HomeDashboard';
 import { StorefrontHeader } from '../../../shared/StorefrontHeader';
+import { WebSideMenu } from '../../../shared/WebSideMenu';
 import mock from './MainShell.mock.json';
 import {
   Shell,
   ShellBody,
-  Sidebar,
-  SidebarScroll,
-  SidebarLabel,
-  NavList,
-  NavItem,
-  NavIcon,
-  CategoryItem,
-  CategoryThumb,
-  CategoryName,
-  CategoryCount,
-  AiCard,
-  AiIcon,
-  AiText,
-  AiTitle,
-  AiSubtitle,
   Main,
   TabHeader,
   TabTitle,
@@ -37,12 +23,8 @@ import {
 } from './MainShell.styles';
 
 const tabs = mock.AppBottomNavigation.tabs;
-/** Home shows every catalog category; the side menu lists the first five only. */
+/** Home shows every catalog category (the side menu lists the first five only). */
 const allCategories: HomeCategory[] = catalogMock.categories;
-const categories: HomeCategory[] = allCategories.slice(0, 5);
-const sidebar = mock._webSidebar;
-/** Web side menu drops Wishlist — it lives in the `StorefrontHeader` instead. */
-const sidebarTabs = tabs.filter((tab) => tab.tab !== 'wishlist');
 const tabIndex = (tab?: string) =>
   Math.max(
     0,
@@ -81,62 +63,15 @@ export function MainShell() {
       <StorefrontHeader webOnly />
 
       <ShellBody>
-        <Sidebar aria-label="Main menu">
-          <SidebarScroll>
-            <SidebarLabel>{sidebar.menuLabel}</SidebarLabel>
-            <NavList>
-              {sidebarTabs.map((tab) => {
-                const i = tabs.indexOf(tab);
-                return (
-                  <li key={tab.tab}>
-                    <NavItem
-                      type="button"
-                      $active={i === index}
-                      aria-current={i === index ? 'page' : undefined}
-                      onClick={() => setIndex(i)}
-                    >
-                      <NavIcon $active={i === index}>
-                        <i className={`pi ${tab.icon}`} aria-hidden="true" />
-                      </NavIcon>
-                      {tab.label}
-                    </NavItem>
-                  </li>
-                );
-              })}
-            </NavList>
-
-            <SidebarLabel>{sidebar.categoriesLabel}</SidebarLabel>
-            <NavList>
-              {categories.map((category) => (
-                <li key={category.id}>
-                  <CategoryItem type="button" onClick={() => openCategory(category)}>
-                    <CategoryThumb $tint={category.iconBackground}>
-                      <img src={category.imageAsset} alt="" loading="lazy" />
-                    </CategoryThumb>
-                    <CategoryName>{category.name}</CategoryName>
-                    <CategoryCount>{category.itemCount}</CategoryCount>
-                  </CategoryItem>
-                </li>
-              ))}
-            </NavList>
-          </SidebarScroll>
-
-          {showAi && (
-            <AiCard type="button" onClick={openAiAssistant}>
-              <AiIcon>
-                <i className={`pi ${mock.floatingActionButton.icon}`} aria-hidden="true" />
-              </AiIcon>
-              <AiText>
-                <AiTitle>{mock.floatingActionButton.tooltip}</AiTitle>
-                <AiSubtitle>{sidebar.aiSubtitle}</AiSubtitle>
-              </AiText>
-            </AiCard>
-          )}
-        </Sidebar>
+        <WebSideMenu
+          activeTab={current.tab}
+          onSelectTab={(tab) => setIndex(tabs.indexOf(tab))}
+          showAi={showAi}
+        />
 
         <Main>
           {index === 0 ? (
-            <HomeDashboard categories={allCategories}onCategoryTap={openCategory} />
+            <HomeDashboard categories={allCategories} onCategoryTap={openCategory} />
           ) : (
             // Tabs 1–2 are not converted yet — Flutter `_TabScaffold` title only.
             <>

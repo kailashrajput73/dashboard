@@ -40,13 +40,8 @@ export const gutters = css`
   padding-right: ${({ theme }) => theme.spacing.space4}px;
 
   ${({ theme }) => theme.media.md} {
-    padding-left: ${({ theme }) => theme.spacing.space8}px;
-    padding-right: ${({ theme }) => theme.spacing.space8}px;
-  }
-
-  ${({ theme }) => theme.media.lg} {
-    padding-left: ${({ theme }) => theme.spacing.space16}px;
-    padding-right: ${({ theme }) => theme.spacing.space16}px;
+    padding-left: ${({ theme }) => theme.spacing.space6}px;
+    padding-right: ${({ theme }) => theme.spacing.space6}px;
   }
 `;
 
@@ -72,21 +67,27 @@ export const Screen = styled.div`
   padding-bottom: ${({ theme }) => theme.spacing.space10}px;
 `;
 
+/** Web (≥ md): `WebSideMenu` beside the checkout content, like `MainShell`. */
+export const ShellBody = styled.div`
+  ${({ theme }) => theme.media.md} {
+    display: grid;
+    grid-template-columns: ${({ theme }) => theme.layout.shellSidebarWidth}px minmax(0, 1fr);
+    align-items: start;
+  }
+`;
+
 // ── Body: main column + order summary ──────────────────────────────────
 
-/** `$single`: no order-summary column (confirmation step) — one narrower centred column. */
+/** Fills the content area beside the side menu. `$single`: no order-summary column (confirmation step). */
 export const Body = styled.div<{ $single?: boolean }>`
   ${gutters}
-  max-width: ${({ theme, $single }) =>
-    $single ? theme.layout.checkoutSingleColumnWidth : theme.layout.checkoutMaxWidth}px;
-  margin: 0 auto;
   padding-top: ${({ theme }) => theme.spacing.space6}px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: ${({ theme }) => theme.spacing.space6}px;
   align-items: start;
 
-  ${({ theme }) => theme.media.lg} {
+  ${({ theme }) => theme.media.xl} {
     grid-template-columns: ${({ theme, $single }) =>
       $single ? 'minmax(0, 1fr)' : `minmax(0, 1fr) ${theme.layout.checkoutSummaryWidth}px`};
   }
@@ -479,7 +480,7 @@ export const PrimaryButton = styled.button`
 export const Aside = styled.aside`
   min-width: 0;
 
-  ${({ theme }) => theme.media.lg} {
+  ${({ theme }) => theme.media.xl} {
     position: sticky;
     top: ${({ theme }) => theme.layout.checkoutHeaderHeight + theme.spacing.space6}px;
   }

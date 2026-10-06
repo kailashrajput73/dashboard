@@ -55,7 +55,8 @@ interface HomeDashboardProps {
  * Flutter `HomeDashboardScreen` — app bar, location bar, search bar and
  * "Shop by Category". Web (≥ md): the shell's `StorefrontHeader` holds the
  * brand, search and actions, so only the location bar stays above the
- * categories, which become large colour tiles. Tapping the location bar opens
+ * categories, shown as a compact grid of small square tiles so every category
+ * fits on one screen. Tapping the location bar opens
  * ChooseLocation in update mode (confirm returns here).
  */
 export function HomeDashboard({ categories, onCategoryTap }: HomeDashboardProps) {

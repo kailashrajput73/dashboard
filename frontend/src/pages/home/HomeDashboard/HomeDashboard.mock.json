@@ -1,8 +1,8 @@
 {
   "HomeAppBar": {
-    "logo": "/assets/images/branding/shivani_icon_mark.png",
-    "brandPrimary": "Shivani",
-    "brandSecondary": " Constructions",
+    "logo": "/assets/images/branding/buildmate_logo.png",
+    "brandPrimary": "BuildMate",
+    "brandSecondary": " 24x7",
     "notificationCount": 3,
     "rewardPoints": 0,
     "tooltips": {

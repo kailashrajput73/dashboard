@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
 import { StorefrontHeader } from '../../../shared/StorefrontHeader';
+import { WebSideMenu } from '../../../shared/WebSideMenu';
 import shellMock from './checkoutShell.mock.json';
 import {
   Screen,
+  ShellBody,
   Body,
   Main,
   StepList,
@@ -27,7 +29,7 @@ interface CheckoutShellProps {
 
 /**
  * Web layout shared by checkout steps 1–4: the app-wide `StorefrontHeader`,
- * the 4-step stepper, a main column and an optional sticky aside.
+ * the `WebSideMenu` (≥ md), the 4-step stepper, a main column and an optional sticky aside.
  * Web counterpart of Flutter `CheckoutStepHeader`.
  */
 export function CheckoutShell({ currentStep, aside, hideSteps, children }: CheckoutShellProps) {
@@ -35,36 +37,40 @@ export function CheckoutShell({ currentStep, aside, hideSteps, children }: Check
     <Screen>
       <StorefrontHeader />
 
-      <Body $single={!aside}>
-        <Main>
-          {!hideSteps && (
-            <StepList>
-              {_steps.map((step, index) => {
-                const state =
-                  index < currentStep ? 'done' : index === currentStep ? 'current' : 'upcoming';
-                return (
-                  <StepItem
-                    key={step.label}
-                    $state={state}
-                    $lineDone={index < currentStep}
-                    $last={index === _steps.length - 1}
-                    aria-current={state === 'current' ? 'step' : undefined}
-                  >
-                    <StepDot $state={state}>
-                      {state === 'done' ? <i className="pi pi-check" aria-hidden /> : index + 1}
-                    </StepDot>
-                    <StepLabel $state={state}>{step.label}</StepLabel>
-                    <StepSubtitle>{step.subtitle}</StepSubtitle>
-                  </StepItem>
-                );
-              })}
-            </StepList>
-          )}
-          {children}
-        </Main>
+      <ShellBody>
+        <WebSideMenu />
 
-        {aside && <Aside>{aside}</Aside>}
-      </Body>
+        <Body $single={!aside}>
+          <Main>
+            {!hideSteps && (
+              <StepList>
+                {_steps.map((step, index) => {
+                  const state =
+                    index < currentStep ? 'done' : index === currentStep ? 'current' : 'upcoming';
+                  return (
+                    <StepItem
+                      key={step.label}
+                      $state={state}
+                      $lineDone={index < currentStep}
+                      $last={index === _steps.length - 1}
+                      aria-current={state === 'current' ? 'step' : undefined}
+                    >
+                      <StepDot $state={state}>
+                        {state === 'done' ? <i className="pi pi-check" aria-hidden /> : index + 1}
+                      </StepDot>
+                      <StepLabel $state={state}>{step.label}</StepLabel>
+                      <StepSubtitle>{step.subtitle}</StepSubtitle>
+                    </StepItem>
+                  );
+                })}
+              </StepList>
+            )}
+            {children}
+          </Main>
+
+          {aside && <Aside>{aside}</Aside>}
+        </Body>
+      </ShellBody>
     </Screen>
   );
 }
