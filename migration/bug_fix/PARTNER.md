@@ -1,5 +1,7 @@
 # PARTNER — flow & API (later)
 
+**Mobile auth + Firebase (planning):** read **`PARTNER-MOBILE-AUTH-FLOW.md`** — guest browse, KYC tiers, profile/PAN/GSTIN timing, APIs now vs when Firebase is added.
+
 ## FIX-08 — Admin partners (test steps 18–19)
 
 List and KYC work on refactor VPS. **Open design topic:** partner registers/logs in on mobile app → KYC pending → admin approves → app active → RFQ. Document end-to-end when mobile UX is defined.

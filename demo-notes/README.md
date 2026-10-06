@@ -16,6 +16,8 @@ Use these before a client demo or handoff. Each file is a **single release or fe
 | [2026-09-30-08-master-sheet-type-class-rol.md](./2026-09-30-08-master-sheet-type-class-rol.md) | Sheet column fix, ROL import, taxonomy mapping + re-import note |
 | [2026-09-30-09-product-form-gaps.md](./2026-09-30-09-product-form-gaps.md) | Product form: save ROL on master import, QR image, subcategory picker, Hindi and Gujarati names |
 | [2026-10-05-10-product-sow-export-and-billing-fields.md](./2026-10-05-10-product-sow-export-and-billing-fields.md) | Master-shaped catalog export and product form HSN/GST/package fields |
+| [2026-10-05-11-purchase-sow-ux-export-report.md](./2026-10-05-11-purchase-sow-ux-export-report.md) | Purchase web CSV export, searchable record form, bulk feedback, and date-filtered report |
+| [2026-10-05-12-partner-sow-admin-kyc-export.md](./2026-10-05-12-partner-sow-admin-kyc-export.md) | Partner admin detail, KYC review, direct create, manager filtering, and CSV export |
 
 **Deploy reminder:** With `USE_CLOUD_PREVIEW = true` in `frontend/src/config/env.ts`, Render must run the same `backend/server.py` as local or new routes fail with 404.
 

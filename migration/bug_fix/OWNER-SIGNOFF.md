@@ -1,0 +1,62 @@
+# Owner sign-off — one pass at the end
+
+**Updated:** 2026-10-05
+
+## Policy
+
+The owner **does not** run smoke tests after every agent chat. Agents should still write **how to verify** in demo notes and stop with a short test list.
+
+The owner will **open the admin app once** (or one dedicated session) and walk through the checklist below before client demo or go-live.
+
+Until that pass, treat modules as **code complete — owner verify pending**.
+
+---
+
+## SOW module tracker (Expo admin)
+
+| Module | Agent / code status | Owner verified |
+|--------|----------------------|----------------|
+| Category, Subcategory, Brand, Product group, Rack, Stock | Done (earlier) | ☐ final pass |
+| Product | Export + billing fields implemented (2026-10-05) | ☐ final pass |
+| Purchase | UX + export + report MVP (2026-10-05) | ☐ final pass |
+| Partners (KYC + list) | Code complete (2026-10-05); owner verify pending | ☐ |
+| RFQ | Partial (core flow exists) | ☐ final pass |
+| Dispatch | Partial | ☐ final pass |
+| Team | Partial (FIX-06?) | ☐ final pass |
+| Dashboard & reports | Snapshot only | ☐ final pass |
+| Plumber / electrician | Not started | — |
+
+---
+
+## One-session checklist (when you test)
+
+Use VPS **refactor** API URL. Tick when done.
+
+### Product
+- [ ] Catalog export → 19-column master CSV; no stock column
+- [ ] Edit HSN, GST, pack, MRP/pkg → save → reopen
+
+### Purchase
+- [ ] Export CSV on **web** downloads; date filter works
+- [ ] Record purchase (search product, optional rack) → stock increases
+- [ ] Bulk CSV success = inline message, not error modal
+
+### Partners (after next agent)
+- [ ] Filter by sales manager; confirm it combines with search and KYC status
+- [ ] Create partner from admin; confirm approved status and automatic KYC history entry
+- [ ] Reject a pending partner with a reason; confirm reason in detail/history
+- [ ] Export on web; confirm CSV contains only the filtered partner list
+- [ ] Confirm mobile auth paths remain as documented in `docs/PARTNER-API.md`
+
+### Sales path (already passed on refactor once — re-check if data changed)
+- [ ] RFQ approve → edit lines → dispatch → stock down
+
+### Demo-critical bugs (fix before demo if still broken)
+- [ ] FIX-01 rack assign
+- [ ] FIX-02 catalog download (should be fixed in code — confirm on web)
+
+---
+
+## For agents
+
+Do not block on owner testing. Do not skip verification steps in documentation. Update this file’s module row only when the owner confirms **Owner verified** for that module.

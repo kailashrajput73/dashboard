@@ -14,6 +14,10 @@
 4. Follow **`AGENT-WORKFLOW.md`** — **one FIX at a time**; owner tests; then **next**.
 5. Do not redo refactor route parity — routes already matched 76/76.
 
+### Owner testing (2026-10-05)
+
+Owner **does not** smoke-test after every module. Implementation is tracked as **code complete** with **owner verify pending** until one consolidated app pass. See **`OWNER-SIGNOFF.md`** for the final checklist and module table.
+
 ### Uploads — out of scope for bug-fix agents
 
 Owner sign-off: **master / prices / stock / subcategory uploads are fine.** Do **not** change import rules or “fix” master vs discount behavior. **FIX-03, FIX-04, FIX-11 are deferred.**
@@ -77,11 +81,11 @@ Tested. Feature **unused** (leftover from old quotation demo). **Remove from adm
 | 4 | ROL + discount on master | ROL pass; 49% on master ignored | **Expected** |
 | 7 | Subcategory + 49% discount | Subcategory does not set discount | If **prices** import also failed → FIX-03 |
 | 8–10 | Product form, QR | Pass | 2026-10-05: master-shaped catalog export and HSN/GST/pack/MRP-per-pack form fields implemented; smoke verification pending. Scanner later (FIX-07) |
-| 11 | Purchase CSV | Fix later | FIX-04 |
+| 11 | Purchase CSV | UX implemented; owner smoke test pending | FIX-04 |
 | 12 | Rack assign | **Bug** | API error when assigning product — FIX-01 |
 | 13–17 | RFQ, approve, edit, dispatch, retail | Pass | Heavy path OK |
 | 15 | Edit approved RFQ before dispatch | Covered | User edited during RFQ/dispatch flow |
-| 18–19 | Partners | Works | App login/KYC flow design later — FIX-08 |
+| 18–19 | Partners | Admin SOW code complete; owner verify pending | Mobile auth unchanged; see partner SOW note and `OWNER-SIGNOFF.md` |
 | 20 | Secured delete | Not found in UI | Catalog secured delete — find or skip |
 | 21 | Wipe catalog | Used on test DB | Security before live — FIX-10 |
 | 22–26 | Dashboard, lists | Pass | With earlier tests |
@@ -123,11 +127,11 @@ Tested. Feature **unused** (leftover from old quotation demo). **Remove from adm
 | FIX-01 | Rack / API | Assign product to slot → server API error | 12 | P1 demo |
 | FIX-02 | Catalog UI | Download button does nothing | 28 | P1 demo |
 | FIX-03 | Import | Prices 49% — **deferred** (uploads OK) | 7 | — |
-| FIX-04 | Purchase | CSV UX — **deferred** (uploads OK) | 11 | — |
+| FIX-04 | Purchase | CSV UX implemented; backend/import rules unchanged | 11 | — |
 | FIX-05 | Admin | Remove unused money config screen | 2 | P2 |
 | FIX-06 | Team | May show old data — verify | 27 | P2 |
 | FIX-07 | Product | QR scanner (later); download OK | 9 | P3 |
-| FIX-08 | Partner | App login / KYC flow design | 18–19 | P2 product |
+| FIX-08 | Partner | Admin SOW implemented; mobile app/auth follow-up remains separate | 18–19 | P2 product |
 | FIX-09 | Partner API | Login, catalog, RFQ when app ready | 29–31 | P2 mobile |
 | FIX-10 | Security | Wipe + destructive actions before production | 21 | P0 go-live |
 | FIX-11 | Import policy | Master vs full upload — **deferred** | 4 | — |

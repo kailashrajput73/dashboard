@@ -171,4 +171,6 @@ curl -sS "$BASE/rfqs"
 
 Later, not in the app: real OTP, password reset, push on approval.
 
+**Firebase / progressive KYC (planning, not implemented):** `migration/bug_fix/PARTNER-MOBILE-AUTH-FLOW.md`
+
 *Merged 2026-10-04 from the four partner handoffs. Sheet columns: `demo-notes/SHEET-FORMAT.md`.*
