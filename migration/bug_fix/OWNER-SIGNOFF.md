@@ -22,6 +22,7 @@ Until that pass, treat modules as **code complete — owner verify pending**.
 | Partners (KYC + list) | Code complete (2026-10-05); **not tested by owner yet** (commit without smoke test) | ☐ |
 | RFQ | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
 | Dispatch | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
+| Inventory / Stock | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
 | Team | Partial (FIX-06?) | ☐ final pass |
 | Dashboard & reports | Snapshot only | ☐ final pass |
 | Plumber / electrician | Not started | — |
@@ -61,6 +62,13 @@ Use VPS **refactor** API URL. Tick when done.
 - [ ] RFQ dispatch from both the RFQ detail and the dispatch screen; confirm the RFQ moves to dispatched and disappears from approved list
 - [ ] Stock is reduced on both retail dispatch and RFQ dispatch, with insufficient-stock warnings blocking the submit button
 - [ ] Filter chips + date range + search combine correctly and the report summary matches the visible rows
+
+### Inventory / Stock (code shipped; owner not tested yet — do in final pass)
+- [ ] Current stock and low-stock tabs render readable product cards with clean qty and valuation hierarchy
+- [ ] Low-stock badge/alert is obvious when stock is at or below reorder level, and the summary reflects the filtered list
+- [ ] Stock in/out tab shows clear IN/OUT direction and the date range filter works with the search
+- [ ] Web export matches the active tab: stock/low exports filtered product rows; stock moves exports filtered movement rows only
+- [ ] CSV opening is BOM-safe and no export dumps the full catalog while a filter is active
 
 ### Sales path (legacy smoke — optional if RFQ section above passes)
 - [ ] RFQ approve → edit lines → dispatch → stock down
