@@ -1,24 +1,40 @@
 # Backend and database inventory (read-only)
 
-**Date:** 2026-10-04  
-**Re-verified:** 2026-10-04 against `backend_refactor/` only (76 `/api` routes, 18 MongoDB collections, no multi-document transactions).  
-**Scope:** FastAPI entry `backend_refactor/server.py` (104 lines), routers under `backend_refactor/routers/`, business logic in `backend_refactor/services/`, shared DB/helpers/Pydantic in `backend_refactor/utils.py` (746 lines). Total Python in that tree: 3,262 lines (`wc -l`).  
-**Not in repo on this verification:** monolith `backend/server.py` (removed). `backend/` still has `requirements.txt` and `tests/test_quotation_api.py`. Older docs (`README.md`, admin inventory) may still mention `backend/server.py`; this file follows the refactor tree on disk.
+**Baseline snapshot:** 2026-10-04 (sections 1–8 below)  
+**Changelog:** 2026-10-06 (read this first before migration or mobile integration)  
+**Migration pointer:** `migration/STATUS.md`  
+**Expo UI delta:** [docs/migration/INVENTORY.md](migration/INVENTORY.md) → **Migration delta (2026-10-06)**
 
-Line counts are `wc -l` on 2026-10-04.  
-The admin app inventory is [docs/migration/INVENTORY.md](migration/INVENTORY.md). Route paths here match section 5 of that file (`SVC-*`).
+**Baseline facts (still mostly true):** `backend_refactor/` only; **76** JSON `/api` routes and **18** collections in the body below; no multi-document transactions.  
+**After 2026-10-06:** add **4** service-request routes and **1** collection → **~80 routes**, **19 collections** (full RTE/COL tables below not renumbered).
 
-Production intent in repo notes: VPS runs `backend_refactor` (`migration/bug_fix/README.md`, `OFFICE-START.md`). Hosted API URL in root `README.md`: `https://python-api-6aft.onrender.com`. Whether Render runs this refactor entrypoint: unknown from this scan.
+**Scope:** FastAPI `backend_refactor/server.py`, routers, services, `utils.py`.  
+**Tests:** `tests/test_service_requests_api.py`, `tests/test_admin_login_team.py` (and legacy `backend/tests/` if present).
 
-Every JSON route returns `{ success, data, error }`. `GET /api/media/proxy` returns image bytes.
-
-Documents use a string field `id` (UUID from `new_id()` in `utils.py`). MongoDB `_id` is an ObjectId and is stripped before responses (`strip_mongo`, `backend_refactor/utils.py` lines 148–154). References below are that string `id`, or a copied name, not `_id`.
+Production: VPS runs `backend_refactor` (`migration/bug_fix/README.md`).  
+Every JSON route returns `{ success, data, error }`.
 
 ---
 
-## 1. MongoDB collections
+## Changelog since 2026-10-04
 
-Names come from `db.<name>` in `backend_refactor/utils.py` and `backend_refactor/services/*.py`. `db.command` is the Mongo ping, not a collection. Eighteen collections are used.
+| Date | Area | What changed | Files / routes |
+|------|------|--------------|----------------|
+| 2026-10-06 | **COL-19** `service_requests` | Plumber/electrician requests: `serviceType`, customer fields, `status`, `recommendedName/Phone`, `adminNote`, `history[]` | `services/service_requests_service.py`, `routers/service_requests.py`, indexes in `utils.py` |
+| 2026-10-06 | **RTE (new)** | `POST /service-requests` (public/mobile), `GET /service-requests`, `GET /service-requests/{id}`, `PATCH /service-requests/{id}`, `GET /service-requests/{id}/history` | Contract: `docs/SERVICE-REQUESTS-API.md` |
+| 2026-10-06 | **Auth** | `POST /auth/admin/login` accepts `admin`, `store_manager`, `staff` in `users`; inactive users → 401 | `services/auth_service.py` |
+| 2026-10-06 | **Racks** | `PUT /racks/{id}/assign` — safer product resolution / slot update (FIX-01) | `services/product_groups_racks_service.py` |
+| 2026-10-05–06 | **Expo only** | No new catalog/RFQ/purchase *routes*; UI and exports on admin app | See INVENTORY migration delta |
+
+**Not changed (by policy):** master/prices/stock import semantics (FIX-03/04/11 deferred). Partner mobile auth paths unchanged.
+
+**Agent rule:** Do not re-scan all 76+ RTE rows unless debugging. For new work, append to this changelog and add COL/RTE rows in section 1/5 when you have time.
+
+---
+
+## 1. MongoDB collections (baseline 2026-10-04)
+
+Names come from `db.<name>` in `backend_refactor/utils.py` and `backend_refactor/services/*.py`. `db.command` is the Mongo ping, not a collection. **Eighteen** collections are documented below; add **COL-19 `service_requests`** per changelog above.
 
 Local counts are `estimated_document_count()` on database `quotation_db` at `mongodb://127.0.0.1:27017` on 2026-10-04 (no `.env` file in the repo; the code default is this URI and this database name). A second local database, `quotation_db_refactor`, has the same 18 names and 0 documents in each. Hosted Render counts: unknown.
 

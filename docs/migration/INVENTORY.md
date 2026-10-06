@@ -1,16 +1,78 @@
 # Admin app inventory (read-only)
 
-**Date:** 2026-10-01  
+**Baseline snapshot:** 2026-10-01 (sections 1–13 below)  
+**Migration delta:** 2026-10-06 (read this first on migration branch)  
 **Scope:** Expo React Native admin in `frontend/`, plus how it is built and how it calls the API.  
-**Not done:** no migration, no renames, no edits to existing source files.
+**React migration pointer:** `migration/STATUS.md`
 
-Line counts are `wc -l` on 2026-10-01. Several admin screens are written as very long lines, so a low line count does not mean a small screen.
-
-`docs/` is listed in the repo `.gitignore`. This file is on disk. Git will not track it until that ignore rule changes.
+The tables in **§1** still describe the **2026-10-01** line counts. They are **not** updated row-by-row in this edit. Use **Migration delta** for what changed on Expo since then.
 
 ---
 
-## 1. Screens / pages
+## Migration delta (2026-10-06)
+
+**For the migration agent:** Port behavior from **current Expo** on `restore-brand-imports` (or owner’s named commit), not from the stale SCR line counts below. After merge into `web-migration-reactnative-to-react`, follow **Suggested phase order** at the end of this file.
+
+### Expo admin product status
+
+| Area | Status (2026-10-06) |
+|------|---------------------|
+| SOW modules (catalog → service requests) | Code-complete on Expo; see `migration/bug_fix/HANDOFF-READY.md` |
+| Owner QA | Pending one pass — `migration/bug_fix/OWNER-SIGNOFF.md` |
+| Dashboard §9 custom reports | Not built (snapshot + per-module CSV exports only) |
+| React `web/` app | Separate branch; port screens incrementally |
+
+### New screen (not in 2026-10-01 table)
+
+| ID | Screen | Path | Notes |
+|----|--------|------|--------|
+| SCR-29 | Service requests | `frontend/app/(admin)/service-requests.tsx` | Plumber/electrician admin; sidebar `AdminShell` → Service requests. API: `GET/POST/PATCH /service-requests`, history route. Mobile contract: `docs/SERVICE-REQUESTS-API.md`. |
+
+### Screens heavily changed since 2026-10-01 (re-read source, do not trust old line counts)
+
+| SCR | Path | What changed (summary) |
+|-----|------|-------------------------|
+| SCR-10 | `catalog.tsx` | Master-shaped CSV export; HSN/GST/pack/MRP pkg on form; web Blob export |
+| SCR-18 | `purchases.tsx` | Filters, report summary, web export, searchable product/rack, bulk UX |
+| SCR-19 | `inventory.tsx` | Card UI, valuation layout, tab export, moves date filter |
+| SCR-20 | `partners.tsx` | KYC history, export, manager filter, admin create partner |
+| SCR-21 | `rfqs.tsx` | Filters, export, create UX, reward estimate |
+| SCR-22 | `dispatches.tsx` | Retail cart, filters, export, RFQ modal polish |
+| SCR-25 | `team.tsx` | Card UI, refresh FIX-06, permissions display |
+| SCR-17 | `racks.tsx` | Error messages; backend assign fix (see BACKEND changelog) |
+
+### Navigation / sidebar delta
+
+- **Added:** `/service-requests` (Service requests).  
+- **Removed from nav (FIX-05):** Money config — route file may still exist (`money-config.tsx`); do not port to React unless owner asks.  
+- **Sales section:** still RFQs, partners, dispatch (no money config).
+
+### Risks table (§13) — supersede these rows
+
+| Old RSK | Update (2026-10-06) |
+|---------|---------------------|
+| RSK-03 short catalog CSV | **Fixed** — master headers export |
+| RSK-10 Linking-only export | **Fixed** on catalog, purchases, partners, rfqs, dispatches, inventory |
+| RSK-07 one-line files | **Partially fixed** — purchases, partners, rfqs, dispatches, inventory, team refactored; racks may still be dense |
+
+### Dated changelog (find updates fast)
+
+| Date | Change |
+|------|--------|
+| 2026-10-05 | Product export + billing fields; Purchase SOW UX |
+| 2026-10-05 | Partners KYC, export, admin create |
+| 2026-10-06 | RFQ, Dispatch, Inventory UI/export |
+| 2026-10-06 | Team UX; teammate `admin_login` for store_manager/staff (backend) |
+| 2026-10-06 | Service requests API + admin screen |
+| 2026-10-06 | This delta section + `migration/STATUS.md` |
+
+### React port order reminder
+
+Use **§ Suggested phase order** at file bottom. Add **SCR-29 Service requests** as step **11b** (after partners/RFQ/dispatch, before dashboard). Skip **SCR-23 Money config** unless owner reopens FIX-05.
+
+---
+
+## 1. Screens / pages (baseline 2026-10-01)
 
 Routes come from Expo Router file paths under `frontend/app/`. The admin group is `(admin)`. URLs do not include the group name (example: `frontend/app/(admin)/categories.tsx` opens as `/categories`).
 
