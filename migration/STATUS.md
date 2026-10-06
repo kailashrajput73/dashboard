@@ -42,18 +42,18 @@ Statuses: Not started → Built → Done.
 | 1e | Start-up redirect and admin login; also remove `web/src/DevPreview.tsx` and restore `App.tsx`. | Done | [dev/2026-10-03-1e-startup-login.md](dev/2026-10-03-1e-startup-login.md) |
 | 2 | Categories (list, search, filter, create, edit, photo, active, delete with its products). Photo field and linked-products parts are built here. | Done | [dev/2026-10-03-2-categories.md](dev/2026-10-03-2-categories.md) |
 | 3a | Subcategories: list, create, edit, delete | Done | [dev/2026-10-03-3a-subcategories.md](dev/2026-10-03-3a-subcategories.md) |
-| 3b | Subcategories: CSV import | Done| [dev/2026-10-04-3b-subcategory-csv-import.md](dev/2026-10-04-3b-subcategory-csv-import.md) |
-| 3c | Subcategories: shelf price board | Done | [dev/2026-10-04-3c-shelf-price-board.md](dev/2026-10-04-3c-shelf-price-board.md) |
-| 4 | Brands (logo, active, delete) | Done | [dev/2026-10-04-4-brands.md](dev/2026-10-04-4-brands.md) |
-| 5 | Product types | Done | [dev/2026-10-05-5-product-types.md](dev/2026-10-05-5-product-types.md) |
-| 6 | Product classes | Done | [dev/2026-10-05-6-product-classes.md](dev/2026-10-05-6-product-classes.md) |
-| 7a | Catalog: list, search, filters | Done | [dev/2026-10-06-7a-catalog-list-filters.md](dev/2026-10-06-7a-catalog-list-filters.md) |
-| 7b | Catalog: product form (name, code, brand, category, subcategory, Hindi, Gujarati, aliases, ROL, discount) | Done | [dev/2026-10-06-7b-catalog-product-form.md](dev/2026-10-06-7b-catalog-product-form.md) |
-| 7c | Catalog: pricing, single and bulk | Done | [dev/2026-10-06-7c-catalog-pricing.md](dev/2026-10-06-7c-catalog-pricing.md) |
-| 7d | Catalog: QR code |Done | [dev/2026-10-06-7d-catalog-qr.md](dev/2026-10-06-7d-catalog-qr.md) |
-| 7e | Catalog: CSV download (the current short one), delete, secured delete | Done | [dev/2026-10-06-7e-catalog-csv-delete.md](dev/2026-10-06-7e-catalog-csv-delete.md) |
-| 8 | Product groups | Done | [dev/2026-10-06-8-product-groups.md](dev/2026-10-06-8-product-groups.md) |
-| 9 | Racks | Done | [dev/2026-10-06-9-racks.md](dev/2026-10-06-9-racks.md) |
+| 3b | Subcategories: CSV import | Built| [dev/2026-10-04-3b-subcategory-csv-import.md](dev/2026-10-04-3b-subcategory-csv-import.md) |
+| 3c | Subcategories: shelf price board | Built | [dev/2026-10-04-3c-shelf-price-board.md](dev/2026-10-04-3c-shelf-price-board.md) |
+| 4 | Brands (logo, active, delete) | Built | [dev/2026-10-04-4-brands.md](dev/2026-10-04-4-brands.md) |
+| 5 | Product types | Built | [dev/2026-10-05-5-product-types.md](dev/2026-10-05-5-product-types.md) |
+| 6 | Product classes | Built | [dev/2026-10-05-6-product-classes.md](dev/2026-10-05-6-product-classes.md) |
+| 7a | Catalog: list, search, filters | Built | [dev/2026-10-06-7a-catalog-list-filters.md](dev/2026-10-06-7a-catalog-list-filters.md) |
+| 7b | Catalog: product form (name, code, brand, category, subcategory, Hindi, Gujarati, aliases, ROL, discount) | Built | [dev/2026-10-06-7b-catalog-product-form.md](dev/2026-10-06-7b-catalog-product-form.md) |
+| 7c | Catalog: pricing, single and bulk | Built | [dev/2026-10-06-7c-catalog-pricing.md](dev/2026-10-06-7c-catalog-pricing.md) |
+| 7d | Catalog: QR code |Built | [dev/2026-10-06-7d-catalog-qr.md](dev/2026-10-06-7d-catalog-qr.md) |
+| 7e | Catalog: CSV download (the current short one), delete, secured delete | Built | [dev/2026-10-06-7e-catalog-csv-delete.md](dev/2026-10-06-7e-catalog-csv-delete.md) |
+| 8 | Product groups | Built | [dev/2026-10-06-8-product-groups.md](dev/2026-10-06-8-product-groups.md) |
+| 9 | Racks | Built | [dev/2026-10-06-9-racks.md](dev/2026-10-06-9-racks.md) |
 | 10a | Spreadsheet imports: shared CSV/xlsx reader, templates, import component. Do not change sheet column rules. | Not started | |
 | 10b | Spreadsheet imports: master sheet and batch master | Not started | |
 | 10c | Spreadsheet imports: prices and stock | Not started | |

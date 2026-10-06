@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import SubcategoriesPage from "./pages/SubcategoriesPage";
 import ProductGroupsPage from "./pages/ProductGroupsPage";
 import RacksPage from "./pages/RacksPage";
+import SpreadsheetImportsPage from "./pages/SpreadsheetImportsPage";
 
 export default function App() {
   return (
@@ -28,7 +29,7 @@ export default function App() {
           <Route path="/product-classes" element={<ProductClassesPage />} />
           <Route path="/brands" element={<BrandsPage />} />
           <Route path="/product-groups" element={<ProductGroupsPage />} />
-          <Route path="/csv-import" element={<EmptyPage title="Spreadsheet imports" />} />
+          <Route path="/csv-import" element={<SpreadsheetImportsPage />} />
           <Route path="/import-products-batch" element={<EmptyPage title="Import products (batch sheet)" />} />
           <Route path="/racks" element={<RacksPage />} />
           <Route path="/purchases" element={<EmptyPage title="Purchases" />} />
