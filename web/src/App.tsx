@@ -4,6 +4,8 @@ import { EmptyPage } from "./components/EmptyPage";
 import { StartupRedirect } from "./components/StartupRedirect";
 import CategoriesPage from "./pages/CategoriesPage";
 import BrandsPage from "./pages/BrandsPage";
+import ProductTypesPage from "./pages/ProductTypesPage";
+import ProductClassesPage from "./pages/ProductClassesPage";
 import LoginPage from "./pages/LoginPage";
 import SubcategoriesPage from "./pages/SubcategoriesPage";
 
@@ -18,9 +20,9 @@ export default function App() {
           <Route path="/dashboard" element={<EmptyPage title="Dashboard" />} />
           <Route path="/catalog" element={<EmptyPage title="Products" />} />
           <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/product-types" element={<EmptyPage title="Product type" />} />
+          <Route path="/product-types" element={<ProductTypesPage />} />
           <Route path="/subcategories" element={<SubcategoriesPage />} />
-          <Route path="/product-classes" element={<EmptyPage title="Product class" />} />
+          <Route path="/product-classes" element={<ProductClassesPage />} />
           <Route path="/brands" element={<BrandsPage />} />
           <Route path="/product-groups" element={<EmptyPage title="Product groups" />} />
           <Route path="/csv-import" element={<EmptyPage title="Spreadsheet imports" />} />

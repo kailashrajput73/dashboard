@@ -45,8 +45,8 @@ Statuses: Not started → Built → Done.
 | 3b | Subcategories: CSV import | Done| [dev/2026-10-04-3b-subcategory-csv-import.md](dev/2026-10-04-3b-subcategory-csv-import.md) |
 | 3c | Subcategories: shelf price board | Done | [dev/2026-10-04-3c-shelf-price-board.md](dev/2026-10-04-3c-shelf-price-board.md) |
 | 4 | Brands (logo, active, delete) | Built | [dev/2026-10-04-4-brands.md](dev/2026-10-04-4-brands.md) |
-| 5 | Product types | Not started | |
-| 6 | Product classes | Not started | |
+| 5 | Product types | Done | [dev/2026-10-05-5-product-types.md](dev/2026-10-05-5-product-types.md) |
+| 6 | Product classes | Done | [dev/2026-10-05-6-product-classes.md](dev/2026-10-05-6-product-classes.md) |
 | 7a | Catalog: list, search, filters | Not started | |
 | 7b | Catalog: product form (name, code, brand, category, subcategory, Hindi, Gujarati, aliases, ROL, discount) | Not started | |
 | 7c | Catalog: pricing, single and bulk | Not started | |

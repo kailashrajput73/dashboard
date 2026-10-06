@@ -69,3 +69,26 @@ Use only disposable test data with names beginning `ZZ`. Do not delete or alter 
 5. Try saving a blank brand name and confirm `Brand name is required.`. Try a duplicate name and confirm the API error is shown.
 6. Start delete on a disposable `ZZ` brand. Confirm the dialog says `Deletes this brand and every product linked to it.`, pre-fills the signed-in admin contact, and requires the passcode. Cancel and confirm nothing was removed.
 7. Delete the disposable brand with valid credentials. Confirm only that brand and its linked test products are removed, and the success message reports the product count. Never use a real brand for this check.
+
+### Row 5: product types (Built)
+
+Use disposable products with a `ZZ` Type value. Do not change or purge real products.
+
+1. Open Product type and confirm the list, product counts, and **All**, **Active**, and **Inactive** filters. Search for `ZZ` and confirm the matching type rows.
+2. On a disposable type, upload a logo file, then edit it to use a URL. Remove or replace the photo and save; confirm the image updates and the type name does not change.
+3. Toggle a `ZZ` type inactive and active. Confirm its status and filter membership update.
+4. Expand a `ZZ` type's product count and confirm the linked product list and count match products whose Type equals that type, case-insensitively.
+5. Start deleting a `ZZ` type's products. Confirm the dialog requires the admin passcode and says `Removes every product with this type. Requires admin passcode.` Cancel once and confirm nothing changes. Then confirm using a valid passcode and verify only disposable products of that type are removed, the type remains, and the success count is correct.
+6. Confirm a blank name editor/create action is not present; Product Types only has photo editing, matching Expo.
+
+### Row 6: product classes (Built)
+
+Use disposable catalog products with `ZZ` names/classes. Do not delete or alter real products.
+
+1. Open Product class and confirm the list is sorted, class names group case-insensitively, and the subtitle reports filtered and total facet counts.
+2. Confirm products with explicit `productClass` values appear under that class. Add disposable products without an explicit class whose names contain `SDR 13.5`, `SDR 11`, `Sch 80`, and `Sch 40`; confirm Expo's inferred labels and counts.
+3. Search for a `ZZ` class, expand its count, and confirm the linked product list contains only products matched to that class.
+4. Search for a value with no matches and confirm `No product classes yet. Import a sheet with a Class column (SDR11, Sch 40).`
+5. Start delete for a disposable class. Confirm the title, message `Removes every product with this value. Requires admin passcode.`, prefilled admin contact, and passcode requirement. Cancel and confirm nothing changes.
+6. Confirm deletion for the disposable class with a valid passcode. Verify only test products with the stored matching `productClass` are removed and the message reports the count. Do not use a real class.
+7. Confirm the Product type page remains available and Product Groups was not changed in this group.
