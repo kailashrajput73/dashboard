@@ -89,8 +89,8 @@ Tested. Feature **unused** (leftover from old quotation demo). **Remove from adm
 | 20 | Secured delete | Not found in UI | Catalog secured delete — find or skip |
 | 21 | Wipe catalog | Used on test DB | Security before live — FIX-10 |
 | 22–26 | Dashboard, lists | Pass | With earlier tests |
-| 27 | Team | Verify later | May show stale data — FIX-06 |
-| 28 | Catalog download | **Broken** | Button does nothing — FIX-02 |
+| 27 | Team | **Code complete** | Team list refresh, role defaults, active/inactive toggle, teammate login — FIX-06 |
+| 28 | Catalog download | **Resolved in code** | Web Blob export — FIX-02 |
 | 29–31 | Partner API | Pending | Mobile developer — FIX-09 |
 
 ---
@@ -124,12 +124,12 @@ Tested. Feature **unused** (leftover from old quotation demo). **Remove from adm
 
 | ID | Area | Issue | Test # | Priority |
 |----|------|--------|--------|----------|
-| FIX-01 | Rack / API | Assign product to slot → server API error | 12 | P1 demo |
-| FIX-02 | Catalog UI | Download button does nothing | 28 | P1 demo |
-| FIX-03 | Import | Prices 49% — **deferred** (uploads OK) | 7 | — |
-| FIX-04 | Purchase | CSV UX implemented; backend/import rules unchanged | 11 | — |
-| FIX-05 | Admin | Remove unused money config screen | 2 | P2 |
-| FIX-06 | Team | May show old data — verify | 27 | P2 |
+| FIX-01 | Rack / API | Assign product to slot → server API error | 12 | P1 demo | Fixed in backend_refactor; owner verify pending |
+| FIX-02 | Catalog UI | Download button does nothing | 28 | P1 demo | Resolved in code; web Blob export verified |
+| FIX-03 | Import | Prices 49% — **deferred** (uploads OK) | 7 | — | No import rule changes |
+| FIX-04 | Purchase | CSV UX implemented; backend/import rules unchanged | 11 | — | No import rule changes |
+| FIX-05 | Admin | Remove unused money config screen | 2 | P2 | Removed from admin nav in source; API retained |
+| FIX-06 | Team | Fresh list + teammate login + active/inactive status | 27 | P2 | Code complete; owner verify pending |
 | FIX-07 | Product | QR scanner (later); download OK | 9 | P3 |
 | FIX-08 | Partner | Admin SOW implemented; mobile app/auth follow-up remains separate | 18–19 | P2 product |
 | FIX-09 | Partner API | Login, catalog, RFQ when app ready | 29–31 | P2 mobile |

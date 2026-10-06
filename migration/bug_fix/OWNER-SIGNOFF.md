@@ -23,7 +23,7 @@ Until that pass, treat modules as **code complete — owner verify pending**.
 | RFQ | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
 | Dispatch | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
 | Inventory / Stock | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
-| Team | Partial (FIX-06?) | ☐ final pass |
+| Team | Code complete (FIX-06 + teammate admin login) | ☐ final pass |
 | Dashboard & reports | Snapshot only | ☐ final pass |
 | Plumber / electrician | Not started | — |
 
@@ -73,9 +73,21 @@ Use VPS **refactor** API URL. Tick when done.
 ### Sales path (legacy smoke — optional if RFQ section above passes)
 - [ ] RFQ approve → edit lines → dispatch → stock down
 
+### Team verify list (do in the same pass)
+- [ ] Create a new team user (store_manager or staff) from the Team screen
+- [ ] Confirm the new user appears immediately in the list after save and after reload
+- [ ] Edit the user role and active/inactive status; confirm both save and list refresh
+- [ ] Search and filter by role returns the expected user rows
+- [ ] Log out and sign back in to the Expo admin app using that contact number + passcode
+- [ ] Confirm an inactive team user gets a clear 401 and cannot log in
+
 ### Demo-critical bugs (fix before demo if still broken)
 - [ ] FIX-01 rack assign
 - [ ] FIX-02 catalog download (should be fixed in code — confirm on web)
+- [ ] Team default login flow: new store_manager can log in with contact + passcode
+- [ ] FIX-06 list refresh after create/edit/toggle
+
+> Expo admin SOW modules are code-complete; the owner still needs one single-pass verification session.
 
 ---
 

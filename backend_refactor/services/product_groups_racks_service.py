@@ -165,14 +165,33 @@ async def delete_rack(rack_id: str):
 async def assign_rack_slot(rack_id: str, body: RackAssignmentIn):
     rack = await db.racks.find_one({"id": rack_id})
     product = await db.catalog.find_one({"id": body.productId})
+    resolved_product_id = body.productId
+    if not product:
+        product = await db.catalog.find_one({"productCode": body.productId})
+        if product:
+            resolved_product_id = product["id"]
     if not rack or not product:
         return JSONResponse(status_code=404, content=envelope(None, False, "Rack or product not found"))
     if not any(slot["code"] == body.slotCode for slot in rack.get("slots", [])):
         return JSONResponse(status_code=400, content=envelope(None, False, "Slot does not exist in this rack"))
-    await db.racks.update_one({"id": rack_id}, {"$set": {"slots.$[slot].productId": body.productId}}, array_filters=[{"slot.code": body.slotCode}])
-    await db.racks.update_many({"id": {"$ne": rack_id}}, {"$set": {"slots.$[slot].productId": None}}, array_filters=[{"slot.productId": body.productId}])
-    await db.catalog.update_one({"id": body.productId}, {"$set": {"rackId": rack_id, "rackName": rack["name"], "rackSlot": body.slotCode}})
-    return envelope({"rackId": rack_id, "rackName": rack["name"], "slotCode": body.slotCode, "productId": body.productId})
+
+    result = await db.racks.update_one(
+        {"id": rack_id, "slots.code": body.slotCode},
+        {"$set": {"slots.$.productId": resolved_product_id}},
+    )
+    if result.matched_count == 0:
+        return JSONResponse(status_code=400, content=envelope(None, False, "Slot could not be updated"))
+
+    await db.racks.update_many(
+        {"id": {"$ne": rack_id}, "slots.productId": resolved_product_id},
+        {"$set": {"slots.$[slot].productId": None}},
+        array_filters=[{"slot.productId": resolved_product_id}],
+    )
+    await db.catalog.update_one(
+        {"id": resolved_product_id},
+        {"$set": {"rackId": rack_id, "rackName": rack["name"], "rackSlot": body.slotCode}},
+    )
+    return envelope({"rackId": rack_id, "rackName": rack["name"], "slotCode": body.slotCode, "productId": resolved_product_id})
 
 
 async def rack_products(rack_id: str):

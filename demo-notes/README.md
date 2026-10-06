@@ -21,6 +21,7 @@ Use these before a client demo or handoff. Each file is a **single release or fe
 | [2026-10-06-13-rfq-admin-sow-gap-closeout.md](./2026-10-06-13-rfq-admin-sow-gap-closeout.md) | RFQ admin list filters, filtered export, searchable create flow, and detail approval/dispatch gap closeout |
 | [2026-10-06-14-dispatch-sow-export-retail-rfq-ux.md](./2026-10-06-14-dispatch-sow-export-retail-rfq-ux.md) | Dispatch admin export, filtered report, multi-line retail billing, and RFQ dispatch UX cleanup |
 | [2026-10-06-15-inventory-sow-export-ui-polish.md](./2026-10-06-15-inventory-sow-export-ui-polish.md) | Inventory stock cards, low-stock warning hierarchy, export filtered views, and clearer in/out movement UX |
+| [2026-10-06-16-team-sow-and-demo-bug-sweep.md](./2026-10-06-16-team-sow-and-demo-bug-sweep.md) | Team SOW polish, teammate admin login, and the final demo bug sweep for rack assign, catalog export, money config, and secured delete discoverability |
 
 **Deploy reminder:** With `USE_CLOUD_PREVIEW = true` in `frontend/src/config/env.ts`, Render must run the same `backend/server.py` as local or new routes fail with 404.
 

@@ -57,17 +57,27 @@ async def admin_register(body: AdminRegisterIn):
 
 
 async def admin_login(body: AdminLoginIn):
-    user = await db.users.find_one({"role": "admin", "contactNumber": body.contactNumber})
+    contact_number = (body.contactNumber or "").strip()
+    user = await db.users.find_one({
+        "contactNumber": contact_number,
+        "role": {"$in": ["admin", "store_manager", "staff"]},
+    })
     if not user:
         return JSONResponse(status_code=401, content=envelope(None, False, "Invalid credentials"))
-    if not bcrypt.checkpw(body.passcode.encode(), user["passcodeHash"].encode()):
+    if user.get("isActive") is False:
+        return JSONResponse(status_code=401, content=envelope(None, False, "Account is inactive"))
+    try:
+        if not bcrypt.checkpw(body.passcode.encode(), user["passcodeHash"].encode()):
+            return JSONResponse(status_code=401, content=envelope(None, False, "Invalid credentials"))
+    except ValueError:
         return JSONResponse(status_code=401, content=envelope(None, False, "Invalid credentials"))
     token = new_id()  # simple opaque token (mirror; teammate backend may use JWT)
     await db.admin_tokens.insert_one({"token": token, "adminId": user["id"], "createdAt": now_iso()})
     return envelope({
         "token": token,
         "adminId": user["id"],
-        "companyName": user.get("companyName"),
+        "role": user.get("role"),
+        "companyName": user.get("companyName") or user.get("name"),
         "contactNumber": user.get("contactNumber"),
         "gstin": user.get("gstin"),
     })

@@ -550,8 +550,12 @@ class AdminPasscodeIn(BaseModel):
 
 
 async def verify_admin_passcode(body: AdminPasscodeIn) -> bool:
-    user = await db.users.find_one({"role": "admin", "contactNumber": body.contactNumber.strip()})
-    if not user or not user.get("passcodeHash"):
+    contact_number = (body.contactNumber or "").strip()
+    user = await db.users.find_one({
+        "contactNumber": contact_number,
+        "role": {"$in": ["admin", "store_manager", "staff"]},
+    })
+    if not user or not user.get("passcodeHash") or user.get("isActive") is False:
         return False
     try:
         return bcrypt.checkpw(body.passcode.encode(), user["passcodeHash"].encode())
