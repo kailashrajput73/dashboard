@@ -19,6 +19,7 @@ Use these before a client demo or handoff. Each file is a **single release or fe
 | [2026-10-05-11-purchase-sow-ux-export-report.md](./2026-10-05-11-purchase-sow-ux-export-report.md) | Purchase web CSV export, searchable record form, bulk feedback, and date-filtered report |
 | [2026-10-05-12-partner-sow-admin-kyc-export.md](./2026-10-05-12-partner-sow-admin-kyc-export.md) | Partner admin detail, KYC review, direct create, manager filtering, and CSV export |
 | [2026-10-06-13-rfq-admin-sow-gap-closeout.md](./2026-10-06-13-rfq-admin-sow-gap-closeout.md) | RFQ admin list filters, filtered export, searchable create flow, and detail approval/dispatch gap closeout |
+| [2026-10-06-14-dispatch-sow-export-retail-rfq-ux.md](./2026-10-06-14-dispatch-sow-export-retail-rfq-ux.md) | Dispatch admin export, filtered report, multi-line retail billing, and RFQ dispatch UX cleanup |
 
 **Deploy reminder:** With `USE_CLOUD_PREVIEW = true` in `frontend/src/config/env.ts`, Render must run the same `backend/server.py` as local or new routes fail with 404.
 

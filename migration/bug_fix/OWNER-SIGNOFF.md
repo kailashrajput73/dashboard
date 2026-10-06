@@ -21,7 +21,7 @@ Until that pass, treat modules as **code complete — owner verify pending**.
 | Purchase | UX + export + report MVP (2026-10-05) | ☐ final pass |
 | Partners (KYC + list) | Code complete (2026-10-05); **not tested by owner yet** (commit without smoke test) | ☐ |
 | RFQ | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
-| Dispatch | Partial | ☐ final pass |
+| Dispatch | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
 | Team | Partial (FIX-06?) | ☐ final pass |
 | Dashboard & reports | Snapshot only | ☐ final pass |
 | Plumber / electrician | Not started | — |
@@ -54,6 +54,13 @@ Use VPS **refactor** API URL. Tick when done.
 - [ ] Create RFQ via partner + product search
 - [ ] Pending: discount → see estimated reward → approve; history readable
 - [ ] Approved: edit lines → dispatch → stock down (same path as before)
+
+### Dispatch (code shipped; owner not tested yet — do in final pass)
+- [ ] Export CSV on web downloads one row per dispatch line for the currently filtered rows only
+- [ ] Retail billing: search product by name/code/brand, add multiple lines, edit qty, remove lines, and bill one dispatch with the cart
+- [ ] RFQ dispatch from both the RFQ detail and the dispatch screen; confirm the RFQ moves to dispatched and disappears from approved list
+- [ ] Stock is reduced on both retail dispatch and RFQ dispatch, with insufficient-stock warnings blocking the submit button
+- [ ] Filter chips + date range + search combine correctly and the report summary matches the visible rows
 
 ### Sales path (legacy smoke — optional if RFQ section above passes)
 - [ ] RFQ approve → edit lines → dispatch → stock down
