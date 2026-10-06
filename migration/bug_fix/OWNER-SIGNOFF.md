@@ -1,6 +1,6 @@
 # Owner sign-off — one pass at the end
 
-**Updated:** 2026-10-05
+**Updated:** 2026-10-06
 
 ## Policy
 
@@ -19,8 +19,8 @@ Until that pass, treat modules as **code complete — owner verify pending**.
 | Category, Subcategory, Brand, Product group, Rack, Stock | Done (earlier) | ☐ final pass |
 | Product | Export + billing fields implemented (2026-10-05) | ☐ final pass |
 | Purchase | UX + export + report MVP (2026-10-05) | ☐ final pass |
-| Partners (KYC + list) | Code complete (2026-10-05); owner verify pending | ☐ |
-| RFQ | Partial (core flow exists) | ☐ final pass |
+| Partners (KYC + list) | Code complete (2026-10-05); **not tested by owner yet** (commit without smoke test) | ☐ |
+| RFQ | Code complete (2026-10-06); **not tested by owner yet** (commit without smoke test) | ☐ |
 | Dispatch | Partial | ☐ final pass |
 | Team | Partial (FIX-06?) | ☐ final pass |
 | Dashboard & reports | Snapshot only | ☐ final pass |
@@ -41,14 +41,21 @@ Use VPS **refactor** API URL. Tick when done.
 - [ ] Record purchase (search product, optional rack) → stock increases
 - [ ] Bulk CSV success = inline message, not error modal
 
-### Partners (after next agent)
+### Partners (code shipped; owner not tested yet — do in final pass)
 - [ ] Filter by sales manager; confirm it combines with search and KYC status
 - [ ] Create partner from admin; confirm approved status and automatic KYC history entry
 - [ ] Reject a pending partner with a reason; confirm reason in detail/history
 - [ ] Export on web; confirm CSV contains only the filtered partner list
 - [ ] Confirm mobile auth paths remain as documented in `docs/PARTNER-API.md`
 
-### Sales path (already passed on refactor once — re-check if data changed)
+### RFQ (code shipped; owner not tested yet — do in final pass)
+- [ ] Combine status + partner + manager + date filters + search; list matches
+- [ ] Web export → CSV only for filtered rows; BOM opens in Excel
+- [ ] Create RFQ via partner + product search
+- [ ] Pending: discount → see estimated reward → approve; history readable
+- [ ] Approved: edit lines → dispatch → stock down (same path as before)
+
+### Sales path (legacy smoke — optional if RFQ section above passes)
 - [ ] RFQ approve → edit lines → dispatch → stock down
 
 ### Demo-critical bugs (fix before demo if still broken)

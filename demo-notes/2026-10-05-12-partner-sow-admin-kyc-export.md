@@ -17,6 +17,10 @@ Close the Expo admin gaps in Referral Partner KYC and Management: admins need fu
 - Success feedback is inline. API validation errors are surfaced in the error modal.
 - Mobile auth/register/login paths, Firebase planning, and backend code were not changed.
 
+## Owner testing
+
+**2026-10-06:** Code merged toward GitHub; **owner has not run this checklist yet.** Verification is deferred to the single end-to-end pass in `migration/bug_fix/OWNER-SIGNOFF.md` (Partners section).
+
 ## How to verify
 
 1. Filter by a sales manager while a search term or KYC status is selected; confirm the list reflects all active filters.

@@ -61,6 +61,72 @@ function rfqLineTotal(rfq: Rfq) {
   return rfq.lines.reduce((sum, line) => sum + lineSubtotal(line), 0);
 }
 
+function dateBoundary(value: string, endOfDay = false): number | undefined | null {
+  if (!value.trim()) return undefined;
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const [, yearText, monthText, dayText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const date = new Date(year, month - 1, day, endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0, endOfDay ? 999 : 0);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+  return date.getTime();
+}
+
+function rfqErrorMessage(error: unknown, fallback: string): string {
+  if (!(error instanceof ApiError)) return fallback;
+  const body = error.body;
+  const errors = body?.data?.errors ?? body?.errors ?? body?.detail?.errors ?? body?.detail?.data?.errors;
+  if (Array.isArray(errors) && errors.length > 0) return errors.map(String).join("\n");
+  return error.message || fallback;
+}
+
+function formatHistorySummary(event: any): string | null {
+  const details = event?.details ?? event?.detail ?? event?.payload ?? event?.meta ?? null;
+  if (!details) return null;
+  if (typeof details === "string") return details;
+  if (details && typeof details === "object") {
+    const summary: string[] = [];
+    if (details.lineCount != null) summary.push(`${details.lineCount} line${details.lineCount === 1 ? "" : "s"}`);
+    if (details.specialDiscountPercent != null) summary.push(`discount ${Number(details.specialDiscountPercent)}%`);
+    if (details.rewardPoints != null) summary.push(`reward ${details.rewardPoints} pts`);
+    if (details.grandTotal != null) summary.push(`total ₹${formatMoney(Number(details.grandTotal))}`);
+    if (details.deliveryMode) summary.push(details.deliveryMode === "storePickup" ? "pickup" : "delivery");
+    if (details.scheduledAt) summary.push(`schedule ${details.scheduledAt}`);
+    return summary.join(" · ") || JSON.stringify(details);
+  }
+  return null;
+}
+
+function estimatedRewardAfterDiscount(baseTotal: number, discountPercent: number): number {
+  const discounted = Math.max(0, baseTotal * (100 - discountPercent) / 100);
+  return Math.floor(discounted / 100);
+}
+
+function getPartnerMatches(partners: Partner[], query: string) {
+  const value = query.trim().toLowerCase();
+  if (!value) return partners;
+  return partners.filter((partner) => {
+    const searchable = [partner.id, partner.name, partner.phone, partner.businessName, partner.city, partner.area]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return searchable.includes(value);
+  });
+}
+
+function getProductMatches(products: CatalogItem[], query: string) {
+  const value = query.trim().toLowerCase();
+  if (!value) return products.slice(0, 20);
+  return products
+    .filter((product) => {
+      const searchable = [product.name, product.productCode, product.brand, product.category].filter(Boolean).join(" ").toLowerCase();
+      return searchable.includes(value);
+    })
+    .slice(0, 20);
+}
+
 export default function AdminRfqs() {
   const router = useRouter();
   const [allRfqs, setAllRfqs] = useState<Rfq[]>([]);
@@ -68,12 +134,18 @@ export default function AdminRfqs() {
   const [products, setProducts] = useState<CatalogItem[]>([]);
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
+  const [partnerFilter, setPartnerFilter] = useState<string>("all");
+  const [managerFilter, setManagerFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [selected, setSelected] = useState<Rfq | null>(null);
   const [editLines, setEditLines] = useState<EditableLine[]>([]);
   const [scanCode, setScanCode] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [partnerId, setPartnerId] = useState("");
+  const [partnerSearch, setPartnerSearch] = useState("");
   const [productCode, setProductCode] = useState("");
+  const [productSearch, setProductSearch] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [deliveryMode, setDeliveryMode] = useState<"storePickup" | "homeDelivery">("storePickup");
   const [scheduledAt, setScheduledAt] = useState("");
@@ -82,6 +154,7 @@ export default function AdminRfqs() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const partnerById = useMemo(() => {
     const map = new Map<string, Partner>();
@@ -97,6 +170,40 @@ export default function AdminRfqs() {
     return map;
   }, [products]);
 
+  const partnerFilterOptions = useMemo(() => {
+    const ids = Array.from(new Set(allRfqs.map((rfq) => rfq.partnerId))).filter(Boolean);
+    return ids
+      .map((id) => partnerById.get(id))
+      .filter((partner): partner is Partner => Boolean(partner));
+  }, [allRfqs, partnerById]);
+
+  const managerOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          partners
+            .map((partner) => partner.salesManager?.trim())
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [partners],
+  );
+
+  const fromTime = dateBoundary(dateFrom);
+  const toTime = dateBoundary(dateTo, true);
+  const dateFilterError = fromTime === null
+    ? "Enter the start date as YYYY-MM-DD."
+    : toTime === null
+      ? "Enter the end date as YYYY-MM-DD."
+      : fromTime != null && toTime != null && fromTime > toTime
+        ? "Start date must be on or before end date."
+        : null;
+
+  const partnerMatches = useMemo(() => getPartnerMatches(partners, partnerSearch), [partners, partnerSearch]);
+  const productMatches = useMemo(() => getProductMatches(products, productSearch), [products, productSearch]);
+  const selectedCreatePartner = partnerId ? partnerById.get(partnerId) : null;
+  const selectedCreateProduct = productCode ? products.find((item) => item.productCode === productCode) : null;
+
   const load = useCallback(async () => {
     try {
       const [nextRfqs, nextProducts, nextPartners] = await Promise.all([
@@ -108,7 +215,7 @@ export default function AdminRfqs() {
       setProducts(nextProducts || []);
       setPartners(nextPartners || []);
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Failed to load RFQs");
+      setError(rfqErrorMessage(e, "Failed to load RFQs"));
     }
   }, []);
 
@@ -131,6 +238,16 @@ export default function AdminRfqs() {
     const q = search.trim().toLowerCase();
     return allRfqs.filter((rfq) => {
       if (status !== "all" && rfq.status !== status) return false;
+      if (partnerFilter !== "all" && rfq.partnerId !== partnerFilter) return false;
+      if (managerFilter !== "all") {
+        const partner = partnerById.get(rfq.partnerId);
+        if (partner?.salesManager !== managerFilter) return false;
+      }
+      const createdAt = new Date(rfq.createdAt).getTime();
+      if (Number.isFinite(createdAt)) {
+        if (fromTime != null && createdAt < fromTime) return false;
+        if (toTime != null && createdAt > toTime) return false;
+      }
       if (!q) return true;
       const partner = partnerById.get(rfq.partnerId);
       const blob = [
@@ -139,14 +256,27 @@ export default function AdminRfqs() {
         partner?.name,
         partner?.phone,
         partner?.businessName,
-        ...rfq.lines.map((l) => `${l.productName} ${l.productCode}`),
+        ...rfq.lines.map((line) => `${line.productName || ""} ${line.productCode || ""}`),
       ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
       return blob.includes(q);
     });
-  }, [allRfqs, partnerById, search, status]);
+  }, [allRfqs, fromTime, managerFilter, partnerById, partnerFilter, search, status, toTime]);
+
+  const reportSummary = useMemo(() => {
+    const lines = filteredRfqs.flatMap((rfq) => rfq.lines);
+    return {
+      rfqCount: filteredRfqs.length,
+      lineCount: lines.length,
+      quantity: lines.reduce((sum, line) => sum + Number(line.quantity || 0), 0),
+      value: filteredRfqs.reduce(
+        (sum, rfq) => sum + (rfq.grandTotal != null && rfq.status !== "pending" ? Number(rfq.grandTotal) : rfqLineTotal(rfq)),
+        0,
+      ),
+    };
+  }, [filteredRfqs]);
 
   const tabs = useMemo(
     () =>
@@ -170,7 +300,6 @@ export default function AdminRfqs() {
     return [p.phone, p.city || p.area].filter(Boolean).join(" · ") || p.businessName || id.slice(0, 8);
   }
 
-  const product = products.find((item) => item.productCode === productCode);
   const scanProduct = products.find(
     (item) => item.productCode?.toLowerCase() === scanCode.trim().toLowerCase(),
   );
@@ -191,32 +320,54 @@ export default function AdminRfqs() {
     return issues;
   }, [selected, stockByCode]);
 
+  const pendingRewardEstimate = useMemo(() => {
+    if (!selected || selected.status !== "pending") return 0;
+    const baseTotal = selected.grandTotal != null ? Number(selected.grandTotal) : rfqLineTotal(selected);
+    const discountValue = Number(discount) || 0;
+    return estimatedRewardAfterDiscount(baseTotal, discountValue);
+  }, [discount, selected]);
+
   function openCreate() {
     setPartnerId("");
-    setProductCode(products[0]?.productCode || "");
+    setPartnerSearch("");
+    setProductCode("");
+    setProductSearch("");
     setQuantity("1");
     setDeliveryMode("storePickup");
     setScheduledAt("");
+    setSuccessMessage(null);
     setCreateOpen(true);
   }
 
   async function saveCreate() {
-    if (!partnerId.trim() || !productCode || Number(quantity) <= 0) {
-      setError("Partner ID, product, and positive quantity are required.");
+    const normalizedPartnerId = partnerId.trim();
+    const safeQuantity = Number(quantity);
+    if (!normalizedPartnerId) {
+      setError("Select a partner before creating the RFQ.");
+      return;
+    }
+    if (!productCode) {
+      setError("Search for and select a product with a valid product code.");
+      return;
+    }
+    if (!Number.isFinite(safeQuantity) || safeQuantity <= 0) {
+      setError("Quantity must be a positive number.");
       return;
     }
     setSaving(true);
+    setError(null);
     try {
       await createRfq({
-        partnerId: partnerId.trim(),
-        lines: [{ productCode, quantity: Number(quantity) }],
+        partnerId: normalizedPartnerId,
+        lines: [{ productCode, quantity: safeQuantity }],
         deliveryMode,
         scheduledAt: scheduledAt || undefined,
       });
       setCreateOpen(false);
+      setSuccessMessage("RFQ created.");
       await load();
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Could not create RFQ");
+      setError(rfqErrorMessage(e, "Could not create RFQ"));
     } finally {
       setSaving(false);
     }
@@ -286,6 +437,7 @@ export default function AdminRfqs() {
       return;
     }
     setSaving(true);
+    setError(null);
     try {
       const updated = await updateRfq(selected.id, {
         partnerId: selected.partnerId,
@@ -298,7 +450,7 @@ export default function AdminRfqs() {
       setHistory(await rfqHistory(updated.id));
       await load();
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Could not save RFQ lines");
+      setError(rfqErrorMessage(e, "Could not save RFQ lines"));
     } finally {
       setSaving(false);
     }
@@ -307,6 +459,7 @@ export default function AdminRfqs() {
   async function decide(approved: boolean) {
     if (!selected) return;
     setSaving(true);
+    setError(null);
     try {
       await approveRfq(selected.id, {
         approved,
@@ -318,7 +471,7 @@ export default function AdminRfqs() {
       closeDetails();
       await load();
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Could not update RFQ");
+      setError(rfqErrorMessage(e, "Could not update RFQ"));
     } finally {
       setSaving(false);
     }
@@ -330,6 +483,7 @@ export default function AdminRfqs() {
       return;
     }
     setSaving(true);
+    setError(null);
     try {
       await createDispatch({
         sourceRfqId: selected.id,
@@ -338,33 +492,74 @@ export default function AdminRfqs() {
       closeDetails();
       await load();
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Could not dispatch RFQ");
+      setError(rfqErrorMessage(e, "Could not dispatch RFQ"));
     } finally {
       setSaving(false);
     }
   }
 
   async function exportCsv() {
-    const header = "id,partnerId,partnerName,status,productCode,productName,quantity,deliveryMode,scheduledAt,createdAt";
-    const rows = allRfqs.flatMap((rfq) =>
-      rfq.lines.map((line) =>
-        [
+    if (!filteredRfqs.length) return;
+    const header = [
+      "rfqId",
+      "partnerId",
+      "partnerName",
+      "partnerPhone",
+      "status",
+      "productCode",
+      "productName",
+      "quantity",
+      "unitPrice",
+      "lineSubtotal",
+      "specialDiscountPercent",
+      "rewardPoints",
+      "grandTotal",
+      "deliveryMode",
+      "scheduledAt",
+      "createdAt",
+    ];
+    const rows = filteredRfqs.flatMap((rfq) => {
+      const partner = partnerById.get(rfq.partnerId);
+      return rfq.lines.map((line) => {
+        const unitPrice = Number(line.unitPrice ?? 0);
+        const lineSubtotalValue = (Number(line.quantity) || 0) * unitPrice;
+        const grandTotalValue = rfq.grandTotal != null && rfq.status !== "pending" ? Number(rfq.grandTotal) : rfqLineTotal(rfq);
+        return [
           rfq.id,
           rfq.partnerId,
-          partnerById.get(rfq.partnerId)?.name || "",
+          partner?.name || "",
+          partner?.phone || "",
           rfq.status,
           line.productCode,
           line.productName || "",
           line.quantity,
+          unitPrice,
+          lineSubtotalValue,
+          rfq.specialDiscountPercent || 0,
+          rfq.rewardPoints || 0,
+          grandTotalValue,
           rfq.deliveryMode,
           rfq.scheduledAt || "",
           rfq.createdAt,
-        ].map(csvCell).join(","),
-      ),
-    );
-    const csv = [header, ...rows].join("\n");
+        ];
+      });
+    });
+    const csv = [header, ...rows.map((row) => row.map(csvCell).join(","))].join("\n");
+    const bom = "\uFEFF";
     try {
-      await Linking.openURL(`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`);
+      if (isWeb && typeof Blob !== "undefined" && typeof document !== "undefined") {
+        const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `rfqs-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+      } else {
+        await Linking.openURL(`data:text/csv;charset=utf-8,${encodeURIComponent(bom + csv)}`);
+      }
+      setError(null);
+      setSuccessMessage(`Exported ${filteredRfqs.length} RFQ${filteredRfqs.length === 1 ? "" : "s"}.`);
     } catch {
       setError("Could not open RFQ export.");
     }
@@ -380,8 +575,8 @@ export default function AdminRfqs() {
         onBack={() => router.back()}
         right={
           <View style={styles.headerActions}>
-            <TouchableOpacity testID="export-rfqs" onPress={exportCsv} hitSlop={8}>
-              <Ionicons name="download-outline" size={23} color={colors.primary} />
+            <TouchableOpacity testID="export-rfqs" onPress={() => filteredRfqs.length && exportCsv()} hitSlop={8} disabled={!filteredRfqs.length}>
+              <Ionicons name="download-outline" size={23} color={filteredRfqs.length ? colors.primary : colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity testID="open-add-rfq" onPress={openCreate} hitSlop={8}>
               <Ionicons name="add-circle" size={26} color={colors.primary} />
@@ -389,26 +584,66 @@ export default function AdminRfqs() {
           </View>
         }
       />
+
       <View style={styles.controls}>
-        <Input
-          testID="rfq-search"
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Search partner, phone, product, or code"
-          style={styles.search}
-        />
+        <Input testID="rfq-search" value={search} onChangeText={setSearch} placeholder="Search partner, phone, product, or code" style={styles.search} />
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
           {tabs.map((tab) => (
-            <Chip
-              key={tab.key}
-              label={`${tab.label} (${tab.count})`}
-              selected={status === tab.key}
-              onPress={() => setStatus(tab.key)}
-              testID={`rfq-filter-${tab.key}`}
-            />
+            <Chip key={tab.key} label={`${tab.label} (${tab.count})`} selected={status === tab.key} onPress={() => setStatus(tab.key)} testID={`rfq-filter-${tab.key}`} />
           ))}
         </ScrollView>
+
+        <View style={styles.filterRow}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.partnerFilters}>
+            {[{ key: "all", label: "All partners" }, ...partnerFilterOptions.map((partner) => ({ key: partner.id, label: partner.name || partner.id.slice(0, 8) }))].map((filter) => (
+              <Chip
+                key={filter.key}
+                label={filter.label}
+                selected={partnerFilter === filter.key}
+                onPress={() => setPartnerFilter(filter.key)}
+                testID={filter.key === "all" ? "rfq-partner-filter-all" : `rfq-partner-filter-${filter.key}`}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        {managerOptions.length ? (
+          <View style={styles.filterRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.partnerFilters}>
+              {[{ key: "all", label: "All managers" }, ...managerOptions.map((manager) => ({ key: manager, label: manager }))].map((filter) => (
+                <Chip
+                  key={filter.key}
+                  label={filter.label}
+                  selected={managerFilter === filter.key}
+                  onPress={() => setManagerFilter(filter.key)}
+                  testID={filter.key === "all" ? "rfq-manager-filter-all" : `rfq-manager-filter-${filter.key}`}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
+        <View style={styles.dateFilters}>
+          <Input value={dateFrom} onChangeText={setDateFrom} placeholder="From YYYY-MM-DD" style={styles.inlineInput} />
+          <Input value={dateTo} onChangeText={setDateTo} placeholder="To YYYY-MM-DD" style={styles.inlineInput} />
+        </View>
+
+        {dateFilterError ? <Text style={styles.errorText}>{dateFilterError}</Text> : null}
+
+        <View style={styles.summaryBlock}>
+          <Text style={styles.summaryTitle}>Report summary</Text>
+          <View style={styles.summaryGrid}>
+            <SummaryCell label="RFQs" value={String(reportSummary.rfqCount)} />
+            <SummaryCell label="Lines" value={String(reportSummary.lineCount)} />
+            <SummaryCell label="Qty" value={String(reportSummary.quantity)} />
+            <SummaryCell label="Total" value={`₹${formatMoney(reportSummary.value)}`} highlight />
+          </View>
+        </View>
       </View>
+
+      {successMessage ? <Text style={styles.successMessage}>{successMessage}</Text> : null}
+
       {loading ? (
         <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>
       ) : (
@@ -423,8 +658,7 @@ export default function AdminRfqs() {
                 <Text style={styles.name}>{partnerTitle(item.partnerId)}</Text>
                 <Text style={styles.meta}>{partnerSubtitle(item.partnerId)}</Text>
                 <Text style={styles.meta}>
-                  {item.lines.length} item{item.lines.length === 1 ? "" : "s"} ·{" "}
-                  {item.deliveryMode === "storePickup" ? "Pickup" : "Delivery"}
+                  {item.lines.length} item{item.lines.length === 1 ? "" : "s"} · {item.deliveryMode === "storePickup" ? "Pickup" : "Delivery"}
                   {item.scheduledAt ? ` · ${item.scheduledAt}` : ""}
                 </Text>
                 <Text style={styles.meta} numberOfLines={2}>
@@ -449,18 +683,45 @@ export default function AdminRfqs() {
       )}
 
       <AppModal testID="create-rfq-modal" visible={createOpen} onClose={() => setCreateOpen(false)} title="Create RFQ">
-        <Input testID="rfq-partner-id" label="Partner ID" value={partnerId} onChangeText={setPartnerId} placeholder="Partner identifier" autoCapitalize="none" />
-        <Text style={styles.label}>Product</Text>
-        {products.slice(0, 20).map((item) => (
-          <TouchableOpacity key={item.id} style={[styles.product, productCode === item.productCode && styles.selected]} onPress={() => setProductCode(item.productCode || "")}>
+        <Input testID="rfq-partner-search" label="Partner search" value={partnerSearch} onChangeText={setPartnerSearch} placeholder="Name, phone, business, or ID" autoCapitalize="none" />
+        {selectedCreatePartner ? <Text style={styles.selectedBadge}>{selectedCreatePartner.name} · {selectedCreatePartner.phone || selectedCreatePartner.id}</Text> : null}
+        {partnerMatches.slice(0, 8).map((partner) => (
+          <TouchableOpacity
+            key={partner.id}
+            style={[styles.product, partnerId === partner.id && styles.selected]}
+            onPress={() => {
+              setPartnerId(partner.id);
+              setPartnerSearch(`${partner.name} • ${partner.phone || partner.id}`);
+            }}
+          >
+            <Text style={styles.name}>{partner.name}</Text>
+            <Text style={styles.meta}>{partner.businessName || partner.phone || partner.id}</Text>
+          </TouchableOpacity>
+        ))}
+        {partnerMatches.length === 0 && partnerSearch.trim() ? <Text style={styles.hint}>No matching partners found.</Text> : null}
+
+        <Input testID="rfq-product-search" label="Product search" value={productSearch} onChangeText={setProductSearch} placeholder="Search by product name or code" autoCapitalize="characters" />
+        {selectedCreateProduct ? <Text style={styles.selectedBadge}>{selectedCreateProduct.name} · {selectedCreateProduct.productCode}</Text> : null}
+        {productMatches.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={[styles.product, productCode === item.productCode && styles.selected]}
+            onPress={() => {
+              if (!item.productCode) return;
+              setProductCode(item.productCode);
+              setProductSearch(`${item.name} • ${item.productCode}`);
+            }}
+          >
             <Text style={styles.name}>{item.name}</Text>
             <Text style={styles.meta}>{item.productCode}</Text>
           </TouchableOpacity>
         ))}
+        {productMatches.length === 0 && productSearch.trim() ? <Text style={styles.hint}>No matching catalog products found.</Text> : null}
+
         <Input testID="rfq-quantity" label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="decimal-pad" />
         <DeliveryPicker mode={deliveryMode} setMode={setDeliveryMode} />
         <Input testID="rfq-schedule" label="Pickup/delivery date and time" value={scheduledAt} onChangeText={setScheduledAt} placeholder="2026-09-01 10:00" />
-        <Button testID="save-rfq" title={`Submit ${product?.name || "RFQ"}`} onPress={saveCreate} loading={saving} disabled={!productCode} fullWidth />
+        <Button testID="save-rfq" title={`Submit ${selectedCreateProduct?.name || "RFQ"}`} onPress={saveCreate} loading={saving} disabled={!partnerId || !productCode || Number(quantity) <= 0} fullWidth />
       </AppModal>
 
       <AppModal testID="rfq-details-modal" visible={!!selected} onClose={closeDetails} title={selected ? partnerTitle(selected.partnerId) : "RFQ"} wide>
@@ -473,17 +734,10 @@ export default function AdminRfqs() {
               </View>
               <View style={styles.summaryRow}>
                 <SummaryCell label="Reward points" value={String(selected.rewardPoints || 0)} />
-                <SummaryCell
-                  label="Delivery"
-                  value={selected.deliveryMode === "storePickup" ? "Store pickup" : "Home delivery"}
-                />
+                <SummaryCell label="Delivery" value={selected.deliveryMode === "storePickup" ? "Store pickup" : "Home delivery"} />
               </View>
-              <Text style={styles.summaryMeta}>
-                RFQ {selected.id.slice(0, 8)} · {partnerSubtitle(selected.partnerId)}
-              </Text>
-              {selected.scheduledAt ? (
-                <Text style={styles.summaryMeta}>Scheduled: {selected.scheduledAt}</Text>
-              ) : null}
+              <Text style={styles.summaryMeta}>RFQ {selected.id.slice(0, 8)} · {partnerSubtitle(selected.partnerId)}</Text>
+              {selected.scheduledAt ? <Text style={styles.summaryMeta}>Scheduled: {selected.scheduledAt}</Text> : null}
             </View>
 
             <Text style={styles.sectionTitle}>Products ({editLines.length})</Text>
@@ -496,25 +750,14 @@ export default function AdminRfqs() {
                     ₹{formatMoney(line.unitPrice || 0)} each · line ₹{formatMoney((Number(line.quantity) || 0) * (line.unitPrice || 0))}
                   </Text>
                   {selected.status === "approved" ? (
-                    <Text
-                      style={[
-                        styles.meta,
-                        (stockByCode.get(line.productCode) ?? 0) < Number(line.quantity) ? styles.stockWarn : styles.stockOk,
-                      ]}
-                    >
+                    <Text style={[(stockByCode.get(line.productCode) ?? 0) < Number(line.quantity) ? styles.stockWarn : styles.stockOk, styles.meta]}>
                       In stock: {stockByCode.has(line.productCode) ? stockByCode.get(line.productCode) : "—"} · order qty {line.quantity}
                     </Text>
                   ) : null}
                 </View>
                 {canEditSelected ? (
                   <View style={styles.lineActions}>
-                    <Input
-                      testID={`rfq-line-qty-${index}`}
-                      value={line.quantity}
-                      onChangeText={(v) => setLineQty(index, v)}
-                      keyboardType="decimal-pad"
-                      style={styles.qtyInput}
-                    />
+                    <Input testID={`rfq-line-qty-${index}`} value={line.quantity} onChangeText={(v) => setLineQty(index, v)} keyboardType="decimal-pad" style={styles.qtyInput} />
                     <TouchableOpacity testID={`rfq-line-remove-${index}`} onPress={() => removeLine(index)} hitSlop={8}>
                       <Ionicons name="trash-outline" size={20} color={colors.error} />
                     </TouchableOpacity>
@@ -527,17 +770,8 @@ export default function AdminRfqs() {
 
             {canEditSelected ? (
               <View style={styles.addBlock}>
-                <Input
-                  testID="rfq-scan-code"
-                  label="Add product (scan or type code)"
-                  value={scanCode}
-                  onChangeText={setScanCode}
-                  placeholder="Product code"
-                  autoCapitalize="characters"
-                />
-                <Text style={styles.hint}>
-                  {scanProduct ? `${scanProduct.name} — ready to add` : "Enter a catalog product code"}
-                </Text>
+                <Input testID="rfq-scan-code" label="Add product (scan or type code)" value={scanCode} onChangeText={setScanCode} placeholder="Product code" autoCapitalize="characters" />
+                <Text style={styles.hint}>{scanProduct ? `${scanProduct.name} — ready to add` : "Enter a catalog product code"}</Text>
                 <Button testID="rfq-add-scanned" title="Add to order" onPress={addScannedLine} disabled={!scanProduct} size="sm" />
                 <Button testID="rfq-save-lines" title="Save changes" onPress={saveLineChanges} loading={saving} fullWidth />
               </View>
@@ -547,6 +781,7 @@ export default function AdminRfqs() {
               <View style={styles.actionBlock}>
                 <Text style={styles.sectionTitle}>Approval</Text>
                 <Input testID="rfq-discount" label="Special discount (%)" value={discount} onChangeText={setDiscount} keyboardType="decimal-pad" />
+                <Text style={styles.hint}>Estimated reward points after discount: {pendingRewardEstimate} pts</Text>
                 <DeliveryPicker mode={deliveryMode} setMode={setDeliveryMode} />
                 <Input testID="rfq-detail-schedule" label="Scheduled date and time" value={scheduledAt} onChangeText={setScheduledAt} />
                 <View style={styles.actions}>
@@ -559,34 +794,31 @@ export default function AdminRfqs() {
             {selected.status === "approved" ? (
               <View style={styles.actionBlock}>
                 <Text style={styles.sectionTitle}>Dispatch</Text>
-                <Text style={styles.hint}>
-                  Stock is reduced in catalog when you dispatch (same as Dispatch & Billing). RFQ moves to Dispatched and cannot be edited again.
-                </Text>
+                <Text style={styles.hint}>Stock is reduced in catalog when you dispatch (same as Dispatch & Billing). RFQ moves to Dispatched and cannot be edited again.</Text>
                 {dispatchStockIssues.length ? (
                   <Text style={styles.stockWarn}>{dispatchStockIssues.join(" · ")}</Text>
                 ) : (
                   <Text style={styles.stockOk}>Stock OK for all lines — ready to dispatch.</Text>
                 )}
-                <Button
-                  testID="dispatch-rfq-from-detail"
-                  title="Dispatch & deduct stock"
-                  icon="barcode-outline"
-                  onPress={dispatchSelected}
-                  loading={saving}
-                  disabled={dispatchStockIssues.length > 0}
-                  fullWidth
-                />
+                <Button testID="dispatch-rfq-from-detail" title="Dispatch & deduct stock" icon="barcode-outline" onPress={dispatchSelected} loading={saving} disabled={dispatchStockIssues.length > 0} fullWidth />
               </View>
             ) : null}
 
             {history.length ? (
               <>
                 <Text style={styles.sectionTitle}>History</Text>
-                {history.map((event, index) => (
-                  <Text key={`${event.at}-${index}`} style={styles.history}>
-                    {new Date(event.at).toLocaleString()} · {event.action} · {event.actor}
-                  </Text>
-                ))}
+                {history.map((event, index) => {
+                  const action = event.action ?? event.type ?? "updated";
+                  const actor = event.actor ?? event.actorName ?? "system";
+                  const at = event.at ?? event.createdAt ?? new Date().toISOString();
+                  const summary = formatHistorySummary(event);
+                  return (
+                    <View key={`${at}-${index}`} style={styles.historyBlock}>
+                      <Text style={styles.history}>{new Date(at).toLocaleString()} · {action} · {actor}</Text>
+                      {summary ? <Text style={styles.historySummary}>{summary}</Text> : null}
+                    </View>
+                  );
+                })}
               </>
             ) : null}
           </>
@@ -628,6 +860,13 @@ const styles = StyleSheet.create({
   controls: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   search: { marginBottom: spacing.sm },
   tabs: { flexDirection: "row", gap: spacing.sm, paddingBottom: spacing.sm },
+  filterRow: { marginTop: spacing.xs },
+  partnerFilters: { flexDirection: "row", gap: spacing.sm, paddingBottom: spacing.sm },
+  dateFilters: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
+  inlineInput: { flex: 1, marginBottom: 0 },
+  summaryBlock: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, padding: spacing.sm, marginTop: spacing.sm },
+  summaryTitle: { ...font.title, color: colors.textPrimary, marginBottom: spacing.xs },
+  summaryGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   list: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 40 },
   row: {
@@ -662,7 +901,9 @@ const styles = StyleSheet.create({
   delivery: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md, flexWrap: "wrap" },
   actions: { flexDirection: isWeb ? "row" : "column", gap: spacing.sm, marginTop: spacing.sm },
   sectionTitle: { ...font.title, color: colors.textPrimary, marginTop: spacing.md, marginBottom: spacing.sm },
-  history: { color: colors.textSecondary, fontSize: 11, marginBottom: 4 },
+  historyBlock: { marginBottom: spacing.sm },
+  history: { color: colors.textSecondary, fontSize: 11 },
+  historySummary: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
   hint: { color: colors.textSecondary, fontSize: 12, marginBottom: spacing.sm },
   stockOk: { color: colors.success, fontSize: 12, marginBottom: spacing.sm },
   stockWarn: { color: colors.error, fontSize: 12, marginBottom: spacing.sm },
@@ -697,4 +938,7 @@ const styles = StyleSheet.create({
   qtyReadonly: { fontSize: 16, fontWeight: "800", color: colors.textPrimary },
   addBlock: { marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
   actionBlock: { marginTop: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border },
+  selectedBadge: { color: colors.primary, fontWeight: "700", marginBottom: spacing.sm },
+  successMessage: { color: colors.success, backgroundColor: colors.successBg, padding: spacing.sm, borderRadius: radii.sm, marginHorizontal: spacing.lg, marginBottom: spacing.sm },
+  errorText: { color: colors.error, fontSize: 11, marginTop: spacing.xs },
 });
