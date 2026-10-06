@@ -6,8 +6,11 @@ import CategoriesPage from "./pages/CategoriesPage";
 import BrandsPage from "./pages/BrandsPage";
 import ProductTypesPage from "./pages/ProductTypesPage";
 import ProductClassesPage from "./pages/ProductClassesPage";
+import CatalogPage from "./pages/CatalogPage";
 import LoginPage from "./pages/LoginPage";
 import SubcategoriesPage from "./pages/SubcategoriesPage";
+import ProductGroupsPage from "./pages/ProductGroupsPage";
+import RacksPage from "./pages/RacksPage";
 
 export default function App() {
   return (
@@ -18,16 +21,16 @@ export default function App() {
         <Route path="/register" element={<EmptyPage title="Register" />} />
         <Route element={<AdminShell />}>
           <Route path="/dashboard" element={<EmptyPage title="Dashboard" />} />
-          <Route path="/catalog" element={<EmptyPage title="Products" />} />
+          <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/product-types" element={<ProductTypesPage />} />
           <Route path="/subcategories" element={<SubcategoriesPage />} />
           <Route path="/product-classes" element={<ProductClassesPage />} />
           <Route path="/brands" element={<BrandsPage />} />
-          <Route path="/product-groups" element={<EmptyPage title="Product groups" />} />
+          <Route path="/product-groups" element={<ProductGroupsPage />} />
           <Route path="/csv-import" element={<EmptyPage title="Spreadsheet imports" />} />
           <Route path="/import-products-batch" element={<EmptyPage title="Import products (batch sheet)" />} />
-          <Route path="/racks" element={<EmptyPage title="Racks" />} />
+          <Route path="/racks" element={<RacksPage />} />
           <Route path="/purchases" element={<EmptyPage title="Purchases" />} />
           <Route path="/inventory" element={<EmptyPage title="Inventory" />} />
           <Route path="/rfqs" element={<EmptyPage title="RFQs" />} />
