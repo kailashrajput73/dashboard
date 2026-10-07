@@ -340,13 +340,6 @@ export default function AdminDashboard() {
             onPress={() => router.push("/(admin)/csv-import")}
           />
           <ActionRow
-            testID="nav-money-config"
-            title="Money Configuration"
-            subtitle="Discounts, GST & visibility"
-            icon="cash-outline"
-            onPress={() => router.push("/(admin)/money-config")}
-          />
-          <ActionRow
             testID="nav-settings"
             title="Settings"
             subtitle="Show or hide Product type and Product class tabs"

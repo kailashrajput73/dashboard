@@ -11,7 +11,7 @@ This repo has three parts:
 Live API (Render): `https://python-api-6aft.onrender.com`  
 All JSON routes are under **`/api`**.
 
-**Partner / mobile frontend handoff:** [docs/MOBILE_APP_API_HANDOFF.md](docs/MOBILE_APP_API_HANDOFF.md) — upload columns, `GET /catalog` shape, RFQ & partner routes for another app or AI.
+**Partner / mobile API:** [docs/PARTNER-API.md](docs/PARTNER-API.md) — catalog, auth, RFQ, and rewards for the partner app.
 
 ---
 

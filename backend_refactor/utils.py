@@ -199,6 +199,26 @@ class PartnerReviewIn(BaseModel):
     rejectionReason: Optional[str] = None
 
 
+class ServiceRequestIn(BaseModel):
+    serviceType: str = Field(..., pattern="^(plumber|electrician)$")
+    customerName: str
+    customerPhone: str
+    description: str
+    address: str = ""
+    pincode: str = ""
+    city: str = ""
+    area: str = ""
+
+
+class ServiceRequestUpdateIn(BaseModel):
+    status: Optional[str] = Field(default=None, pattern="^(pending|in_progress|completed|cancelled)$")
+    recommendedName: Optional[str] = None
+    recommendedPhone: Optional[str] = None
+    adminNote: Optional[str] = None
+    actor: Optional[str] = "admin"
+    note: Optional[str] = None
+
+
 class TeamUserIn(BaseModel):
     name: str
     contactNumber: str
@@ -550,8 +570,12 @@ class AdminPasscodeIn(BaseModel):
 
 
 async def verify_admin_passcode(body: AdminPasscodeIn) -> bool:
-    user = await db.users.find_one({"role": "admin", "contactNumber": body.contactNumber.strip()})
-    if not user or not user.get("passcodeHash"):
+    contact_number = (body.contactNumber or "").strip()
+    user = await db.users.find_one({
+        "contactNumber": contact_number,
+        "role": {"$in": ["admin", "store_manager", "staff"]},
+    })
+    if not user or not user.get("passcodeHash") or user.get("isActive") is False:
         return False
     try:
         return bcrypt.checkpw(body.passcode.encode(), user["passcodeHash"].encode())
@@ -634,6 +658,9 @@ async def ensure_indexes() -> None:
         (db.rfqs, [("partnerId", 1), ("status", 1)], {"name": "rfqs_partner_status"}),
         (db.rfqs, [("status", 1), ("createdAt", -1)], {"name": "rfqs_status_created"}),
         (db.rfqs, [("createdAt", -1)], {"name": "rfqs_createdAt"}),
+        (db.service_requests, [("id", 1)], {"unique": True, "name": "service_requests_id_uq"}),
+        (db.service_requests, [("status", 1), ("serviceType", 1), ("createdAt", -1)], {"name": "service_requests_status_type_created"}),
+        (db.service_requests, [("createdAt", -1)], {"name": "service_requests_createdAt"}),
         (db.dispatches, [("createdAt", -1)], {"name": "dispatches_createdAt"}),
         (db.reward_ledger, [("requesterId", 1), ("createdAt", -1)], {"name": "reward_ledger_requester_created"}),
         (db.reward_ledger, [("requesterId", 1), ("type", 1)], {"name": "reward_ledger_requester_type"}),

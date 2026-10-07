@@ -15,6 +15,13 @@ Use these before a client demo or handoff. Each file is a **single release or fe
 | [SHEET-FORMAT.md](./SHEET-FORMAT.md) | **Final master Excel columns** (Type vs class, ROL, image_url) |
 | [2026-09-30-08-master-sheet-type-class-rol.md](./2026-09-30-08-master-sheet-type-class-rol.md) | Sheet column fix, ROL import, taxonomy mapping + re-import note |
 | [2026-09-30-09-product-form-gaps.md](./2026-09-30-09-product-form-gaps.md) | Product form: save ROL on master import, QR image, subcategory picker, Hindi and Gujarati names |
+| [2026-10-05-10-product-sow-export-and-billing-fields.md](./2026-10-05-10-product-sow-export-and-billing-fields.md) | Master-shaped catalog export and product form HSN/GST/package fields |
+| [2026-10-05-11-purchase-sow-ux-export-report.md](./2026-10-05-11-purchase-sow-ux-export-report.md) | Purchase web CSV export, searchable record form, bulk feedback, and date-filtered report |
+| [2026-10-05-12-partner-sow-admin-kyc-export.md](./2026-10-05-12-partner-sow-admin-kyc-export.md) | Partner admin detail, KYC review, direct create, manager filtering, and CSV export |
+| [2026-10-06-13-rfq-admin-sow-gap-closeout.md](./2026-10-06-13-rfq-admin-sow-gap-closeout.md) | RFQ admin list filters, filtered export, searchable create flow, and detail approval/dispatch gap closeout |
+| [2026-10-06-14-dispatch-sow-export-retail-rfq-ux.md](./2026-10-06-14-dispatch-sow-export-retail-rfq-ux.md) | Dispatch admin export, filtered report, multi-line retail billing, and RFQ dispatch UX cleanup |
+| [2026-10-06-15-inventory-sow-export-ui-polish.md](./2026-10-06-15-inventory-sow-export-ui-polish.md) | Inventory stock cards, low-stock warning hierarchy, export filtered views, and clearer in/out movement UX |
+| [2026-10-06-16-team-sow-and-demo-bug-sweep.md](./2026-10-06-16-team-sow-and-demo-bug-sweep.md) | Team SOW polish, teammate admin login, and the final demo bug sweep for rack assign, catalog export, money config, and secured delete discoverability |
 
 **Deploy reminder:** With `USE_CLOUD_PREVIEW = true` in `frontend/src/config/env.ts`, Render must run the same `backend/server.py` as local or new routes fail with 404.
 

@@ -91,6 +91,3 @@ credentials.json
 .credentials
 
 # Local refactor copy — do not push
-demo-notes/
-docs/   
-reward_system_design_spec.md

@@ -42,6 +42,7 @@ if __package__:
     from .routers.subcategories import router as subcategories_router
     from .routers.catalog import router as catalog_router
     from .routers.config_dashboard import router as config_dashboard_router
+    from .routers.service_requests import router as service_requests_router
     from .routers.system import router as system_router
 else:
     from utils import client, logger, ensure_indexes, ensure_default_categories
@@ -54,6 +55,7 @@ else:
     from routers.subcategories import router as subcategories_router
     from routers.catalog import router as catalog_router
     from routers.config_dashboard import router as config_dashboard_router
+    from routers.service_requests import router as service_requests_router
     from routers.system import router as system_router
 
 app = FastAPI(title="Quotation Generator API (Mirror)")
@@ -81,6 +83,7 @@ app.include_router(dispatch_inventory_router)
 app.include_router(subcategories_router)
 app.include_router(catalog_router)
 app.include_router(config_dashboard_router)
+app.include_router(service_requests_router)
 app.include_router(system_router)
 
 app.add_middleware(
