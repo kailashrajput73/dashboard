@@ -96,7 +96,7 @@ export function CatalogSpreadsheetImport(props: Props) {
     if (file) void readFile(file);
   }
 
-  async function submitImport(categoryMode = mode) {
+  async function submitImport(categoryMode = mode, includeExistingProductNotice = true) {
     if (!payload.length) return;
     setImporting(true);
     try {
@@ -106,9 +106,10 @@ export function CatalogSpreadsheetImport(props: Props) {
           categoryMode,
           overrideCategory: override.trim(),
         });
-        setResult(
-          `Imported ${response.inserted} new, updated ${response.updated}, skipped ${response.skipped}. Existing products kept their stock and prices.`,
-        );
+        const existingProductNotice = includeExistingProductNotice
+          ? " Existing products kept their stock and prices."
+          : "";
+        setResult(`Imported ${response.inserted} new, updated ${response.updated}, skipped ${response.skipped}.${existingProductNotice}`);
       } else if (props.kind === "pricing") {
         const response = await importCatalogPricing({ items: payload as PricingImportItem[] });
         const warning = response.warnings?.length
@@ -221,7 +222,7 @@ export function CatalogSpreadsheetImport(props: Props) {
           size="sm"
         />
         <Input label="Override category (optional)" value={override} onChangeText={setOverride} />
-        <Button title="Confirm import" onPress={() => { setModeOpen(false); void submitImport(mode); }} loading={importing} fullWidth />
+        <Button title="Confirm import" onPress={() => { setModeOpen(false); void submitImport(mode, false); }} loading={importing} fullWidth />
       </AppModal>
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
     </main>

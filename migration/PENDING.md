@@ -167,6 +167,73 @@ After rows 10b/10c connect the screens, use disposable `ZZ` products only and ve
 5. Import a valid `.xlsx` file and confirm the mapped rows match the equivalent CSV. Select `.xls` and confirm the existing rejection message. Do not install an XLSX package or change parser behavior.
 6. Confirm category-routing modes, including the override field, use the same payload and preserve the existing stock/prices rules for matched SKUs.
 
+### Row 10b: master and batch master imports (Built)
+
+Use disposable `ZZ` master rows and products. Do not edit existing real product data.
+
+1. Open Spreadsheet imports → Product master (full). Confirm title, subtitle, help text, exact master header, and Category routing options match Expo.
+2. Download `product-master-template.csv`. Confirm its exact header and BOM match `migration/SHEET-FORMAT.md`.
+3. Import a valid disposable full-master CSV with a new product. Confirm the preview, API result counts, mapped Type/class/Sub-Category, ROL, and image fields.
+4. Import a matching existing product row with changed descriptive fields. Confirm existing stock and prices remain unchanged.
+5. Open Category routing options, test each Expo mode and the optional override category, and confirm **Confirm import** uses the Expo success message.
+6. Open Subcategories → Import products (batch sheet). Confirm its batch title/help, same template, and absence of the full-master category-routing control. Import a disposable batch and confirm the normal **Import now** result text and existing stock/prices rule.
+7. Confirm routes `/import-products` and `/import-products-batch` load directly and return to their calling page with Back.
+
+### Row 10c: price and stock imports (Built)
+
+Use disposable `ZZ` products only. Verify backend results against the current Expo app.
+
+1. From Spreadsheet imports, open Prices & discount. Confirm the title/help and the `Product Code,MRP (Rs) per nos,discount,Selling Price` template.
+2. Import a valid price row using each supported value path: MRP, discount, selling price, and a decimal discount such as `0.49`. Confirm empty Selling Price is calculated from MRP and discount and the displayed counts/warnings match Expo.
+3. Import a full master-shaped CSV through Prices & discount. Confirm only price columns are used. Test a row without Product Code and a row with no price fields; confirm invalid counts and the existing no-valid-rows message when applicable.
+4. From Spreadsheet imports, open Stock quantities. Confirm the title/help and `Product Code,qty` template; verify the `stock_qty` header alias is accepted.
+5. Import a disposable stock row and confirm the API sets the absolute on-hand quantity. Try rows with a missing Product Code or missing/unparseable quantity; confirm invalid counts and the existing no-valid-rows message when applicable.
+6. Confirm both routes load directly, return with Back, and the hub links target `/import-prices` and `/import-stock`.
+
+### Row 11: purchases (Built)
+
+Run in `web/`: `npm run build` and `npm run lint`. Both passed; lint retains five pre-existing warnings documented in the dev note.
+
+Use only disposable `ZZ` products and racks. Do not receive test stock against real products.
+
+1. Open Purchases. Confirm loading, history rows, empty state, report summary, template, bulk CSV, record-purchase, and export controls.
+2. Record one purchase for a disposable product with no rack. Confirm it appears in history and stock is updated.
+3. Record a purchase assigned to a disposable rack and valid slot. Try invalid quantity, list price, discount, missing product code, and rack without a slot; confirm the same validation messages as Expo.
+4. Search product by name, code, and brand. Confirm only products with a product code are selectable and list price defaults to `lastPurchasePrice` or standard rate, matching Expo.
+5. Upload a valid multi-line CSV using `productCode,quantity,listPrice,purchaseDiscount,rackId,rackSlot`. Confirm success count and stock/rack effects. Test a quoted field, missing required columns/values, negative quantity/price/discount, and rack ID without slot; confirm Expo parser behavior and row messages.
+6. Filter history with From and To dates. Test invalid dates and a start date after the end date; confirm Expo validation text and export disabled state. Confirm transaction, line, quantity, and list-value totals match visible filtered history.
+7. Export filtered history as `purchases.csv`. Confirm exact headers `productCode,quantity,listPrice,purchaseDiscount,rackId,rackSlot`, BOM, quoting, and data scope match Expo's web export.
+8. Download the purchase template and confirm filename `purchase-lines-template.csv` and exact six-column header.
+
+### Row 12: inventory (Built)
+
+Run in `web/`: `npm run build` and `npm run lint`. Both passed; lint retains five pre-existing warnings documented in the dev note.
+
+Use products with known stock, reorder level, unit cost, and rack assignment. Do not alter real catalog data.
+
+1. Open Inventory. Confirm loading, empty/error states, title/count, search, the three tabs, and report summary.
+2. Search current stock by name, product code, category, and brand. Confirm the rows, count, units, valuation, and low-stock count update. Confirm rows at or below ROL are marked Low stock.
+3. Open Low stock. Confirm only the API's low-stock result appears and search narrows those results.
+4. Open Stock in/out. Confirm movements show IN/OUT, product, source reference label, reference date, and signed quantity. Search by product name/code/reference ID.
+5. Set From and To dates and confirm movement rows and Lines/In/Out/Net totals match Expo. Test invalid dates and reversed range; confirm exact Expo warnings and existing filtered/export behavior.
+6. Export Current stock and Low stock. Confirm `inventory-YYYY-MM-DD.csv`, BOM, quoted cells, exact 10 headers `productCode,name,category,brand,stock,reorderLevel,unitCost,valuation,rackName,rackSlot`, and only visible filtered rows.
+7. Export Stock in/out. Confirm `inventory-moves-YYYY-MM-DD.csv`, BOM, quoted cells, exact six headers `type,productCode,productName,quantity,referenceId,at`, and only visible filtered movements.
+8. Confirm all three API calls succeed and the UI error displays backend validation details as Expo does.
+
+### Row 13: partners (Built)
+
+Run in `web/`: `npm run build` and `npm run lint`. Both passed; lint retains five pre-existing warnings documented in the dev note.
+
+Use disposable partners whose names start with `ZZ`. Do not change real partner records or review real KYC.
+
+1. Open Partners. Confirm initial list, count, loading/empty/error states, search, status filters, manager filter, Add partner, and export controls.
+2. Search a disposable partner by name, phone, pincode, city, and area. Confirm status and manager filters combine with search, and manager choices are derived from all partner data.
+3. Open a disposable partner. Confirm business/contact/location, KYC/app/login details, reward balance, performance, documents, KYC history, reward passbook, and purchase history render from detail/reward responses. Try an HTTP(S) document link and a non-URL document path.
+4. Create a disposable partner with all fields and multiple documents; confirm it is approved automatically, appears under Approved with manager/search filters reset, opens details, and states that mobile credentials are not set. Try blank name and blank phone; confirm `Partner name and phone are required.`
+5. On a disposable pending partner, toggle Location verified and approve. Confirm the returned status and KYC history update. On another disposable pending partner, try Reject without a reason, then with a reason; confirm rejection is blocked without one and the reason is recorded after rejection.
+6. Export after applying search/status/manager filters. Confirm `partners.csv`, UTF-8 BOM, every cell quoted with embedded quotes doubled, exact 20 columns `id,name,phone,businessName,address,pincode,city,area,salesManager,kycStatus,appActive,locationVerified,rewardBalance,rfqCount,approvedRfqCount,approvedRfqValue,registeredVia,lastAppLoginAt,loginCount,createdAt`, and only filtered rows.
+7. Confirm list requests send `search`, `kyc_status`, and `sales_manager` as Expo does; detail, create, KYC review, and rewards calls succeed against the current API.
+
 ## Decisions open
 
 - Row 6: Expo's class purge filters the stored product class. A legacy product shown under a class only through name inference may not be deleted by it. Compare with a real example.

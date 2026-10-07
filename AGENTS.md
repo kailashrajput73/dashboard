@@ -5,10 +5,10 @@ Branch: `web-migration-reactnative-to-react` only.
 
 ## Start of every chat
 1. Read `migration/STATUS.md`, then `migration/SOW-STATUS.md`.
-2. Do ONLY the row the user names. If none is named, ask. Do not start migrating on your own.
+2. Do ONLY the row(s) the user names. If none is named, ask. Do not start migrating on your own.
 
 ## Rules
-- One row, then STOP. Never continue to the next row.
+- Do only the row(s) the user names. If the user names several rows, do them in the order given, then STOP after the last one. Never go beyond the named rows.
 - Move what the Expo app already does. No new features, no rule changes, no API changes.
 - Do not touch the backend. Keep Expo in `frontend/` working.
 - Find the old code through `migration/INVENTORY.md`.

@@ -47,7 +47,30 @@ export type Rfq = { id: string; partnerId: string; lines: RfqLine[]; status: str
 export type Dispatch = { id: string; sourceRfqId?: string; customerName?: string; customerPhone?: string; lines: RfqLine[]; createdAt: string };
 export type InventoryRow = { productId: string; productCode?: string; name: string; category?: string; brand?: string; stock: number; reorderLevel: number; unitCost: number; valuation: number; rackName?: string; rackSlot?: string };
 export type InventoryTransaction = { type: "in" | "out"; referenceId: string; productCode: string; productName: string; quantity: number; at: string };
-export type Partner = { id: string; name: string; phone: string; address?: string; businessName?: string; pincode?: string; city?: string; area?: string; salesManager?: string; documents: string[]; kycStatus: "pending" | "approved" | "rejected"; locationVerified: boolean; appActive?: boolean; rewardBalance?: number; rfqCount?: number; salesPerformance?: { approvedCount: number; approvedValue: number }; registeredVia?: string; lastAppLoginAt?: string; loginCount?: number; createdAt?: string };
+export type PartnerKycHistoryEntry = {
+  status: "pending" | "approved" | "rejected" | string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  locationVerified?: boolean;
+  rejectionReason?: string | null;
+};
+export type PartnerPurchaseHistoryEntry = {
+  id?: string;
+  createdAt?: string;
+  lines?: { productCode?: string; productName?: string; quantity?: number }[];
+};
+export type Partner = { id: string; name: string; phone: string; address?: string; businessName?: string; pincode?: string; city?: string; area?: string; salesManager?: string; documents: string[]; kycStatus: "pending" | "approved" | "rejected"; locationVerified: boolean; appActive?: boolean; rejectionReason?: string | null; reviewedBy?: string; reviewedAt?: string; approvedBy?: string; approvedAt?: string; rewardBalance?: number; rfqCount?: number; salesPerformance?: { approvedCount: number; approvedValue: number }; kycHistory?: PartnerKycHistoryEntry[]; purchaseHistory?: PartnerPurchaseHistoryEntry[]; registeredVia?: string; lastAppLoginAt?: string; loginCount?: number; createdAt?: string };
+export type PartnerAdminCreate = {
+  name: string;
+  phone: string;
+  address: string;
+  businessName: string;
+  pincode: string;
+  city: string;
+  area: string;
+  salesManager: string;
+  documents: string[];
+};
 export type RewardWallet = { balance: number; entries: { id: string; requesterId: string; quotationId: string; points: number; type: string; createdAt: string }[] };
 export type TeamUser = { id: string; name: string; contactNumber: string; role: "admin" | "store_manager" | "staff"; permissions: string[]; isActive: boolean; createdAt?: string };
 
@@ -263,6 +286,8 @@ export function listLowStock() { return apiRequest<InventoryRow[]>("/inventory/l
 export function listInventoryTransactions() { return apiRequest<InventoryTransaction[]>("/inventory/transactions"); }
 export function registerPartner(body: Omit<Partner, "id" | "kycStatus" | "locationVerified" | "rewardBalance" | "rfqCount">) { return apiRequest<Partner>("/partners/register", { method: "POST", body }); }
 export function listPartners(params?: { search?: string; kyc_status?: string; sales_manager?: string }) { return apiRequest<Partner[]>("/partners", { query: params }); }
+export function getPartner(id: string) { return apiRequest<Partner>(`/partners/${id}`); }
+export function createPartnerAdmin(body: PartnerAdminCreate) { return apiRequest<Partner>("/partners", { method: "POST", body }); }
 export function reviewPartnerKyc(id: string, body: { approved: boolean; locationVerified: boolean; rejectionReason?: string }) { return apiRequest<Partner>(`/partners/${id}/kyc`, { method: "PUT", body }); }
 export function getPartnerRewards(id: string) { return apiRequest<RewardWallet>(`/partners/${id}/rewards`); }
 export function listTeamUsers() { return apiRequest<TeamUser[]>("/team/users"); }

@@ -1,6 +1,6 @@
 # Migration status
 
-Every migration chat starts here. Do the first row that is not Done. One row, then stop.
+Every migration chat starts here. Do only the row(s) the user names. If the user names several rows, do them in the order given, then STOP after the last one. Never go beyond the named rows.
 
 Branch: `web-migration-reactnative-to-react` only.
 
@@ -26,6 +26,7 @@ If a row is too big for one go, the agent says so and proposes a split. It does 
 
 - **Dev note** `migration/dev/YYYY-MM-DD-NN-name.md`: what this row planned, what was built, old file → new file, how it works, API calls used, what differs from Expo, how to test, what is left.
 - **Admin note** `migration/admin/<screen>.md`: for people using the dashboard. What the screen is for, how to do each task, what each field means, what cannot be undone. Later rows for the same screen extend the same file.
+
 
 Statuses: Not started → Built → Done.
 
@@ -55,11 +56,11 @@ Statuses: Not started → Built → Done.
 | 8 | Product groups | Built | [dev/2026-10-06-8-product-groups.md](dev/2026-10-06-8-product-groups.md) |
 | 9 | Racks | Built | [dev/2026-10-06-9-racks.md](dev/2026-10-06-9-racks.md) |
 | 10a | Spreadsheet imports: shared CSV/xlsx reader, templates, import component. Do not change sheet column rules. | Built | [dev/2026-10-07-10a-spreadsheet-import-foundation.md](dev/2026-10-07-10a-spreadsheet-import-foundation.md) |
-| 10b | Spreadsheet imports: master sheet and batch master | Not started | |
-| 10c | Spreadsheet imports: prices and stock | Not started | |
-| 11 | Purchases (entry, CSV upload, history) | Not started | |
-| 12 | Inventory | Not started | |
-| 13 | Partners (list, KYC approve and reject, rewards) | Not started | |
+| 10b | Spreadsheet imports: master sheet and batch master | Built | [dev/2026-10-07-10b-master-import.md](dev/2026-10-07-10b-master-import.md) |
+| 10c | Spreadsheet imports: prices and stock | Built | [dev/2026-10-07-10c-price-stock-imports.md](dev/2026-10-07-10c-price-stock-imports.md) |
+| 11 | Purchases (entry, CSV upload, history) | Built | [dev/2026-10-07-11-purchases.md](dev/2026-10-07-11-purchases.md) |
+| 12 | Inventory | Built | [dev/2026-10-07-12-inventory.md](dev/2026-10-07-12-inventory.md) |
+| 13 | Partners (list, KYC approve and reject, rewards) | Built | [dev/2026-10-07-13-partners.md](dev/2026-10-07-13-partners.md) |
 | 14a | RFQs: list, filters, search, CSV | Not started | |
 | 14b | RFQs: create, edit lines | Not started | |
 | 14c | RFQs: approve, reject, history, move to dispatch | Not started | |
@@ -72,21 +73,24 @@ Statuses: Not started → Built → Done.
 | 21a | Check every Expo screen exists in `web/`. List anything missed. | Not started | |
 | 21b | Production build and deploy | Not started | |
 | 21c | Remove Expo from `frontend/`, only after every screen is checked | Not started | |
+
+---
+
 # React migration — status pointer
+---
 
 **Updated:** 2026-10-06  
 **Purpose:** When you checkout `web-migration-reactnative-to-react` (or latest commit owner names), read this first, then the delta sections in the two inventory files.
 
----
 
 ## Read order for migration agent
 
 1. **`migration/STATUS.md`** (this file) — branch, what’s done, what’s next  
 2. **`docs/migration/INVENTORY.md`** — Expo baseline (2026-10-01) + **§ Migration delta (2026-10-06)** at top  
 3. **`docs/BACKEND_INVENTORY.md`** — API/DB baseline (2026-10-04) + **§ Changelog since 2026-10-04** at top  
+---
 4. **`migration/bug_fix/HANDOFF-READY.md`** — Expo admin feature-complete list (do not re-build in React until ported)
 
----
 
 ## Branches (repo)
 
@@ -94,20 +98,20 @@ Statuses: Not started → Built → Done.
 |--------|------|
 | `restore-brand-imports` (typical feature work) | Expo SOW + `backend_refactor` fixes through 2026-10-06 |
 | `web-migration-reactnative-to-react` | Vite/React admin shell; port screens one phase at a time |
+---
 
 **Rule:** Expo remains source of truth for behavior until a screen is ported and accepted on `web/`.
 
----
 
 ## Expo admin (source) — 2026-10-06
 
 **Code-complete** for SOW admin modules; owner verify pending (`migration/bug_fix/OWNER-SIGNOFF.md`).
 
 **Not in Expo repo:** partner customer mobile UI, Firebase customer auth, Dashboard §9 custom analytics hub.
+---
 
 **React (`web/`):** Check branch — likely login/shell only or empty; port using **Suggested phase order** in `INVENTORY.md` (bottom of file).
 
----
 
 ## Next migration agent actions
 
@@ -116,8 +120,8 @@ Statuses: Not started → Built → Done.
 3. Open `migration/SOW-STATUS.md` on that branch if present; else use delta + phase order.  
 4. Port **one screen per PR/commit** (categories → … → service-requests last).  
 5. Do **not** change import rules or `backend_refactor` contracts while migrating UI.
-
 ---
+
 
 ## Changelog index (Expo + API)
 
@@ -129,7 +133,6 @@ Statuses: Not started → Built → Done.
 | 2026-10-06 | RFQ, Dispatch, Inventory UI, Team + login, service requests | demo-notes / HANDOFF-READY |
 | 2026-10-06 | Backend delta | `BACKEND_INVENTORY.md` changelog (19th collection, +4 routes, login/rack fixes) |
 
----
 
 ## Owner handoff (same week)
 

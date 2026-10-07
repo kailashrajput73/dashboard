@@ -12,6 +12,10 @@ import SubcategoriesPage from "./pages/SubcategoriesPage";
 import ProductGroupsPage from "./pages/ProductGroupsPage";
 import RacksPage from "./pages/RacksPage";
 import SpreadsheetImportsPage from "./pages/SpreadsheetImportsPage";
+import CatalogImportPage from "./pages/CatalogImportPage";
+import PurchasesPage from "./pages/PurchasesPage";
+import InventoryPage from "./pages/InventoryPage";
+import PartnersPage from "./pages/PartnersPage";
 
 export default function App() {
   return (
@@ -30,12 +34,15 @@ export default function App() {
           <Route path="/brands" element={<BrandsPage />} />
           <Route path="/product-groups" element={<ProductGroupsPage />} />
           <Route path="/csv-import" element={<SpreadsheetImportsPage />} />
-          <Route path="/import-products-batch" element={<EmptyPage title="Import products (batch sheet)" />} />
+          <Route path="/import-products" element={<CatalogImportPage kind="master" />} />
+          <Route path="/import-products-batch" element={<CatalogImportPage kind="master" batch />} />
+          <Route path="/import-prices" element={<CatalogImportPage kind="pricing" />} />
+          <Route path="/import-stock" element={<CatalogImportPage kind="stock" />} />
           <Route path="/racks" element={<RacksPage />} />
-          <Route path="/purchases" element={<EmptyPage title="Purchases" />} />
-          <Route path="/inventory" element={<EmptyPage title="Inventory" />} />
+          <Route path="/purchases" element={<PurchasesPage />} />
+          <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/rfqs" element={<EmptyPage title="RFQs" />} />
-          <Route path="/partners" element={<EmptyPage title="Partners" />} />
+          <Route path="/partners" element={<PartnersPage />} />
           <Route path="/dispatches" element={<EmptyPage title="Dispatch" />} />
           <Route path="/money-config" element={<EmptyPage title="Money config" />} />
           <Route path="/settings" element={<EmptyPage title="Settings" />} />

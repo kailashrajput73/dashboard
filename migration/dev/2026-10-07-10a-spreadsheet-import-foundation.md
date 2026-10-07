@@ -41,15 +41,15 @@ Compared current Expo and web with `diff -u` for the corresponding 10a files.
 - Badge text uses hyphens in web where Expo uses em dashes; the loading label uses `Reading...` instead of `Reading…`. These are existing presentation/text differences and were not changed.
 - Expo's direct component includes the master/pricing/stock parsing and API branches. Web retains those branches with explicit import payload types. Error handling, user-visible parse validation messages, result text apart from the noted category-confirmation wording, and endpoint calls remain otherwise the same.
 
-The web `App.tsx` currently registers only the batch-import placeholder route; the component is not mounted by the app router yet. Master/batch/pricing/stock pages and reachable manual tests belong to rows 10b/10c, not this shared-foundation row.
+At completion of row 10a, the shared component was not yet mounted by the router. Rows 10b/10c have since connected `/import-products`, `/import-products-batch`, `/import-prices`, and `/import-stock` to it. Manual import checks for those routes remain under their respective rows in `migration/PENDING.md`.
 
 ## How to test
 
 - Run `npm run build` and `npm run lint` in `web/` (both passed for this row).
-- Perform the manual CSV/XLSX, template, and import checks listed under Row 10a in `migration/PENDING.md` after rows 10b/10c make the importer reachable.
+- Perform the manual CSV/XLSX, template, and import checks listed under Row 10a in `migration/PENDING.md` through the now-registered row 10b/10c pages.
 
 ## Left
 
 - No import policy or sheet-column changes.
-- Manual behavior checks wait for the import routes in rows 10b/10c.
+- Manual behavior checks remain pending for the registered row 10b/10c import routes.
 - Five non-blocking lint warnings remain as listed above.

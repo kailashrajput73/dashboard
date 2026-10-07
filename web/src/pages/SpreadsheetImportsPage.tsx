@@ -6,22 +6,22 @@ import { colors, font, spacing } from "../theme";
 const imports = [
   {
     path: "/import-products",
-    title: "1 - Product master (full)",
-    description: "Categories, brand, code, size, image - no prices or stock",
+    title: "1 — Product master (full)",
+    description: "Categories, brand, code, size, image — no prices or stock",
     icon: "cube-outline" as const,
     testID: "nav-import-products",
   },
   {
     path: "/import-prices",
-    title: "2 - Prices & discount",
-    description: "product_code, MRP, discount % - merge only",
+    title: "2 — Prices & discount",
+    description: "product_code, MRP, discount % — merge only",
     icon: "pricetag-outline" as const,
     testID: "nav-import-prices",
   },
   {
     path: "/import-stock",
-    title: "3 - Stock quantities",
-    description: "product_code + qty - or use Purchases for goods in",
+    title: "3 — Stock quantities",
+    description: "product_code + qty — or use Purchases for goods in",
     icon: "bar-chart-outline" as const,
     testID: "nav-import-stock",
   },
@@ -34,7 +34,7 @@ export default function SpreadsheetImportsPage() {
     <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
       <Header
         title="Spreadsheet imports"
-        subtitle="Three separate uploads - merge by product_code"
+        subtitle="Three separate uploads — merge by product_code"
         onBack={() => navigate(-1)}
       />
       <div style={{ maxWidth: 820, margin: "0 auto", padding: spacing.lg }}>

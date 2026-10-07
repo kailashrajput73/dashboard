@@ -2,7 +2,7 @@
 
 ## Availability
 
-The React app's spreadsheet import pages are not connected to routes yet. This row supplies the shared browser CSV/XLSX reader, templates, and import component; the full master and batch-master pages are covered by row 10b, and price/stock pages by row 10c.
+The full master import is available from Spreadsheet imports. The batch master import is available from Subcategories → Import products (batch sheet). Prices and stock imports are covered by row 10c.
 
 ## File types
 
@@ -17,3 +17,11 @@ The template files keep the existing Expo names and headers:
 - Stock uses `Product Code, qty`.
 
 Do not rename, reorder, or reinterpret columns. On master import, existing products keep their stock and prices; use the price or stock import for those updates.
+
+## Prices
+
+Open **Prices & discount** from Spreadsheet imports. The template columns are `Product Code, MRP (Rs) per nos, discount, Selling Price`. Product Code is required. The importer also accepts the same full client master sheet and uses only its price fields. A decimal discount such as `0.49` means 49%. If Selling Price is blank, it is calculated from MRP and discount. Price updates are sent to the existing price-import API.
+
+## Stock quantities
+
+Open **Stock quantities** from Spreadsheet imports. The template columns are `Product Code, qty`; `stock_qty` is also accepted. This import sets the absolute on-hand quantity, so use Purchases for incoming supplier goods. Stock updates are sent to the existing stock-import API.
