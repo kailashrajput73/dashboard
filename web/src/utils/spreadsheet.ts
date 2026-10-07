@@ -1,4 +1,4 @@
-import { normalizeHeader, tableToRowRecords, type CsvParseResult } from "./csv";
+import { parseCsvBytes, tableToRowRecords, type CsvParseResult } from "./csv";
 
 const LOCAL_FILE = 0x04034b50;
 const CENTRAL_DIR = 0x02014b50;
@@ -18,7 +18,7 @@ function u32(bytes: Uint8Array, offset: number) {
   );
 }
 
-async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
+async function inflateRaw(data: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
   if (typeof DecompressionStream === "undefined") {
     throw new Error("This browser cannot read Excel files. Export CSV (UTF-8) and try again.");
   }
@@ -34,8 +34,8 @@ function findEocd(bytes: Uint8Array): number {
   return -1;
 }
 
-async function unzip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> {
-  const files = new Map<string, Uint8Array>();
+async function unzip(bytes: Uint8Array<ArrayBuffer>): Promise<Map<string, Uint8Array<ArrayBuffer>>> {
+  const files = new Map<string, Uint8Array<ArrayBuffer>>();
   const eocd = findEocd(bytes);
   if (eocd < 0) throw new Error("Could not read the Excel workbook.");
   let offset = u32(bytes, eocd + 16);
@@ -73,7 +73,7 @@ function localName(node: Element) {
   return node.localName || node.tagName.replace(/^.*:/, "");
 }
 
-function descendants(root: ParentNode, name: string): Element[] {
+function descendants(root: Document | Element, name: string): Element[] {
   return Array.from(root.getElementsByTagName("*")).filter(
     (el) => el instanceof Element && localName(el) === name,
   ) as Element[];
@@ -140,7 +140,7 @@ function sheetPath(files: Map<string, Uint8Array>): string | null {
   return null;
 }
 
-async function parseXlsxBytes(bytes: Uint8Array): Promise<CsvParseResult> {
+async function parseXlsxBytes(bytes: Uint8Array<ArrayBuffer>): Promise<CsvParseResult> {
   if (typeof DOMParser === "undefined") {
     return { ok: false, error: "Excel import needs a web browser. Export CSV (UTF-8) if you are on a phone." };
   }
@@ -166,7 +166,7 @@ async function parseXlsxBytes(bytes: Uint8Array): Promise<CsvParseResult> {
   }
 }
 
-export async function parseSpreadsheetBytes(bytes: Uint8Array, fileName = ""): Promise<CsvParseResult> {
+export async function parseSpreadsheetBytes(bytes: Uint8Array<ArrayBuffer>, fileName = ""): Promise<CsvParseResult> {
   const lower = fileName.toLowerCase();
   const isZip = bytes.length >= 4 && bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04;
   const isXls =

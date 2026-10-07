@@ -383,9 +383,9 @@ export function rowsToItems(rows: Record<string, string>[]): {
       category: category || undefined,
       unit,
       standardRate: rate,
-      type: clean(tax.type) || clean(type),
-      subcategory: clean(tax.subcategory) || clean(subcategory),
-      productClass: clean(tax.productClass) || clean(productClass) || inferProductClass({ name, productName, productClass }),
+      type: clean(tax.type as string) || clean(type),
+      subcategory: clean(tax.subcategory as string) || clean(subcategory),
+      productClass: clean(tax.productClass as string) || clean(productClass) || inferProductClass({ name, productName, productClass }),
       productGroup: clean(productGroup),
       brand: clean(cell(r, "brand")),
       size: sizeParsed.size,
@@ -472,10 +472,10 @@ function masterRowFields(r: Record<string, string>, name: string, productName: s
     productName: productName || name,
     category: clean(cell(r, "category")),
     unit: cell(r, "unit", "uom") || "pcs",
-    type: clean(tax.type) || clean(typeRaw),
-    subcategory: clean(tax.subcategory) || clean(subRaw),
+    type: clean(tax.type as string) || clean(typeRaw),
+    subcategory: clean(tax.subcategory as string) || clean(subRaw),
     productClass:
-      clean(tax.productClass) ||
+      clean(tax.productClass as string) ||
       clean(classRaw) ||
       inferProductClass({ name, productName, productClass: classRaw }),
     productGroup: clean(cell(r, "product_group", "productgroup")),

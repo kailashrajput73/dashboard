@@ -154,6 +154,19 @@ Use disposable `ZZ` racks and products. Do not delete or alter real catalog data
 5. Select an occupied slot and assign another disposable product. Confirm the displayed assignment refreshes.
 6. Try deleting the populated `ZZ` rack. Confirm the API rejects deletion and the rack remains. Delete an empty `ZZ` rack and confirm it disappears without a confirmation dialog.
 
+### Row 10a: spreadsheet import foundation (Built)
+
+Run in `web/`: `npm run build` and `npm run lint`. Both passed at build time; lint has five non-blocking warnings documented in the dev note.
+
+After rows 10b/10c connect the screens, use disposable `ZZ` products only and verify the shared importer:
+
+1. Download the full-master template. Confirm its exact 19-column header matches `migration/SHEET-FORMAT.md`, it has a UTF-8 BOM, and the file name is `product-master-template.csv`.
+2. Download pricing and stock templates. Confirm the headers are `Product Code,MRP (Rs) per nos,discount,Selling Price` and `Product Code,qty`, with filenames `product-prices-template.csv` and `stock-qty-template.csv`.
+3. Import valid CSVs for master, pricing, and stock through their respective pages. Confirm preview counts, invalid-row counts, result summaries, and API effects match Expo.
+4. Verify CSV delimiter, quoted cells, UTF-8/BOM and UTF-16 decoding, header normalization/matching, and validation behavior against Expo. Include a semicolon-delimited file and one with quoted delimiters; do not add new aliases or change messages.
+5. Import a valid `.xlsx` file and confirm the mapped rows match the equivalent CSV. Select `.xls` and confirm the existing rejection message. Do not install an XLSX package or change parser behavior.
+6. Confirm category-routing modes, including the override field, use the same payload and preserve the existing stock/prices rules for matched SKUs.
+
 ## Decisions open
 
 - Row 6: Expo's class purge filters the stored product class. A legacy product shown under a class only through name inference may not be deleted by it. Compare with a real example.

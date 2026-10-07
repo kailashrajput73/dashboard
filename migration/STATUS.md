@@ -54,7 +54,7 @@ Statuses: Not started → Built → Done.
 | 7e | Catalog: CSV download (the current short one), delete, secured delete | Built | [dev/2026-10-06-7e-catalog-csv-delete.md](dev/2026-10-06-7e-catalog-csv-delete.md) |
 | 8 | Product groups | Built | [dev/2026-10-06-8-product-groups.md](dev/2026-10-06-8-product-groups.md) |
 | 9 | Racks | Built | [dev/2026-10-06-9-racks.md](dev/2026-10-06-9-racks.md) |
-| 10a | Spreadsheet imports: shared CSV/xlsx reader, templates, import component. Do not change sheet column rules. | Not started | |
+| 10a | Spreadsheet imports: shared CSV/xlsx reader, templates, import component. Do not change sheet column rules. | Built | [dev/2026-10-07-10a-spreadsheet-import-foundation.md](dev/2026-10-07-10a-spreadsheet-import-foundation.md) |
 | 10b | Spreadsheet imports: master sheet and batch master | Not started | |
 | 10c | Spreadsheet imports: prices and stock | Not started | |
 | 11 | Purchases (entry, CSV upload, history) | Not started | |
