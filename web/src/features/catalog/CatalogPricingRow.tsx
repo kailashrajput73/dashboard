@@ -15,6 +15,7 @@ import { discountFromMrpSelling, sellingFromMrpDiscount } from "../../utils/pric
 export function CatalogPricingRow(props: {
   item: CatalogItem;
   onEdit: () => void;
+  onDelete: () => void;
   onSaved: () => Promise<void>;
   onError: (message: string) => void;
 }) {
@@ -108,6 +109,9 @@ export function CatalogPricingRow(props: {
         <Button title={saving ? "Saving" : dirty ? "Save" : "Saved"} size="sm" onPress={() => void save()} loading={saving} disabled={!dirty} testID={`save-price-${item.id}`} />
         <button type="button" onClick={props.onEdit} aria-label={`Edit ${item.name}`} data-testid={`edit-item-${item.id}`} style={editButtonStyle}>
           <Icon name="create-outline" size={18} color={colors.primary} />
+        </button>
+        <button type="button" onClick={props.onDelete} aria-label={`Delete ${item.name}`} title="Delete product" data-testid={`delete-item-${item.id}`} style={editButtonStyle}>
+          <Icon name="trash-outline" size={18} color={colors.error} />
         </button>
       </div>
     </div>

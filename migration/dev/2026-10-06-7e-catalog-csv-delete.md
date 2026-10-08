@@ -12,21 +12,21 @@ Port Expo Web's short filtered catalog CSV export exactly, download it as the re
 
 ## CSV behavior
 
-The export remains Expo's current short CSV, not a master export. It exports only the currently filtered `listed` items. The header is exactly `productCode,name,category,type,subcategory,class,brand,unit,mrp,sellingPrice,discount,stock,imageUrl`. Every data cell is quoted; embedded quotes are doubled. Rows use line feeds; there is no BOM or trailing newline. An image URL is represented as `(url)`, otherwise the field is empty. The browser filename is exactly `catalog.csv`.
+The initial export matched Expo's former short CSV. The 2026-10-08 sync-audit follow-up now exports the filtered `listed` items using `MASTER_TEMPLATE_HEADERS`: `Category,Type,Sub-Category,class,Brand,Product Name,Size (cm),Length,Product Code,HSN Code,GST,UoM,MRP (Rs) per nos,discount,Selling Price,Pack Size,MRP Pkg,ROL,image_url`. It has a UTF-8 BOM, conditionally quotes cells and doubles embedded quotes, uses the actual HTTP(S) image URL when present, and keeps the browser filename `catalog.csv`.
 
 ## Product delete decision
 
-Expo Web uses the web table branch with inline pricing inputs and an edit action; table rows do not open the native action sheet. The QR is an image, not an action. The **Delete Item** button and secured delete modal exist only in Expo's native list/action-sheet branch. No product delete UI or API call was added to web. PENDING records **product delete: decision needed** in case the expected browser behavior should differ.
+Expo Web uses the web table branch with inline pricing inputs and an edit action; table rows do not open the native action sheet. The QR is an image, not an action. The Expo native list/action-sheet branch provides **Delete Item** with passcode confirmation and calls `POST /catalog/{id}/delete-secured`. The 2026-10-08 sync-audit follow-up adds a row-level web delete action using the same secured endpoint and `PasscodeConfirmModal`; it does not add plain delete.
 
 ## Differences from Expo
 
 - Expo Web opens a `data:text/csv` URL with `Linking.openURL`; the browser uses the existing Blob/anchor download helper with filename `catalog.csv`.
-- No delete control was copied because it is not reachable in Expo Web. No plain or secured delete API is called by this row.
+- Web deletion is exposed beside the pricing row instead of Expo's native action sheet. It requires the signed-in admin contact and passcode and calls the existing secured-delete API.
 
 ## Test
 
-See `migration/PENDING.md`, **Tests waiting**, Row 7e. Build and lint pass from `web/`.
+See `migration/PENDING.md`, **Tests waiting**, Row 7e. Build passes from `web/`; verify export columns/image URL and secured deletion using only a disposable `ZZ` product.
 
 ## Left for later
 
-- Product delete behavior requires a decision because Expo Web does not expose the native delete control.
+- Owner browser verification of the synced export and secured delete remains pending.

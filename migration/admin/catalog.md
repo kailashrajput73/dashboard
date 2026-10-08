@@ -17,6 +17,7 @@ Rows show the product, size, MRP, discount, selling price, and stock. More catal
 - Choose a category in the picker. It also lets you create a category. Changing category clears a subcategory that does not belong to it. The subcategory picker lists only subcategories under the chosen category. The Brand picker lists active brands.
 - Optional product details include size in mm, size in inches, length, aliases (separated by commas), Hindi and Gujarati names, display sequence, reorder level (ROL), regular discount, and product image. For an image, upload a file or paste an image URL.
 - Optional pricing and stock fields are MRP, price discount (%), selling price, purchase price, and stock quantity. Changing MRP or price discount recalculates selling price; standard rate follows the selling price.
+- Optional billing and pack fields are HSN Code, GST (%), Pack Size, and MRP per pack.
 - Select **Add Item** or **Save Changes**. A save failure is shown in the error dialog.
 
 ## Change pricing and stock
@@ -28,5 +29,5 @@ Rows show the product, size, MRP, discount, selling price, and stock. More catal
 ## QR codes and export
 
 - A QR is generated from the product code. It appears in the product form and beside each product row. In the form, select **Download QR** to save `<product-code>-qr.png`.
-- Select the download icon in Manage Catalog to download `catalog.csv`. It contains the short product export for only the products currently shown after search and filters.
-- Product deletion is not currently available in the web catalog pending a decision: Expo's delete action is only in its native screen, not its web table.
+- Select the download icon in Manage Catalog to download `catalog.csv`. It contains the 19-column master-sheet export for only the products currently shown after search and filters, including HTTP(S) image URLs when available.
+- Select the delete icon on a product row and confirm with the admin contact and passcode. Deletion is permanent; it removes the selected product. Verify the product before confirming.

@@ -16,6 +16,8 @@ The form requires item name, unit, category, brand, and a parseable standard rat
 
 Create calls `POST /api/catalog`; edit calls `PUT /api/catalog/{id}`. Image uploads become data URLs in the browser, while pasted URLs are saved as entered. The existing backend decides generated product code, QR value, taxonomy, and defaults.
 
+Sync-audit follow-up (2026-10-08): Added Expo's Billing and pack details fields: HSN Code, GST (%), Pack Size (`stdPkg`), and MRP per pack (`mrpPkg`). The editor reads and writes `hsnCode`, `gstRate`, `stdPkg`, and `mrpPkg`; GST display/storage uses the existing `gstToPercent` helper, matching Expo.
+
 ## Differences from Expo
 
 - The form and picker dialogs use web HTML controls and the existing web `AppModal`, `Input`, and `Button`; no shared component was changed.
@@ -28,4 +30,4 @@ See `migration/PENDING.md`, **Tests waiting**, Row 7b. `npm run build` and `npm 
 
 ## Left for later
 
-- 7c row pricing/bulk actions; 7d QR; 7e export and delete decision.
+- 7c row pricing/bulk actions and 7d QR were implemented in their own rows. The 7e export/delete sync is recorded in the updated 7e note.

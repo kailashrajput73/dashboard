@@ -157,7 +157,10 @@ export type CatalogItem = {
   sizeCm?: number;
   sizeInch?: string;
   length?: string;
+  hsnCode?: string;
+  gstRate?: number;
   stdPkg?: number;
+  mrpPkg?: number;
   mrp?: number;
   sellingPrice?: number;
   purchasePrice?: number;
@@ -399,6 +402,10 @@ export function createCatalogItem(body: {
   sizeMm?: number;
   sizeInch?: string;
   length?: string;
+  hsnCode?: string;
+  gstRate?: number;
+  stdPkg?: number;
+  mrpPkg?: number;
   brand?: string;
   mrp?: number;
   sellingPrice?: number;
@@ -435,6 +442,10 @@ export function updateCatalogItem(id: string, body: {
   sizeMm?: number;
   sizeInch?: string;
   length?: string;
+  hsnCode?: string;
+  gstRate?: number;
+  stdPkg?: number;
+  mrpPkg?: number;
   brand?: string;
   mrp?: number;
   sellingPrice?: number;

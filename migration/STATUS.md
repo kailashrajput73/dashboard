@@ -67,10 +67,10 @@ Statuses: Not started → Built → Done.
 | 15 | Dispatches | Built | [dev/2026-10-08-15-dispatches.md](dev/2026-10-08-15-dispatches.md) |
 | SCR-29 | Service requests | Built | [dev/2026-10-08-SCR-29-service-requests.md](dev/2026-10-08-SCR-29-service-requests.md) |
 | 16 | Team | Built | [dev/2026-10-08-16-team.md](dev/2026-10-08-16-team.md) |
-| 17 | Money config | Not started | |
-| 18 | Settings | Not started | |
-| 19 | Dashboard snapshot | Not started | |
-| 20 | Register page (exists in Expo, was missing from the first list) | Not started | |
+| 17 | Money config | Skipped (removed from current Expo menu) | |
+| 18 | Settings | Built | [dev/2026-10-08-18-settings.md](dev/2026-10-08-18-settings.md) |
+| 19 | Dashboard snapshot | Built | [dev/2026-10-08-19-dashboard.md](dev/2026-10-08-19-dashboard.md) |
+| 20 | Register page (exists in Expo, was missing from the first list) | Built | [dev/2026-10-08-20-register.md](dev/2026-10-08-20-register.md) |
 | 21a | Check every Expo screen exists in `web/`. List anything missed. | Not started | |
 | 21b | Production build and deploy | Not started | |
 | 21c | Remove Expo from `frontend/`, only after every screen is checked | Not started | |
