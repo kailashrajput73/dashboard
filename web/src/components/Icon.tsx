@@ -13,6 +13,7 @@ import chevronForward from "ionicons/dist/collection/components/icon/svg/chevron
 import chevronUp from "ionicons/dist/collection/components/icon/svg/chevron-up.svg?raw";
 import close from "ionicons/dist/collection/components/icon/svg/close.svg?raw";
 import closeCircle from "ionicons/dist/collection/components/icon/svg/close-circle.svg?raw";
+import constructOutline from "ionicons/dist/collection/components/icon/svg/construct-outline.svg?raw";
 import cloudUploadOutline from "ionicons/dist/collection/components/icon/svg/cloud-upload-outline.svg?raw";
 import createOutline from "ionicons/dist/collection/components/icon/svg/create-outline.svg?raw";
 import cube from "ionicons/dist/collection/components/icon/svg/cube.svg?raw";
@@ -62,6 +63,7 @@ const icons = {
   "chevron-up": chevronUp,
   close,
   "close-circle": closeCircle,
+  "construct-outline": constructOutline,
   "cloud-upload-outline": cloudUploadOutline,
   "create-outline": createOutline,
   cube,

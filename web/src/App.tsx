@@ -16,6 +16,10 @@ import CatalogImportPage from "./pages/CatalogImportPage";
 import PurchasesPage from "./pages/PurchasesPage";
 import InventoryPage from "./pages/InventoryPage";
 import PartnersPage from "./pages/PartnersPage";
+import RfqsPage from "./pages/RfqsPage";
+import DispatchesPage from "./pages/DispatchesPage";
+import ServiceRequestsPage from "./pages/ServiceRequestsPage";
+import TeamPage from "./pages/TeamPage";
 
 export default function App() {
   return (
@@ -41,12 +45,13 @@ export default function App() {
           <Route path="/racks" element={<RacksPage />} />
           <Route path="/purchases" element={<PurchasesPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
-          <Route path="/rfqs" element={<EmptyPage title="RFQs" />} />
+          <Route path="/rfqs" element={<RfqsPage />} />
           <Route path="/partners" element={<PartnersPage />} />
-          <Route path="/dispatches" element={<EmptyPage title="Dispatch" />} />
+          <Route path="/dispatches" element={<DispatchesPage />} />
+          <Route path="/service-requests" element={<ServiceRequestsPage />} />
           <Route path="/money-config" element={<EmptyPage title="Money config" />} />
           <Route path="/settings" element={<EmptyPage title="Settings" />} />
-          <Route path="/team" element={<EmptyPage title="Team" />} />
+          <Route path="/team" element={<TeamPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

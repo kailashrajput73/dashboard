@@ -39,7 +39,7 @@ Statuses: Not started → Built → Done.
 | 1a | Vite + React app in `web/`, backend URL setting, colours and theme. Expo still runs. | Done | [dev/2026-10-02-1a-vite-theme.md](dev/2026-10-02-1a-vite-theme.md) |
 | 1b | Storage, session, API client with all the endpoint functions. | Done | [dev/2026-10-02-1b-storage-session-api.md](dev/2026-10-02-1b-storage-session-api.md) |
 | 1c | Basic parts: button, input, card, chip, header, empty state, message and error popups, icons. | Done | [dev/2026-10-02-1c-basic-ui-components.md](dev/2026-10-02-1c-basic-ui-components.md) |
-| 1d | Menu shell (sidebar) and an empty page for every menu item. | Done | [dev/2026-10-02-1d-menu-shell.md](dev/2026-10-02-1d-menu-shell.md) |
+| 1d | Menu shell: remove Money config and add Service requests to Sales navigation. | Built | [dev/2026-10-02-1d-menu-shell.md](dev/2026-10-02-1d-menu-shell.md), [dev/2026-10-08-1d-menu-sync.md](dev/2026-10-08-1d-menu-sync.md) |
 | 1e | Start-up redirect and admin login; also remove `web/src/DevPreview.tsx` and restore `App.tsx`. | Done | [dev/2026-10-03-1e-startup-login.md](dev/2026-10-03-1e-startup-login.md) |
 | 2 | Categories (list, search, filter, create, edit, photo, active, delete with its products). Photo field and linked-products parts are built here. | Done | [dev/2026-10-03-2-categories.md](dev/2026-10-03-2-categories.md) |
 | 3a | Subcategories: list, create, edit, delete | Done | [dev/2026-10-03-3a-subcategories.md](dev/2026-10-03-3a-subcategories.md) |
@@ -61,11 +61,12 @@ Statuses: Not started → Built → Done.
 | 11 | Purchases (entry, CSV upload, history) | Built | [dev/2026-10-07-11-purchases.md](dev/2026-10-07-11-purchases.md) |
 | 12 | Inventory | Built | [dev/2026-10-07-12-inventory.md](dev/2026-10-07-12-inventory.md) |
 | 13 | Partners (list, KYC approve and reject, rewards) | Built | [dev/2026-10-07-13-partners.md](dev/2026-10-07-13-partners.md) |
-| 14a | RFQs: list, filters, search, CSV | Not started | |
-| 14b | RFQs: create, edit lines | Not started | |
-| 14c | RFQs: approve, reject, history, move to dispatch | Not started | |
-| 15 | Dispatches | Not started | |
-| 16 | Team | Not started | |
+| 14a | RFQs: list, filters, search, CSV | Built | [dev/2026-10-08-14a-rfq-list-filters-export.md](dev/2026-10-08-14a-rfq-list-filters-export.md) |
+| 14b | RFQs: create, edit lines | Built | [dev/2026-10-08-14b-rfq-create-edit-lines.md](dev/2026-10-08-14b-rfq-create-edit-lines.md) |
+| 14c | RFQs: approve, reject, history, move to dispatch | Built | [dev/2026-10-08-14c-rfq-decisions-history-dispatch.md](dev/2026-10-08-14c-rfq-decisions-history-dispatch.md) |
+| 15 | Dispatches | Built | [dev/2026-10-08-15-dispatches.md](dev/2026-10-08-15-dispatches.md) |
+| SCR-29 | Service requests | Built | [dev/2026-10-08-SCR-29-service-requests.md](dev/2026-10-08-SCR-29-service-requests.md) |
+| 16 | Team | Built | [dev/2026-10-08-16-team.md](dev/2026-10-08-16-team.md) |
 | 17 | Money config | Not started | |
 | 18 | Settings | Not started | |
 | 19 | Dashboard snapshot | Not started | |
