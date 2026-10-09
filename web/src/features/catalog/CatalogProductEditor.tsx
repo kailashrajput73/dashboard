@@ -16,6 +16,7 @@ import { ProductQr } from "../../components/ProductQr";
 import { colors, font, radii, spacing } from "../../theme";
 import { parseSizeMm } from "../../utils/size";
 import { sellingFromMrpDiscount } from "../../utils/pricing";
+import { gstToPercent } from "../../utils/csv";
 
 type CatalogWriteBody = Parameters<typeof createCatalogItem>[0];
 
@@ -57,6 +58,10 @@ export function CatalogProductEditor(props: {
   const [priceDiscount, setPriceDiscount] = useState(
     item?.discount == null ? "" : String(item.discount),
   );
+  const [hsnCode, setHsnCode] = useState(item?.hsnCode || "");
+  const [gstRate, setGstRate] = useState(item?.gstRate == null ? "" : String(gstToPercent(item.gstRate) ?? ""));
+  const [stdPkg, setStdPkg] = useState(item?.stdPkg == null ? "" : String(item.stdPkg));
+  const [mrpPkg, setMrpPkg] = useState(item?.mrpPkg == null ? "" : String(item.mrpPkg));
   const [stock, setStock] = useState(
     item?.stock == null ? (item ? "0" : "") : String(item.stock),
   );
@@ -163,6 +168,11 @@ export function CatalogProductEditor(props: {
       (sub) => sub.id === subcategoryId,
     );
     const multilingualNames: Record<string, string> = {};
+        const optionalNumber = (value: string) => {
+          if (!value.trim()) return undefined;
+          const parsed = Number(value);
+          return Number.isFinite(parsed) ? parsed : undefined;
+        };
     if (nameHi.trim()) multilingualNames.hi = nameHi.trim();
     if (nameGu.trim()) multilingualNames.gu = nameGu.trim();
     props.onSave({
@@ -181,6 +191,10 @@ export function CatalogProductEditor(props: {
       sellingPrice: sellingPrice.trim() ? Number(sellingPrice) : standardRate,
       purchasePrice: purchasePrice.trim() ? Number(purchasePrice) : undefined,
       discount: priceDiscount.trim() ? Number(priceDiscount) : undefined,
+      hsnCode: hsnCode.trim() || undefined,
+      gstRate: gstToPercent(optionalNumber(gstRate)),
+      stdPkg: optionalNumber(stdPkg),
+      mrpPkg: optionalNumber(mrpPkg),
       stock: stock.trim() ? Number(stock) : 0,
       brandId,
       aliases: aliases.split(",").map((alias) => alias.trim()).filter(Boolean),
@@ -285,6 +299,15 @@ export function CatalogProductEditor(props: {
             style={formColStyle}
           />
           <Input testID="item-purchase-price-input" label="Purchase price" value={purchasePrice} onChangeText={setPurchasePrice} keyboardType="decimal-pad" style={formColStyle} />
+        </div>
+        <div style={sectionTitleStyle}>Billing and pack details</div>
+        <div style={formRowStyle}>
+          <Input testID="item-hsn-code-input" label="HSN Code" value={hsnCode} onChangeText={setHsnCode} style={formColStyle} />
+          <Input testID="item-gst-rate-input" label="GST (%)" value={gstRate} onChangeText={setGstRate} keyboardType="decimal-pad" style={formColStyle} />
+        </div>
+        <div style={formRowStyle}>
+          <Input testID="item-pack-size-input" label="Pack Size" value={stdPkg} onChangeText={setStdPkg} keyboardType="decimal-pad" style={formColStyle} />
+          <Input testID="item-mrp-pack-input" label="MRP per pack" value={mrpPkg} onChangeText={setMrpPkg} keyboardType="decimal-pad" style={formColStyle} />
         </div>
         <div style={formRowStyle}>
           <Input testID="item-stock-input" label="Stock qty" value={stock} onChangeText={setStock} keyboardType="decimal-pad" style={formColStyle} />

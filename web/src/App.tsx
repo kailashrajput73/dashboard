@@ -20,6 +20,9 @@ import RfqsPage from "./pages/RfqsPage";
 import DispatchesPage from "./pages/DispatchesPage";
 import ServiceRequestsPage from "./pages/ServiceRequestsPage";
 import TeamPage from "./pages/TeamPage";
+import SettingsPage from "./pages/SettingsPage";
+import DashboardPage from "./pages/DashboardPage";
+import RegisterPage from "./pages/RegisterPage";
 
 export default function App() {
   return (
@@ -27,9 +30,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<StartupRedirect />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<EmptyPage title="Register" />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route element={<AdminShell />}>
-          <Route path="/dashboard" element={<EmptyPage title="Dashboard" />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/product-types" element={<ProductTypesPage />} />
@@ -50,7 +53,7 @@ export default function App() {
           <Route path="/dispatches" element={<DispatchesPage />} />
           <Route path="/service-requests" element={<ServiceRequestsPage />} />
           <Route path="/money-config" element={<EmptyPage title="Money config" />} />
-          <Route path="/settings" element={<EmptyPage title="Settings" />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/team" element={<TeamPage />} />
         </Route>
       </Routes>

@@ -125,11 +125,11 @@ Rebuilt from the dev notes. The original list was lost.
 1. Confirm a product QR appears in the form and beside its catalog row, generated from the product code (or the row's QR code when present).
 2. In the form, confirm the QR uses the entered product code and displays the code text. Select **Download QR** and confirm a PNG named `<product-code>-qr.png` downloads.
 
-### Row 7e: catalog CSV and delete decision (Built)
+### Row 7e: catalog CSV and secured delete sync (Built)
 
-1. Search or filter the catalog, then download `catalog.csv`. Confirm it contains only the currently listed products and the header is `productCode,name,category,type,subcategory,class,brand,unit,mrp,sellingPrice,discount,stock,imageUrl`.
-2. Confirm every data cell is quoted, embedded quotes are doubled, rows use line feeds, there is no BOM or trailing newline, and an image URL is represented as `(url)` (otherwise the field is empty).
-3. Confirm the web export downloads through the browser and does not invoke a product delete API. Product deletion remains decision needed because Expo Web does not expose its native delete control.
+1. Search or filter the catalog, then download `catalog.csv`. Confirm it contains only the currently listed products and the exact 19-column `MASTER_TEMPLATE_HEADERS` in this order: `Category,Type,Sub-Category,class,Brand,Product Name,Size (cm),Length,Product Code,HSN Code,GST,UoM,MRP (Rs) per nos,discount,Selling Price,Pack Size,MRP Pkg,ROL,image_url`.
+2. Confirm the export has a UTF-8 BOM, uses conditional CSV quoting with embedded quotes doubled, and includes an HTTP(S) image URL when present (non-HTTP image data is empty).
+3. On a disposable `ZZ` product, select Delete and confirm the modal requests admin contact/passcode and names the product. Cancel and confirm nothing changed; then confirm with valid credentials and verify that product alone is removed. Do not delete a real product.
 
 ### Row 8: Product groups (Built)
 

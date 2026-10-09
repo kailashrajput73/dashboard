@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   applyCatalogPricingBulk,
   createCatalogItem,
+  deleteCatalogItemSecured,
   listCatalog,
   listCategories,
   listBrands,
@@ -21,6 +22,9 @@ import { inferProductClass } from "../utils/infer-product-class";
 import { CatalogProductEditor } from "../features/catalog/CatalogProductEditor";
 import { CatalogPricingRow } from "../features/catalog/CatalogPricingRow";
 import { downloadCsv } from "../utils/download-csv";
+import { MASTER_TEMPLATE_HEADERS } from "../utils/import-templates";
+import { gstToPercent } from "../utils/csv";
+import { PasscodeConfirmModal } from "../components/PasscodeConfirmModal";
 
 export default function CatalogPage() {
   const navigate = useNavigate();
@@ -30,6 +34,8 @@ export default function CatalogPage() {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<CatalogItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CatalogItem | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState(false);
   const [saving, setSaving] = useState(false);
   const [bulkDiscount, setBulkDiscount] = useState("");
   const [bulkStock, setBulkStock] = useState("");
@@ -196,6 +202,20 @@ export default function CatalogPage() {
     }
   }
 
+  async function confirmDelete(credentials: { contactNumber: string; passcode: string }) {
+    if (!deleteTarget) return;
+    setDeletingProduct(true);
+    try {
+      await deleteCatalogItemSecured(deleteTarget.id, credentials);
+      setDeleteTarget(null);
+      await load();
+    } catch (cause) {
+      setError(cause instanceof ApiError ? cause.message : "Failed to delete item");
+    } finally {
+      setDeletingProduct(false);
+    }
+  }
+
   async function applyListed(kind: "discount" | "stock") {
     if (listed.length === 0) return;
     const discount = parseFloat(bulkDiscount);
@@ -226,30 +246,38 @@ export default function CatalogPage() {
   }
 
   function exportCatalogCsv() {
-    const header = "productCode,name,category,type,subcategory,class,brand,unit,mrp,sellingPrice,discount,stock,imageUrl";
-    const cell = (value: string | number | undefined) =>
-      `"${String(value ?? "").replace(/"/g, '""')}"`;
+    const header = MASTER_TEMPLATE_HEADERS.join(",");
+    const cell = (value: string | number | undefined) => {
+      const text = String(value ?? "");
+      return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
     const rows = listed.map((item) =>
       [
-        item.productCode,
-        item.name,
         item.category,
         item.type,
         item.subcategory,
         inferProductClass(item),
         item.brand,
+        item.name,
+        item.sizeCm ?? (item.sizeMm == null ? undefined : item.sizeMm / 10),
+        item.length,
+        item.productCode,
+        item.hsnCode,
+        gstToPercent(item.gstRate),
         item.unit,
         item.mrp,
-        item.sellingPrice ?? item.standardRate,
         item.discount,
-        item.stock,
-        item.imageUrl ? "(url)" : "",
+        item.sellingPrice ?? item.standardRate,
+        item.stdPkg,
+        item.mrpPkg,
+        item.reorderLevel,
+        item.imageUrl && /^https?:\/\//i.test(item.imageUrl) ? item.imageUrl : "",
       ]
         .map(cell)
         .join(","),
     );
     try {
-      downloadCsv([header, ...rows].join("\n"), "catalog.csv");
+      downloadCsv(`\uFEFF${[header, ...rows].join("\n")}`, "catalog.csv");
     } catch {
       setError("Could not export catalog CSV.");
     }
@@ -377,6 +405,7 @@ export default function CatalogPage() {
                 }}
                 onSaved={load}
                 onError={setError}
+                onDelete={() => setDeleteTarget(item)}
               />
             ))}
           </div>
@@ -463,6 +492,15 @@ export default function CatalogPage() {
           onCategoriesChanged={setCategories}
         />
       ) : null}
+      <PasscodeConfirmModal
+        visible={!!deleteTarget}
+        title="Delete product"
+        message={`Remove ${deleteTarget?.name || "this item"} permanently.`}
+        confirmLabel="Delete product"
+        loading={deletingProduct}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+      />
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
     </main>
   );
