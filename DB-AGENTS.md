@@ -36,6 +36,16 @@ multi-step writes = TXN-*, relationships = REL-*, risks = RSK-*).
 - Do not guess a field name, type, or default. Check BACKEND_INVENTORY.md.
   If still unclear, write "unknown" and ask.
 - NEVER run `git commit`, `git push`, or `git merge`. The user does that.
+- Do not edit frontend/, web/, backend_refactor/, or any existing doc/md
+  file. They stay exactly as they are. (Exception: you may append new
+  entries to docs/BACKEND_INVENTORY.md when the drift check finds changes.)
+- All new PostgreSQL code goes in a NEW folder named backend/ (clean, built
+  from scratch). backend_refactor/ (Mongo) keeps running untouched until
+  the final cutover rows.
+- Do not change any API route path, request body, or response JSON shape.
+  web/ and frontend/ depend on them exactly as they are. Only the storage
+  underneath changes. Copy route behavior from backend_refactor/ into
+  backend/, do not redesign it.
 
 ## When a row is built
 1. Write a dev note in `migration-db/dev/YYYY-MM-DD-NN-name.md`: what this
@@ -60,6 +70,7 @@ multi-step writes = TXN-*, relationships = REL-*, risks = RSK-*).
 5. Tell the user: what was built, the standards check from step 3, exactly
    how to test it, and a commit message like `dbmigrate(3): taxonomy tables`.
 6. STOP.
+
 
 ## Personal execution log (`migration-db/exec-log/`)
 This folder is listed in `.gitignore` — it never gets committed and no
