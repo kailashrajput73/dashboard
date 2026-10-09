@@ -72,3 +72,25 @@ backend/.venv/bin/python backend/scripts/test_pg_connection.py
 On Fedora/RHEL, use the distribution's `dnf` PostgreSQL server/client packages
 and its PostgreSQL initialization procedure; the service is also named
 `postgresql`.
+
+## Local API server and CORS
+
+The PostgreSQL app has one credentialed CORS middleware. It always allows
+`http://localhost:5173` (the Vite admin dev origin), `http://localhost:3000`,
+and `http://localhost:8081`, and merges in additional origins from the
+comma-separated `CORS_ORIGINS` setting in `backend/.env`. Do not put `*` in
+that setting: credentials require explicit origins. Keep `.env` local and
+untracked.
+
+Run the PostgreSQL API on port `8001` from the `backend/` directory, leaving
+the Mongo mirror on port `8000`:
+
+```text
+uvicorn app.main:app --host 127.0.0.1 --port 8001
+```
+
+`GET /api/health` returns `{"status":"ok"}` and can be used to check the
+server or browser CORS behavior. `web/vite.config.ts` currently sets only
+the Vite port (`5173`) and defines no API proxy; no frontend proxy or API
+client was changed in this row. If a later migration task needs Vite to proxy
+to PostgreSQL, it can add an explicit `VITE_API_URL` or proxy target then.
