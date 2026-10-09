@@ -39,7 +39,7 @@ Statuses: Not started → Built → Done.
 | 0b | Install PostgreSQL locally (Windows and Linux notes); add SQLAlchemy, Alembic, and psycopg dependencies in `backend/requirements.txt` and a throwaway connection test under `backend/`. No tables and no Alembic initialization. | — | Built | PostgreSQL 17.11 connectivity verified; see `migration-db/dev/2026-10-08-0b-postgres.md` |
 | 0c | **Security patch, independent of DB:** add a shared auth dependency in `backend/` that checks the `Authorization` header on protected routes when copied; leave `backend_refactor/` untouched until cutover. | RSK-02 | Built | See `migration-db/dev/2026-10-09-0c-auth-dependency.md` |
 | 0d | **Security patch:** configure one `CORSMiddleware` with a real allow-list in `backend/`; leave `backend_refactor/` untouched until cutover. | RSK-11 | Built | See `migration-db/dev/2026-10-09-0d-cors.md` |
-| 1 | Initialize Alembic under `backend/`, using `DATABASE_URL` from `backend/.env`; prepare an empty baseline migration. | — | Not started | |
+| 1 | Initialize Alembic under `backend/`, using `DATABASE_URL` from `backend/.env`; prepare an empty baseline migration. | — | Built | See `migration-db/dev/2026-10-09-01-alembic-baseline.md` |
 | 2 | Core auth tables: `users`, `admin_tokens`, `partners`, `partner_tokens`, `money_config`. Schema only, no data copy yet. | REL-01, REL-02, REL-03 | Not started | |
 | 3 | Taxonomy tables: `categories`, `subcategories`, `brands`, `product_types`. Foreign keys by id only, not by name. | RSK-06, REL-06, REL-07 | Not started | |
 | 4 | `product_groups` + join table `product_group_items` (replaces the two-sided `productIds` / `productGroupIds` arrays). | REL-11 | Not started | |

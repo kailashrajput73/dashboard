@@ -73,6 +73,32 @@ On Fedora/RHEL, use the distribution's `dnf` PostgreSQL server/client packages
 and its PostgreSQL initialization procedure; the service is also named
 `postgresql`.
 
+## Alembic migrations
+
+Alembic runs from this directory and reads `DATABASE_URL` from `backend/.env`
+using the same dotenv pattern as `app/db.py`. Keep `.env` local and
+untracked. The initial `0001_empty_baseline` revision intentionally creates no
+application tables; Alembic creates only its `alembic_version` bookkeeping
+table.
+
+From the repository root in PowerShell, create/reuse the backend virtual
+environment, create `.env` only if it does not already exist, install
+dependencies, and run Alembic from `backend/`:
+
+```powershell
+if (-not (Test-Path backend\.venv)) { py -m venv backend\.venv }
+if (-not (Test-Path backend\.env)) { Copy-Item backend\.env.example backend\.env }
+backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+Set-Location backend
+.\.venv\Scripts\alembic.exe upgrade head
+.\.venv\Scripts\alembic.exe current
+.\.venv\Scripts\alembic.exe history
+```
+
+Set the local PostgreSQL credentials in `backend/.env` before upgrading. The
+`current` command should report `0001_empty_baseline (head)`. New application
+tables belong in later migration rows, not in this baseline.
+
 ## Local API server and CORS
 
 The PostgreSQL app has one credentialed CORS middleware. It always allows
