@@ -77,27 +77,36 @@ and its PostgreSQL initialization procedure; the service is also named
 
 Alembic runs from this directory and reads `DATABASE_URL` from `backend/.env`
 using the same dotenv pattern as `app/db.py`. Keep `.env` local and
-untracked. The initial `0001_empty_baseline` revision intentionally creates no
-application tables; Alembic creates only its `alembic_version` bookkeeping
-table.
+untracked. `0001_empty_baseline` is the empty starting revision. Row 2 adds
+`users`, `admin_tokens`, `partners`, `partner_tokens`, and `money_config`.
 
-From the repository root in PowerShell, create/reuse the backend virtual
-environment, create `.env` only if it does not already exist, install
-dependencies, and run Alembic from `backend/`:
+From the repository root, apply the migration and inspect the public tables:
 
 ```powershell
-if (-not (Test-Path backend\.venv)) { py -m venv backend\.venv }
-if (-not (Test-Path backend\.env)) { Copy-Item backend\.env.example backend\.env }
-backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 Set-Location backend
 .\.venv\Scripts\alembic.exe upgrade head
 .\.venv\Scripts\alembic.exe current
-.\.venv\Scripts\alembic.exe history
+psql -U quotation_app -h 127.0.0.1 -p 5432 -d quotation_db_pg -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name;"
+```
+
+On macOS (zsh) or Linux (bash), use the backend virtual environment's Unix
+entry points from the repository root:
+
+```bash
+cd backend
+.venv/bin/alembic upgrade head
+.venv/bin/alembic current
+psql -U quotation_app -h 127.0.0.1 -p 5432 -d quotation_db_pg -c \
+  "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name;"
 ```
 
 Set the local PostgreSQL credentials in `backend/.env` before upgrading. The
-`current` command should report `0001_empty_baseline (head)`. New application
-tables belong in later migration rows, not in this baseline.
+current revision should be `0002_core_auth_schema (head)`. The only public
+base tables at this row are `admin_tokens`, `alembic_version`, `money_config`,
+`partner_tokens`, `partners`, and `users`; taxonomy and later-row application
+tables should not exist yet. These `psql` examples use the role and database
+created in the local setup above; substitute your own connection settings if
+they differ.
 
 ## Local API server and CORS
 
