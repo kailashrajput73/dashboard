@@ -40,8 +40,8 @@ Statuses: Not started → Built → Done.
 | 0c | **Security patch, independent of DB:** add a shared auth dependency in `backend/` that checks the `Authorization` header on protected routes when copied; leave `backend_refactor/` untouched until cutover. | RSK-02 | Done | See `migration-db/dev/2026-10-09-0c-auth-dependency.md` |
 | 0d | **Security patch:** configure one `CORSMiddleware` with a real allow-list in `backend/`; leave `backend_refactor/` untouched until cutover. | RSK-11 | Done | See `migration-db/dev/2026-10-09-0d-cors.md` |
 | 1 | Initialize Alembic under `backend/`, using `DATABASE_URL` from `backend/.env`; prepare an empty baseline migration. | — | Done | See `migration-db/dev/2026-10-09-01-alembic-baseline.md` |
-| 2 | Core auth tables: `users`, `admin_tokens`, `partners`, `partner_tokens`, `money_config`. Schema only, no data copy yet. | REL-01, REL-02, REL-03 | Built | See `migration-db/dev/2026-10-09-02-auth-schema.md` |
-| 3 | Taxonomy tables: `categories`, `subcategories`, `brands`, `product_types`. Foreign keys by id only, not by name. | RSK-06, REL-06, REL-07 | Not started | |
+| 2 | Core auth tables: `users`, `admin_tokens`, `partners`, `partner_tokens`, `money_config`. Schema only, no data copy yet. | REL-01, REL-02, REL-03 | Done | See `migration-db/dev/2026-10-09-02-auth-schema.md` |
+| 3 | Taxonomy tables: `categories`, `subcategories`, `brands`, `product_types`. Foreign keys by id only, not by name. | RSK-06, REL-06, REL-07 | Built | See `migration-db/dev/2026-10-10-03-taxonomy-schema.md` |
 | 4 | `product_groups` + join table `product_group_items` (replaces the two-sided `productIds` / `productGroupIds` arrays). | REL-11 | Not started | |
 | 5 | `racks` + `rack_slots` (one row per slot, not a nested array). | REL-12, TXN-15 | Not started | |
 | 6 | `catalog` (products) table. All taxonomy links are id foreign keys. | RSK-06 | Not started | |

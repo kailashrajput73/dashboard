@@ -18,6 +18,13 @@ EXPECTED_TABLES = {
     "partners",
     "users",
 }
+EXPECTED_TAXONOMY_TABLES = {
+    "brands",
+    "categories",
+    "product_types",
+    "subcategories",
+}
+EXPECTED_SCHEMA_TABLES = EXPECTED_TABLES | EXPECTED_TAXONOMY_TABLES
 
 
 @unittest.skipUnless(
@@ -30,12 +37,18 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
         cls.database_url = os.environ["TEST_DATABASE_URL"]
         cls.engine = create_engine(cls.database_url)
         before = set(inspect(cls.engine).get_table_names())
-        allowed_before = (set(), {"alembic_version"}, EXPECTED_TABLES)
+        allowed_before = (
+            set(),
+            {"alembic_version"},
+            EXPECTED_TABLES,
+            EXPECTED_TABLES | EXPECTED_TAXONOMY_TABLES,
+        )
         if before not in allowed_before:
             cls.engine.dispose()
             raise AssertionError(
                 "TEST_DATABASE_URL must point to an empty database, the row-1 "
-                f"baseline, or this row-2 schema; found tables: {sorted(before)}"
+                "baseline, the row-2 schema, or the row-3 taxonomy schema; "
+                f"found tables: {sorted(before)}"
             )
 
         with patch.dict(os.environ, {"DATABASE_URL": cls.database_url}):
@@ -48,8 +61,8 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls.engine.dispose()
 
-    def test_only_row_two_tables_exist_after_migration(self) -> None:
-        self.assertEqual(self.tables, EXPECTED_TABLES)
+    def test_row_three_schema_tables_exist_after_migration(self) -> None:
+        self.assertEqual(self.tables, EXPECTED_SCHEMA_TABLES)
 
     def test_foreign_keys_unique_constraints_and_indexes_exist(self) -> None:
         inspector = inspect(self.engine)
@@ -57,34 +70,60 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             ("admin_tokens", "admin_id", "users", "id"),
             ("partner_tokens", "partner_id", "partners", "id"),
             ("money_config", "admin_id", "users", "id"),
+            ("subcategories", "category_id", "categories", "id"),
         }
         actual_foreign_keys = {
-            (table, fk["constrained_columns"][0], fk["referred_table"],
-             fk["referred_columns"][0])
-            for table in ("admin_tokens", "partner_tokens", "money_config")
+            (
+                table,
+                fk["constrained_columns"][0],
+                fk["referred_table"],
+                fk["referred_columns"][0],
+            )
+            for table in ("admin_tokens", "partner_tokens", "money_config", "subcategories")
             for fk in inspector.get_foreign_keys(table)
         }
         self.assertEqual(actual_foreign_keys, expected_foreign_keys)
 
-        for table in ("admin_tokens", "partner_tokens", "money_config"):
+        for table in ("admin_tokens", "partner_tokens", "money_config", "subcategories"):
             for foreign_key in inspector.get_foreign_keys(table):
                 self.assertEqual(foreign_key["options"]["ondelete"], "RESTRICT")
 
         self.assertEqual(
             {
                 (table, constraint["name"])
-                for table in ("admin_tokens", "partner_tokens", "money_config")
+                for table in (
+                    "admin_tokens",
+                    "partner_tokens",
+                    "money_config",
+                    "categories",
+                    "subcategories",
+                    "brands",
+                    "product_types",
+                )
                 for constraint in inspector.get_unique_constraints(table)
             },
             {
                 ("admin_tokens", "admin_tokens_token_uq"),
                 ("partner_tokens", "partner_tokens_token_uq"),
                 ("money_config", "money_config_admin_id_uq"),
+                ("categories", "categories_name_uq"),
+                ("subcategories", "subcategories_category_name_uq"),
+                ("brands", "brands_name_uq"),
+                ("product_types", "product_types_name_uq"),
             },
         )
         indexes = {
             (table, index["name"], index["unique"])
-            for table in ("users", "admin_tokens", "partners", "partner_tokens")
+            for table in (
+                "users",
+                "admin_tokens",
+                "partners",
+                "partner_tokens",
+                "categories",
+                "subcategories",
+                "brands",
+                "product_types",
+            )
             for index in inspector.get_indexes(table)
         }
         self.assertTrue(
@@ -98,6 +137,11 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("partners", "partners_sales_manager", False),
                 ("partners", "partners_name_sort", False),
                 ("partner_tokens", "partner_tokens_partner_id", False),
+                ("categories", "categories_name_sort", False),
+                ("subcategories", "subcategories_category_id", False),
+                ("subcategories", "subcategories_category_name_sort", False),
+                ("brands", "brands_name_sort", False),
+                ("product_types", "product_types_name_sort", False),
             }.issubset(indexes)
         )
 

@@ -205,4 +205,113 @@ class MoneyConfig(TimestampMixin, Base):
     )
 
 
-__all__ = ["AdminToken", "Base", "MoneyConfig", "Partner", "PartnerToken", "User"]
+class Category(TimestampMixin, Base):
+    __tablename__ = "categories"
+    __table_args__ = (
+        UniqueConstraint("name", name="categories_name_uq"),
+        Index("categories_name_sort", "name"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    is_default: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
+    product_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0")
+    )
+    image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class Subcategory(TimestampMixin, Base):
+    __tablename__ = "subcategories"
+    __table_args__ = (
+        UniqueConstraint("category_id", "name", name="subcategories_category_name_uq"),
+        Index("subcategories_category_id", "category_id"),
+        Index("subcategories_category_name_sort", "category_id", "name"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    category_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "categories.id",
+            ondelete="RESTRICT",
+            name="fk_subcategories_category_id_categories",
+        ),
+        nullable=False,
+    )
+
+
+class Brand(TimestampMixin, Base):
+    __tablename__ = "brands"
+    __table_args__ = (
+        UniqueConstraint("name", name="brands_name_uq"),
+        Index("brands_name_sort", "name"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
+    product_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0")
+    )
+    logo_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class ProductType(TimestampMixin, Base):
+    __tablename__ = "product_types"
+    __table_args__ = (
+        UniqueConstraint("name", name="product_types_name_uq"),
+        Index("product_types_name_sort", "name"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
+    image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    product_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0")
+    )
+
+
+__all__ = [
+    "AdminToken",
+    "Base",
+    "Brand",
+    "Category",
+    "MoneyConfig",
+    "Partner",
+    "PartnerToken",
+    "ProductType",
+    "Subcategory",
+    "User",
+]
