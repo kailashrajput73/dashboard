@@ -625,6 +625,117 @@ class RfqLine(TimestampMixin, Base):
     unit_price: Mapped[float] = mapped_column(Float, nullable=False)
 
 
+class RewardLedger(TimestampMixin, Base):
+    __tablename__ = "reward_ledger"
+    __table_args__ = (
+        Index("reward_ledger_requester_created", "requester_id", text("created_at DESC")),
+        Index("reward_ledger_requester_type", "requester_id", "type"),
+        Index("reward_ledger_quotation_type", "quotation_id", "type"),
+        Index(
+            "reward_ledger_one_earned_per_quotation_uq",
+            "quotation_id",
+            unique=True,
+            postgresql_where=text("type = 'earned' AND deleted_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    requester_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "partners.id",
+            ondelete="RESTRICT",
+            name="fk_reward_ledger_requester_id_partners",
+        ),
+        nullable=False,
+    )
+    quotation_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "rfqs.id",
+            ondelete="RESTRICT",
+            name="fk_reward_ledger_quotation_id_rfqs",
+        ),
+        nullable=False,
+    )
+    points: Mapped[int] = mapped_column(Integer, nullable=False)
+    type: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class Dispatch(TimestampMixin, Base):
+    __tablename__ = "dispatches"
+    __table_args__ = (
+        Index("dispatches_createdAt", text("created_at DESC")),
+        Index(
+            "dispatches_source_rfq_id_uq",
+            "source_rfq_id",
+            unique=True,
+            postgresql_where=text("source_rfq_id IS NOT NULL"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    source_rfq_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "rfqs.id",
+            ondelete="RESTRICT",
+            name="fk_dispatches_source_rfq_id_rfqs",
+        ),
+        nullable=True,
+    )
+    customer_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    customer_phone: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class DispatchLine(TimestampMixin, Base):
+    __tablename__ = "dispatch_lines"
+    __table_args__ = (
+        Index("dispatch_lines_dispatch_id", "dispatch_id"),
+        Index("dispatch_lines_product_id", "product_id"),
+        Index("dispatch_lines_product_code", "product_code"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    dispatch_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "dispatches.id",
+            ondelete="CASCADE",
+            name="fk_dispatch_lines_dispatch_id_dispatches",
+        ),
+        nullable=False,
+    )
+    product_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "catalog.id",
+            ondelete="RESTRICT",
+            name="fk_dispatch_lines_product_id_catalog",
+        ),
+        nullable=False,
+    )
+    product_code: Mapped[str] = mapped_column(Text, nullable=False)
+    product_name: Mapped[str] = mapped_column(Text, nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    unit_price: Mapped[float] = mapped_column(Float, nullable=False)
+
+
 class ProductGroup(TimestampMixin, Base):
     __tablename__ = "product_groups"
     __table_args__ = (
@@ -741,6 +852,9 @@ __all__ = [
     "PurchaseLine",
     "Rfq",
     "RfqLine",
+    "RewardLedger",
+    "Dispatch",
+    "DispatchLine",
     "ProductGroup",
     "ProductGroupItem",
     "ProductType",

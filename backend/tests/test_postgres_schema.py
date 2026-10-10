@@ -6,6 +6,7 @@ from unittest.mock import patch
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.deps.auth import ADMIN_TOKEN_SQL, PARTNER_TOKEN_SQL
@@ -37,7 +38,9 @@ EXPECTED_ROW6_TABLES = EXPECTED_ROW5_TABLES | {"catalog"}
 EXPECTED_ROW7_TABLES = EXPECTED_ROW6_TABLES | {"pricing", "pricing_history"}
 EXPECTED_ROW8_TABLES = EXPECTED_ROW7_TABLES | {"purchase_lines", "purchases"}
 EXPECTED_ROW9_TABLES = EXPECTED_ROW8_TABLES | {"rfq_lines", "rfqs"}
-EXPECTED_SCHEMA_TABLES = EXPECTED_ROW9_TABLES
+EXPECTED_ROW10_TABLES = EXPECTED_ROW9_TABLES | {"reward_ledger"}
+EXPECTED_ROW11_TABLES = EXPECTED_ROW10_TABLES | {"dispatch_lines", "dispatches"}
+EXPECTED_SCHEMA_TABLES = EXPECTED_ROW11_TABLES
 
 
 @unittest.skipUnless(
@@ -61,6 +64,8 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             EXPECTED_ROW7_TABLES,
             EXPECTED_ROW8_TABLES,
             EXPECTED_ROW9_TABLES,
+            EXPECTED_ROW10_TABLES,
+            EXPECTED_ROW11_TABLES,
         )
         if before not in allowed_before:
             cls.engine.dispose()
@@ -69,7 +74,8 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 "baseline, the row-2 schema, the row-3 taxonomy schema, or the "
                 "row-4 product-groups schema, the row-5 rack schema, or the "
                 "row-6 catalog schema, the row-7 pricing schema, or the "
-                "row-8 purchase schema, or the row-9 RFQ schema; "
+                "row-8 purchase schema, row-9 RFQ schema, or the row-10 "
+                "reward-ledger schema, or the row-11 dispatch schema; "
                 "found tables: "
                 f"{sorted(before)}"
             )
@@ -84,10 +90,9 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls.engine.dispose()
 
-    def test_row_nine_schema_tables_exist_after_migration(self) -> None:
+    def test_row_eleven_schema_tables_exist_after_migration(self) -> None:
         self.assertEqual(self.tables, EXPECTED_SCHEMA_TABLES)
-        self.assertNotIn("reward_ledger", self.tables)
-        self.assertNotIn("dispatches", self.tables)
+        self.assertNotIn("service_requests", self.tables)
 
     def test_foreign_keys_unique_constraints_and_indexes_exist(self) -> None:
         inspector = inspect(self.engine)
@@ -114,6 +119,11 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             ("rfqs", "partner_id", "partners", "id"),
             ("rfq_lines", "rfq_id", "rfqs", "id"),
             ("rfq_lines", "product_id", "catalog", "id"),
+            ("reward_ledger", "requester_id", "partners", "id"),
+            ("reward_ledger", "quotation_id", "rfqs", "id"),
+            ("dispatches", "source_rfq_id", "rfqs", "id"),
+            ("dispatch_lines", "dispatch_id", "dispatches", "id"),
+            ("dispatch_lines", "product_id", "catalog", "id"),
         }
         actual_foreign_keys = {
             (
@@ -136,6 +146,9 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 "purchase_lines",
                 "rfqs",
                 "rfq_lines",
+                "reward_ledger",
+                "dispatches",
+                "dispatch_lines",
             )
             for fk in inspector.get_foreign_keys(table)
         }
@@ -164,6 +177,11 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             ("rfqs", "partner_id"): "RESTRICT",
             ("rfq_lines", "rfq_id"): "CASCADE",
             ("rfq_lines", "product_id"): "RESTRICT",
+            ("reward_ledger", "requester_id"): "RESTRICT",
+            ("reward_ledger", "quotation_id"): "RESTRICT",
+            ("dispatches", "source_rfq_id"): "RESTRICT",
+            ("dispatch_lines", "dispatch_id"): "CASCADE",
+            ("dispatch_lines", "product_id"): "RESTRICT",
         }
         for table in (
             "admin_tokens",
@@ -179,6 +197,9 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             "purchase_lines",
             "rfqs",
             "rfq_lines",
+            "reward_ledger",
+            "dispatches",
+            "dispatch_lines",
         ):
             for foreign_key in inspector.get_foreign_keys(table):
                 self.assertEqual(
@@ -242,6 +263,9 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 "purchase_lines",
                 "rfqs",
                 "rfq_lines",
+                "reward_ledger",
+                "dispatches",
+                "dispatch_lines",
             )
             for index in inspector.get_indexes(table)
         }
@@ -296,6 +320,15 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("rfq_lines", "rfq_lines_rfq_id", False),
                 ("rfq_lines", "rfq_lines_product_id", False),
                 ("rfq_lines", "rfq_lines_product_code", False),
+                ("reward_ledger", "reward_ledger_requester_created", False),
+                ("reward_ledger", "reward_ledger_requester_type", False),
+                ("reward_ledger", "reward_ledger_quotation_type", False),
+                ("reward_ledger", "reward_ledger_one_earned_per_quotation_uq", True),
+                ("dispatches", "dispatches_createdAt", False),
+                ("dispatches", "dispatches_source_rfq_id_uq", True),
+                ("dispatch_lines", "dispatch_lines_dispatch_id", False),
+                ("dispatch_lines", "dispatch_lines_product_id", False),
+                ("dispatch_lines", "dispatch_lines_product_code", False),
             }.issubset(indexes)
         )
         purchase_columns = {
@@ -317,6 +350,183 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
         self.assertTrue(rfq_columns["scheduled_at"]["nullable"])
         self.assertIsInstance(rfq_columns["history"]["type"], JSONB)
         self.assertEqual(inspector.get_pk_constraint("rfqs")["name"], "rfqs_id_uq")
+        earned_index = next(
+            index
+            for index in inspector.get_indexes("reward_ledger")
+            if index["name"] == "reward_ledger_one_earned_per_quotation_uq"
+        )
+        self.assertTrue(earned_index["unique"])
+        earned_predicate = earned_index["dialect_options"]["postgresql_where"]
+        self.assertIn("type = 'earned'", earned_predicate)
+        self.assertIn("deleted_at IS NULL", earned_predicate)
+        dispatch_source_index = next(
+            index
+            for index in inspector.get_indexes("dispatches")
+            if index["name"] == "dispatches_source_rfq_id_uq"
+        )
+        self.assertTrue(dispatch_source_index["unique"])
+        self.assertEqual(dispatch_source_index["column_names"], ["source_rfq_id"])
+        self.assertIn(
+            "source_rfq_id IS NOT NULL",
+            dispatch_source_index["dialect_options"]["postgresql_where"],
+        )
+        dispatch_columns = {
+            column["name"]: column
+            for column in inspector.get_columns("dispatches")
+        }
+        self.assertTrue(dispatch_columns["source_rfq_id"]["nullable"])
+        self.assertTrue(dispatch_columns["customer_name"]["nullable"])
+        self.assertTrue(dispatch_columns["customer_phone"]["nullable"])
+
+    def test_dispatch_source_rfq_is_unique_but_null_is_repeatable(self) -> None:
+        with self.engine.connect() as connection:
+            transaction = connection.begin()
+            try:
+                connection.execute(
+                    text(
+                        "INSERT INTO partners (id, name) "
+                        "VALUES ('row11-partner', 'Dispatch test partner')"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO rfqs (id, partner_id, status, grand_total, "
+                        "special_discount_percent, reward_points, delivery_mode) "
+                        "VALUES ('row11-rfq', 'row11-partner', 'approved', 0, "
+                        "0, 0, 'storePickup')"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO dispatches (id, source_rfq_id) "
+                        "VALUES ('row11-dispatch', 'row11-rfq')"
+                    )
+                )
+
+                duplicate_transaction = connection.begin_nested()
+                with self.assertRaises(IntegrityError):
+                    connection.execute(
+                        text(
+                            "INSERT INTO dispatches (id, source_rfq_id) "
+                            "VALUES ('row11-dispatch-duplicate', 'row11-rfq')"
+                        )
+                    )
+                duplicate_transaction.rollback()
+
+                connection.execute(
+                    text(
+                        "INSERT INTO dispatches (id, source_rfq_id) "
+                        "VALUES ('row11-ad-hoc-1', NULL), ('row11-ad-hoc-2', NULL)"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO categories (id, name) "
+                        "VALUES ('row11-category', 'Dispatch test category')"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO catalog (id, name, product_name, category_id, "
+                        "category, unit, standard_rate, product_code) VALUES "
+                        "('row11-product', 'Dispatch test product', "
+                        "'Dispatch test product', 'row11-category', "
+                        "'Dispatch test category', 'pcs', 1, 'ROW11-CODE')"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO dispatch_lines (dispatch_id, product_id, "
+                        "product_code, product_name, quantity, unit_price) VALUES "
+                        "('row11-dispatch', 'row11-product', 'ROW11-CODE', "
+                        "'Dispatch test product', 1, 1)"
+                    )
+                )
+                connection.execute(
+                    text("DELETE FROM dispatches WHERE id = 'row11-dispatch'")
+                )
+                line_count = connection.execute(
+                    text(
+                        "SELECT count(*) FROM dispatch_lines "
+                        "WHERE dispatch_id = 'row11-dispatch'"
+                    )
+                ).scalar_one()
+                self.assertEqual(line_count, 0)
+            finally:
+                transaction.rollback()
+
+    def test_reward_ledger_enforces_one_live_earned_row_per_rfq(self) -> None:
+        with self.engine.connect() as connection:
+            transaction = connection.begin()
+            try:
+                connection.execute(
+                    text(
+                        "INSERT INTO partners (id, name) "
+                        "VALUES ('row10-partner', 'Reward test partner')"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO rfqs (id, partner_id, status, grand_total, "
+                        "special_discount_percent, reward_points, delivery_mode) "
+                        "VALUES ('row10-rfq', 'row10-partner', 'approved', 100, "
+                        "0, 1, 'storePickup')"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO reward_ledger "
+                        "(id, requester_id, quotation_id, points, type) "
+                        "VALUES ('row10-earned', 'row10-partner', 'row10-rfq', "
+                        "100, 'earned')"
+                    )
+                )
+
+                duplicate_transaction = connection.begin_nested()
+                with self.assertRaises(IntegrityError):
+                    connection.execute(
+                        text(
+                            "INSERT INTO reward_ledger "
+                            "(id, requester_id, quotation_id, points, type) "
+                            "VALUES ('row10-earned-duplicate', 'row10-partner', "
+                            "'row10-rfq', 100, 'earned')"
+                        )
+                    )
+                duplicate_transaction.rollback()
+
+                connection.execute(
+                    text(
+                        "INSERT INTO reward_ledger "
+                        "(id, requester_id, quotation_id, points, type) "
+                        "VALUES ('row10-redeemed', 'row10-partner', 'row10-rfq', "
+                        "20, 'redeemed')"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "UPDATE reward_ledger SET deleted_at = now() "
+                        "WHERE id = 'row10-earned'"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO reward_ledger "
+                        "(id, requester_id, quotation_id, points, type) "
+                        "VALUES ('row10-earned-replacement', 'row10-partner', "
+                        "'row10-rfq', 100, 'earned')"
+                    )
+                )
+                balance = connection.execute(
+                    text(
+                        "SELECT COALESCE(SUM(points) FILTER (WHERE type = 'earned'), 0) "
+                        "- COALESCE(SUM(points) FILTER (WHERE type = 'redeemed'), 0) "
+                        "FROM reward_ledger WHERE requester_id = 'row10-partner' "
+                        "AND deleted_at IS NULL"
+                    )
+                ).scalar_one()
+                self.assertEqual(balance, 80)
+            finally:
+                transaction.rollback()
 
     def test_catalog_relations_and_product_delete_policies(self) -> None:
         with self.engine.connect() as connection:
