@@ -32,7 +32,9 @@ EXPECTED_ROW5_TABLES = EXPECTED_ROW4_TABLES | {
     "rack_slots",
     "racks",
 }
-EXPECTED_SCHEMA_TABLES = EXPECTED_ROW5_TABLES
+EXPECTED_ROW6_TABLES = EXPECTED_ROW5_TABLES | {"catalog"}
+EXPECTED_ROW7_TABLES = EXPECTED_ROW6_TABLES | {"pricing", "pricing_history"}
+EXPECTED_SCHEMA_TABLES = EXPECTED_ROW7_TABLES
 
 
 @unittest.skipUnless(
@@ -51,13 +53,18 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             EXPECTED_TABLES,
             EXPECTED_TABLES | EXPECTED_TAXONOMY_TABLES,
             EXPECTED_ROW4_TABLES,
+            EXPECTED_ROW5_TABLES,
+            EXPECTED_ROW6_TABLES,
+            EXPECTED_ROW7_TABLES,
         )
         if before not in allowed_before:
             cls.engine.dispose()
             raise AssertionError(
                 "TEST_DATABASE_URL must point to an empty database, the row-1 "
                 "baseline, the row-2 schema, the row-3 taxonomy schema, or the "
-                "row-4 product-groups schema; found tables: "
+                "row-4 product-groups schema, the row-5 rack schema, or the "
+                "row-6 catalog schema, or the row-7 pricing schema; "
+                "found tables: "
                 f"{sorted(before)}"
             )
 
@@ -71,7 +78,7 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls.engine.dispose()
 
-    def test_row_five_schema_tables_exist_after_migration(self) -> None:
+    def test_row_seven_schema_tables_exist_after_migration(self) -> None:
         self.assertEqual(self.tables, EXPECTED_SCHEMA_TABLES)
 
     def test_foreign_keys_unique_constraints_and_indexes_exist(self) -> None:
@@ -82,7 +89,16 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             ("money_config", "admin_id", "users", "id"),
             ("subcategories", "category_id", "categories", "id"),
             ("product_group_items", "product_group_id", "product_groups", "id"),
+            ("product_group_items", "product_id", "catalog", "id"),
             ("rack_slots", "rack_id", "racks", "id"),
+            ("rack_slots", "product_id", "catalog", "id"),
+            ("catalog", "category_id", "categories", "id"),
+            ("catalog", "subcategory_id", "subcategories", "id"),
+            ("catalog", "brand_id", "brands", "id"),
+            ("catalog", "product_type_id", "product_types", "id"),
+            ("catalog", "rack_id", "racks", "id"),
+            ("pricing", "product_code", "catalog", "product_code"),
+            ("pricing_history", "product_code", "catalog", "product_code"),
         }
         actual_foreign_keys = {
             (
@@ -98,22 +114,47 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 "subcategories",
                 "product_group_items",
                 "rack_slots",
+                "catalog",
+                "pricing",
+                "pricing_history",
             )
             for fk in inspector.get_foreign_keys(table)
         }
         self.assertEqual(actual_foreign_keys, expected_foreign_keys)
 
-        expected_ondelete = {
-            "admin_tokens": "RESTRICT",
-            "partner_tokens": "RESTRICT",
-            "money_config": "RESTRICT",
-            "subcategories": "RESTRICT",
-            "product_group_items": "CASCADE",
-            "rack_slots": "CASCADE",
+        expected_fk_deletes = {
+            ("admin_tokens", "admin_id"): "RESTRICT",
+            ("partner_tokens", "partner_id"): "RESTRICT",
+            ("money_config", "admin_id"): "RESTRICT",
+            ("subcategories", "category_id"): "RESTRICT",
+            ("product_group_items", "product_group_id"): "CASCADE",
+            ("product_group_items", "product_id"): "CASCADE",
+            ("rack_slots", "rack_id"): "CASCADE",
+            ("rack_slots", "product_id"): "SET NULL",
+            ("catalog", "category_id"): "RESTRICT",
+            ("catalog", "subcategory_id"): "RESTRICT",
+            ("catalog", "brand_id"): "RESTRICT",
+            ("catalog", "product_type_id"): "RESTRICT",
+            ("catalog", "rack_id"): "RESTRICT",
+            ("pricing", "product_code"): "CASCADE",
+            ("pricing_history", "product_code"): "CASCADE",
         }
-        for table, expected_delete in expected_ondelete.items():
+        for table in (
+            "admin_tokens",
+            "partner_tokens",
+            "money_config",
+            "subcategories",
+            "product_group_items",
+            "rack_slots",
+            "catalog",
+            "pricing",
+            "pricing_history",
+        ):
             for foreign_key in inspector.get_foreign_keys(table):
-                self.assertEqual(foreign_key["options"]["ondelete"], expected_delete)
+                self.assertEqual(
+                    foreign_key["options"]["ondelete"],
+                    expected_fk_deletes[(table, foreign_key["constrained_columns"][0])],
+                )
 
         self.assertEqual(
             {
@@ -129,6 +170,8 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                     "product_groups",
                     "racks",
                     "rack_slots",
+                    "catalog",
+                    "pricing",
                 )
                 for constraint in inspector.get_unique_constraints(table)
             },
@@ -143,6 +186,8 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("product_groups", "product_groups_name_uq"),
                 ("racks", "racks_name_uq"),
                 ("rack_slots", "rack_slots_rack_code_uq"),
+                ("catalog", "catalog_product_code_uq"),
+                ("pricing", "pricing_product_code_uq"),
             },
         )
         indexes = {
@@ -160,6 +205,9 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 "product_group_items",
                 "racks",
                 "rack_slots",
+                "catalog",
+                "pricing",
+                "pricing_history",
             )
             for index in inspector.get_indexes(table)
         }
@@ -186,8 +234,137 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("rack_slots", "rack_slots_rack_id", False),
                 ("rack_slots", "rack_slots_product_id", False),
                 ("rack_slots", "rack_slots_product_id_uq", True),
+                ("catalog", "catalog_category_id", False),
+                ("catalog", "catalog_subcategory_id", False),
+                ("catalog", "catalog_brand_id", False),
+                ("catalog", "catalog_product_type_id", False),
+                ("catalog", "catalog_rack_id", False),
+                ("catalog", "catalog_category_name_sort", False),
+                ("catalog", "catalog_brand", False),
+                ("catalog", "catalog_rack_name_sort", False),
+                ("catalog", "catalog_type_name", False),
+                ("catalog", "catalog_product_group", False),
+                ("catalog", "catalog_subcategory", False),
+                ("catalog", "catalog_product_class", False),
+                ("catalog", "catalog_size_mm", False),
+                ("catalog", "catalog_name_sort", False),
+                ("catalog", "catalog_stock_reorder", False),
+                ("pricing_history", "pricing_history_code_updated", False),
             }.issubset(indexes)
         )
+
+    def test_catalog_relations_and_product_delete_policies(self) -> None:
+        with self.engine.connect() as connection:
+            transaction = connection.begin()
+            try:
+                connection.execute(
+                    text("INSERT INTO categories (id, name) VALUES ('row6-category', 'Test')")
+                )
+                connection.execute(
+                    text("INSERT INTO subcategories (id, name, category_id) "
+                         "VALUES ('row6-subcategory', 'Test sub', 'row6-category')")
+                )
+                connection.execute(
+                    text("INSERT INTO brands (id, name) VALUES ('row6-brand', 'Test brand')")
+                )
+                connection.execute(
+                    text("INSERT INTO product_types (id, name) "
+                         "VALUES ('row6-type', 'Test type')")
+                )
+                connection.execute(
+                    text("INSERT INTO product_groups (id, name) "
+                         "VALUES ('row6-group', 'Test group')")
+                )
+                connection.execute(
+                    text("INSERT INTO racks (id, name, row_count, column_count) "
+                         "VALUES ('row6-rack', 'Test rack', 1, 1)")
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO catalog (id, name, product_name, category_id, "
+                        "category, unit, standard_rate, product_code, brand_id, "
+                        "subcategory_id, product_type_id, rack_id) VALUES "
+                        "('row6-product', 'Test product', 'Test product', "
+                        "'row6-category', 'Test', 'pcs', 1, 'ROW6-CODE', "
+                        "'row6-brand', 'row6-subcategory', 'row6-type', 'row6-rack')"
+                    )
+                )
+                connection.execute(
+                    text("INSERT INTO product_group_items "
+                         "(product_group_id, product_id) "
+                         "VALUES ('row6-group', 'row6-product')")
+                )
+                connection.execute(
+                    text("INSERT INTO rack_slots (rack_id, slot_code, product_id) "
+                         "VALUES ('row6-rack', 'R1C1', 'row6-product')")
+                )
+                self.assertNotIn(
+                    "product_group_ids",
+                    {column["name"] for column in inspect(self.engine).get_columns("catalog")},
+                )
+
+                connection.execute(
+                    text("DELETE FROM catalog WHERE id = 'row6-product'")
+                )
+                membership_count = connection.execute(
+                    text("SELECT count(*) FROM product_group_items "
+                         "WHERE product_id = 'row6-product'")
+                ).scalar_one()
+                slot_product = connection.execute(
+                    text("SELECT product_id FROM rack_slots "
+                         "WHERE rack_id = 'row6-rack' AND slot_code = 'R1C1'")
+                ).scalar_one()
+                self.assertEqual(membership_count, 0)
+                self.assertIsNone(slot_product)
+            finally:
+                transaction.rollback()
+
+    def test_pricing_foreign_keys_uniqueness_and_catalog_cascade(self) -> None:
+        with self.engine.connect() as connection:
+            transaction = connection.begin()
+            try:
+                connection.execute(
+                    text("INSERT INTO categories (id, name) "
+                         "VALUES ('row7-category', 'Pricing test')")
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO catalog (id, name, product_name, category_id, "
+                        "category, unit, standard_rate, product_code) VALUES "
+                        "('row7-product', 'Pricing test', 'Pricing test', "
+                        "'row7-category', 'Pricing test', 'pcs', 1, 'ROW7-CODE')"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO pricing (product_code, mrp, selling_price, "
+                        "purchase_price, discount) "
+                        "VALUES ('ROW7-CODE', 10, 9, 5, 10)"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO pricing_history (product_code, mrp, "
+                        "selling_price, purchase_price, discount) "
+                        "VALUES ('ROW7-CODE', 10, 9, 5, 10)"
+                    )
+                )
+
+                connection.execute(
+                    text("DELETE FROM catalog WHERE id = 'row7-product'")
+                )
+                pricing_count = connection.execute(
+                    text("SELECT count(*) FROM pricing "
+                         "WHERE product_code = 'ROW7-CODE'")
+                ).scalar_one()
+                history_count = connection.execute(
+                    text("SELECT count(*) FROM pricing_history "
+                         "WHERE product_code = 'ROW7-CODE'")
+                ).scalar_one()
+                self.assertEqual(pricing_count, 0)
+                self.assertEqual(history_count, 0)
+            finally:
+                transaction.rollback()
 
     def test_auth_queries_and_foreign_keys_work_and_rollback(self) -> None:
         with self.engine.connect() as connection:

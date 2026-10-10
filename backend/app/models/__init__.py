@@ -304,6 +304,182 @@ class ProductType(TimestampMixin, Base):
     )
 
 
+class Catalog(TimestampMixin, Base):
+    __tablename__ = "catalog"
+    __table_args__ = (
+        UniqueConstraint("product_code", name="catalog_product_code_uq"),
+        Index("catalog_category_id", "category_id"),
+        Index("catalog_subcategory_id", "subcategory_id"),
+        Index("catalog_brand_id", "brand_id"),
+        Index("catalog_product_type_id", "product_type_id"),
+        Index("catalog_rack_id", "rack_id"),
+        Index("catalog_category_name_sort", "category", "name"),
+        Index("catalog_brand", "brand"),
+        Index("catalog_rack_name_sort", "rack_id", "name"),
+        Index("catalog_type_name", "type_name"),
+        Index("catalog_product_group", "product_group"),
+        Index("catalog_subcategory", "subcategory"),
+        Index("catalog_product_class", "product_class"),
+        Index("catalog_size_mm", "size_mm"),
+        Index("catalog_name_sort", "name"),
+        Index("catalog_stock_reorder", "stock", "reorder_level"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    product_name: Mapped[str] = mapped_column(Text, nullable=False)
+    category_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "categories.id",
+            ondelete="RESTRICT",
+            name="fk_catalog_category_id_categories",
+        ),
+        nullable=False,
+    )
+    category: Mapped[str] = mapped_column(Text, nullable=False)
+    unit: Mapped[str] = mapped_column(Text, nullable=False)
+    standard_rate: Mapped[float] = mapped_column(Float, nullable=False)
+    mrp: Mapped[float | None] = mapped_column(Float, nullable=True)
+    selling_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    purchase_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    discount: Mapped[float | None] = mapped_column(Float, nullable=True)
+    stock: Mapped[float] = mapped_column(
+        Float, nullable=False, server_default=text("0")
+    )
+    brand_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("brands.id", ondelete="RESTRICT", name="fk_catalog_brand_id_brands"),
+        nullable=True,
+    )
+    brand: Mapped[str | None] = mapped_column(Text, nullable=True)
+    product_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    type_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    product_type_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "product_types.id",
+            ondelete="RESTRICT",
+            name="fk_catalog_product_type_id_product_types",
+        ),
+        nullable=True,
+    )
+    product_class: Mapped[str | None] = mapped_column(Text, nullable=True)
+    product_group: Mapped[str | None] = mapped_column(Text, nullable=True)
+    subcategory_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "subcategories.id",
+            ondelete="RESTRICT",
+            name="fk_catalog_subcategory_id_subcategories",
+        ),
+        nullable=True,
+    )
+    subcategory: Mapped[str | None] = mapped_column(Text, nullable=True)
+    size: Mapped[str | None] = mapped_column(Text, nullable=True)
+    size_mm: Mapped[float | None] = mapped_column(Float, nullable=True)
+    size_cm: Mapped[float | None] = mapped_column(Float, nullable=True)
+    size_inch: Mapped[str | None] = mapped_column(Text, nullable=True)
+    length: Mapped[str | None] = mapped_column(Text, nullable=True)
+    aliases: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    multilingual_names: Mapped[dict[str, str]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+    display_sequence: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0")
+    )
+    reorder_level: Mapped[float] = mapped_column(
+        Float, nullable=False, server_default=text("0")
+    )
+    regular_discount: Mapped[float] = mapped_column(
+        Float, nullable=False, server_default=text("0")
+    )
+    image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    std_pkg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    mrp_pkg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    hsn_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    gst_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
+    last_purchase_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    last_purchase_discount: Mapped[float | None] = mapped_column(Float, nullable=True)
+    rack_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("racks.id", ondelete="RESTRICT", name="fk_catalog_rack_id_racks"),
+        nullable=True,
+    )
+    rack_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    rack_slot: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
+
+
+class Pricing(TimestampMixin, Base):
+    __tablename__ = "pricing"
+    __table_args__ = (
+        UniqueConstraint("product_code", name="pricing_product_code_uq"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    product_code: Mapped[str] = mapped_column(
+        Text,
+        ForeignKey(
+            "catalog.product_code",
+            ondelete="CASCADE",
+            name="fk_pricing_product_code_catalog",
+        ),
+        nullable=False,
+    )
+    mrp: Mapped[float | None] = mapped_column(Float, nullable=True)
+    selling_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    purchase_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    discount: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+
+class PricingHistory(TimestampMixin, Base):
+    __tablename__ = "pricing_history"
+    __table_args__ = (
+        Index(
+            "pricing_history_code_updated",
+            "product_code",
+            text("updated_at DESC"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    product_code: Mapped[str] = mapped_column(
+        Text,
+        ForeignKey(
+            "catalog.product_code",
+            ondelete="CASCADE",
+            name="fk_pricing_history_product_code_catalog",
+        ),
+        nullable=False,
+    )
+    mrp: Mapped[float | None] = mapped_column(Float, nullable=True)
+    selling_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    purchase_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    discount: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+
 class ProductGroup(TimestampMixin, Base):
     __tablename__ = "product_groups"
     __table_args__ = (
@@ -340,6 +516,11 @@ class ProductGroupItem(TimestampMixin, Base):
     )
     product_id: Mapped[str] = mapped_column(
         String(36),
+        ForeignKey(
+            "catalog.id",
+            ondelete="CASCADE",
+            name="fk_product_group_items_product_id_catalog",
+        ),
         primary_key=True,
         nullable=False,
     )
@@ -389,7 +570,15 @@ class RackSlot(TimestampMixin, Base):
         nullable=False,
     )
     slot_code: Mapped[str] = mapped_column(Text, nullable=False)
-    product_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    product_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "catalog.id",
+            ondelete="SET NULL",
+            name="fk_rack_slots_product_id_catalog",
+        ),
+        nullable=True,
+    )
 
 
 __all__ = [
@@ -397,9 +586,12 @@ __all__ = [
     "Base",
     "Brand",
     "Category",
+    "Catalog",
     "MoneyConfig",
     "Partner",
     "PartnerToken",
+    "Pricing",
+    "PricingHistory",
     "ProductGroup",
     "ProductGroupItem",
     "ProductType",
