@@ -102,6 +102,8 @@ export default function RfqsPage() {
   const [search, setSearch] = useState("");
   const [partnerFilter, setPartnerFilter] = useState("all");
   const [managerFilter, setManagerFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [productFilter, setProductFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selected, setSelected] = useState<Rfq | null>(null);
@@ -123,6 +125,30 @@ export default function RfqsPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const partnerById = useMemo(() => new Map(partners.map((partner) => [partner.id, partner])), [partners]);
+  const productsByCode = useMemo(() => {
+    const map = new Map<string, CatalogItem[]>();
+    products.forEach((product) => {
+      const code = product.productCode?.trim();
+      if (!code) return;
+      const matches = map.get(code) || [];
+      matches.push(product);
+      map.set(code, matches);
+    });
+    return map;
+  }, [products]);
+  const categoryOptions = useMemo(
+    () => [...new Set(products.map((product) => product.category?.trim()).filter((category): category is string => Boolean(category)))].sort((a, b) => a.localeCompare(b)),
+    [products],
+  );
+  const productFilterOptions = useMemo(() => {
+    const byCode = new Map<string, CatalogItem>();
+    products.forEach((product) => {
+      const code = product.productCode?.trim();
+      if (!code || (categoryFilter !== "all" && product.category?.trim() !== categoryFilter)) return;
+      if (!byCode.has(code)) byCode.set(code, product);
+    });
+    return [...byCode.entries()].sort((left, right) => left[1].name.localeCompare(right[1].name));
+  }, [categoryFilter, products]);
   const fromTime = dateBoundary(dateFrom);
   const toTime = dateBoundary(dateTo, true);
   const dateFilterError = fromTime === null
@@ -207,8 +233,13 @@ export default function RfqsPage() {
       if (partnerFilter !== "all" && rfq.partnerId !== partnerFilter) return false;
       const partner = partnerById.get(rfq.partnerId);
       if (managerFilter !== "all" && partner?.salesManager !== managerFilter) return false;
+      if (
+        categoryFilter !== "all" &&
+        !rfq.lines.some((line) => productsByCode.get(line.productCode)?.some((product) => product.category?.trim() === categoryFilter))
+      ) return false;
+      if (productFilter !== "all" && !rfq.lines.some((line) => line.productCode === productFilter)) return false;
       const createdAt = new Date(rfq.createdAt).getTime();
-      if (!dateFilterError && Number.isFinite(createdAt)) {
+      if (Number.isFinite(createdAt)) {
         if (fromTime != null && createdAt < fromTime) return false;
         if (toTime != null && createdAt > toTime) return false;
       }
@@ -223,7 +254,7 @@ export default function RfqsPage() {
       ].filter(Boolean).join(" ").toLowerCase();
       return searchable.includes(query);
     });
-  }, [dateFilterError, fromTime, managerFilter, partnerById, partnerFilter, rfqs, search, status, toTime]);
+  }, [categoryFilter, fromTime, managerFilter, partnerById, partnerFilter, productFilter, productsByCode, rfqs, search, status, toTime]);
 
   const summary = useMemo(() => {
     const lines: RfqLine[] = filteredRfqs.flatMap((rfq) => rfq.lines);
@@ -436,6 +467,37 @@ export default function RfqsPage() {
             {managerOptions.map((manager) => <Chip key={manager} label={manager} selected={managerFilter === manager} onPress={() => setManagerFilter(manager)} testID={`rfq-manager-filter-${manager}`} />)}
           </div>
         ) : null}
+        <div style={selectFiltersStyle}>
+          <label style={selectFilterLabelStyle}>
+            Category
+            <select
+              aria-label="RFQ category filter"
+              data-testid="rfq-category-filter"
+              value={categoryFilter}
+              onChange={(event) => {
+                setCategoryFilter(event.currentTarget.value);
+                setProductFilter("all");
+              }}
+              style={selectFilterStyle}
+            >
+              <option value="all">All categories</option>
+              {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
+            </select>
+          </label>
+          <label style={selectFilterLabelStyle}>
+            Product
+            <select
+              aria-label="RFQ product filter"
+              data-testid="rfq-product-filter"
+              value={productFilter}
+              onChange={(event) => setProductFilter(event.currentTarget.value)}
+              style={selectFilterStyle}
+            >
+              <option value="all">All products</option>
+              {productFilterOptions.map(([code, product]) => <option key={code} value={code}>{product.name} · {code}</option>)}
+            </select>
+          </label>
+        </div>
         <div style={dateFiltersStyle}>
           <Input value={dateFrom} onChangeText={setDateFrom} placeholder="From YYYY-MM-DD" style={{ flex: 1, marginBottom: 0 }} />
           <Input value={dateTo} onChangeText={setDateTo} placeholder="To YYYY-MM-DD" style={{ flex: 1, marginBottom: 0 }} />
@@ -558,6 +620,9 @@ function statusColor(status: string): React.CSSProperties {
 
 const controlsStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px 0` };
 const filtersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
+const selectFiltersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
+const selectFilterLabelStyle: React.CSSProperties = { display: "grid", gap: spacing.xs, flex: "1 1 190px", color: colors.textSecondary, fontSize: 12, fontWeight: 600 };
+const selectFilterStyle: React.CSSProperties = { boxSizing: "border-box", width: "100%", minHeight: 40, padding: "7px 10px", border: `1px solid ${colors.borderStrong}`, borderRadius: radii.sm, color: colors.textPrimary, background: colors.surface, font: "inherit" };
 const dateFiltersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.xs };
 const validationStyle: React.CSSProperties = { color: colors.error, fontSize: 12, margin: `${spacing.xs}px 0 ${spacing.sm}px` };
 const successStyle: React.CSSProperties = { color: colors.success, background: colors.successBg, padding: `${spacing.sm}px ${spacing.lg}px`, margin: `0 ${spacing.lg}px ${spacing.sm}px`, borderRadius: radii.sm, fontWeight: 600 };

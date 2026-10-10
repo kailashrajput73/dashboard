@@ -1,6 +1,6 @@
 # Referral Partners
 
-The Partners screen lists partner accounts and their KYC status. Search by name, phone, pincode, city, or area. Select a status filter or a sales-manager filter to narrow the list. The export icon downloads only the currently filtered partners as `partners.csv`.
+The Partners screen lists partner accounts and their KYC status. Search by name, phone, pincode, city, or area. Select a status filter or a sales-manager filter to narrow the list. The partner export downloads the currently filtered partners as `partners.csv`. The KYC-history export downloads one row per history entry for those partners as `partners-kyc-history.csv`; partners without history have no rows in that file.
 
 ## Partner details
 

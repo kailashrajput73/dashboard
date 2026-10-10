@@ -234,6 +234,32 @@ Use disposable partners whose names start with `ZZ`. Do not change real partner 
 6. Export after applying search/status/manager filters. Confirm `partners.csv`, UTF-8 BOM, every cell quoted with embedded quotes doubled, exact 20 columns `id,name,phone,businessName,address,pincode,city,area,salesManager,kycStatus,appActive,locationVerified,rewardBalance,rfqCount,approvedRfqCount,approvedRfqValue,registeredVia,lastAppLoginAt,loginCount,createdAt`, and only filtered rows.
 7. Confirm list requests send `search`, `kyc_status`, and `sales_manager` as Expo does; detail, create, KYC review, and rewards calls succeed against the current API.
 
+### Row 20b: RFQ date bounds (Built)
+
+1. With RFQs on dates spanning a known range, enter a valid From date and an invalid To value. Confirm the From bound still filters the list and the end-date validation message appears.
+2. Enter an invalid From value and a valid To date. Confirm the To bound still filters the list and the start-date validation message appears.
+3. Enter valid but reversed dates. Confirm both bounds apply (the list has no matching RFQs) and the reversed-range validation message appears.
+4. Clear both dates and confirm the complete list returns. Confirm the summary and CSV export use the filtered rows.
+
+### Row 20c: team users no-store request (Built)
+
+1. Open or refresh Team Management and confirm the `GET /team/users` request is sent with the browser fetch cache mode `no-store`.
+2. Confirm team list, search, role filters, and existing create/edit/active-toggle workflows continue to work.
+
+### Row 20d: RFQ category and product filters (Built)
+
+1. Select a category and confirm only RFQs with at least one line whose catalog product belongs to that category remain. Confirm Product choices narrow to that category.
+2. Select a product and confirm only RFQs containing its product code remain. Confirm selecting both category and product returns only matching RFQs.
+3. Combine the new filters with status, partner, manager, search, and date filters. Confirm filters narrow together, the report summary updates, and CSV export contains only matching RFQs.
+4. Change category after selecting a product and confirm the product selection resets. Clear both selectors and confirm the unfiltered RFQs return.
+
+### Row 20e: partner KYC-history CSV export (Built)
+
+1. With disposable partners having multiple KYC history entries, select the KYC-history export. Confirm `partners-kyc-history.csv` contains one row per entry and no rows for partners without history.
+2. Confirm the exact column order is `partnerId,partnerName,status,reviewedBy,reviewedAt,rejectionReason,locationVerified`; each data cell is quoted and embedded quotes are doubled, with a UTF-8 BOM.
+3. Apply partner search/status/manager filters and export again. Confirm only history belonging to the currently listed partners is included.
+4. Confirm export uses the already loaded partner list and does not issue one detail request per partner.
+
 ## Decisions open
 
 - Row 6: Expo's class purge filters the stored product class. A legacy product shown under a class only through name inference may not be deleted by it. Compare with a real example.

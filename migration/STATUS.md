@@ -71,6 +71,10 @@ Statuses: Not started → Built → Done.
 | 18 | Settings | Built | [dev/2026-10-08-18-settings.md](dev/2026-10-08-18-settings.md) |
 | 19 | Dashboard snapshot | Built | [dev/2026-10-08-19-dashboard.md](dev/2026-10-08-19-dashboard.md) |
 | 20 | Register page (exists in Expo, was missing from the first list) | Built | [dev/2026-10-08-20-register.md](dev/2026-10-08-20-register.md) |
+| 20b | RFQ date bounds apply independently, including reversed ranges, like Expo | Built | [dev/2026-10-10-20b-rfq-date-bounds.md](dev/2026-10-10-20b-rfq-date-bounds.md) |
+| 20c | Team user list requests use `cache: "no-store"`, like Expo FIX-06 | Built | [dev/2026-10-10-20c-team-no-store.md](dev/2026-10-10-20c-team-no-store.md) |
+| 20d | RFQ list Category and Product filters from loaded catalog and lines | Built | [dev/2026-10-10-20d-rfq-category-product-filters.md](dev/2026-10-10-20d-rfq-category-product-filters.md) |
+| 20e | Partners KYC-history CSV export | Built | [dev/2026-10-10-20e-partner-kyc-history-export.md](dev/2026-10-10-20e-partner-kyc-history-export.md) |
 | 21a | Check every Expo screen exists in `web/`. List anything missed. | Not started | |
 | 21b | Production build and deploy | Not started | |
 | 21c | Remove Expo from `frontend/`, only after every screen is checked | Not started | |

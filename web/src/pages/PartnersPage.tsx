@@ -41,6 +41,15 @@ const PARTNER_EXPORT_HEADERS = [
   "loginCount",
   "createdAt",
 ];
+const PARTNER_KYC_HISTORY_HEADERS = [
+  "partnerId",
+  "partnerName",
+  "status",
+  "reviewedBy",
+  "reviewedAt",
+  "rejectionReason",
+  "locationVerified",
+];
 
 function emptyPartnerForm(): PartnerAdminCreate {
   return {
@@ -288,6 +297,27 @@ export default function PartnersPage() {
     }
   }
 
+  function exportKycHistoryCsv() {
+    const rows = partners.flatMap((partner) =>
+      (partner.kycHistory || []).map((entry) => [
+        partner.id,
+        partner.name,
+        entry.status,
+        entry.reviewedBy,
+        entry.reviewedAt,
+        entry.rejectionReason,
+        entry.locationVerified,
+      ].map(csvCell).join(",")),
+    );
+    const csv = `\uFEFF${[PARTNER_KYC_HISTORY_HEADERS.join(","), ...rows].join("\n")}`;
+    try {
+      downloadCsv(csv, "partners-kyc-history.csv");
+      setSuccessMessage(`Exported ${rows.length} KYC history entr${rows.length === 1 ? "y" : "ies"}.`);
+    } catch {
+      setError("Could not export KYC history.");
+    }
+  }
+
   const updateCreateFieldFromInput = (key: keyof PartnerAdminCreate, value: string) => {
     updateCreateField(key, value);
   };
@@ -300,6 +330,9 @@ export default function PartnersPage() {
         onBack={() => navigate(-1)}
         right={(
           <div style={headerActionsStyle}>
+            <button type="button" data-testid="export-partner-kyc-history" aria-label="Export KYC history" title="Export KYC history" onClick={exportKycHistoryCsv} style={iconButtonStyle}>
+              <Icon name="download-outline" size={23} color={colors.primary} />
+            </button>
             <button type="button" data-testid="export-partners" aria-label="Export filtered partners" onClick={() => void exportPartnersCsv()} style={iconButtonStyle}>
               <Icon name="download-outline" size={23} color={colors.primary} />
             </button>
