@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    PrimaryKeyConstraint,
     String,
     Text,
     UniqueConstraint,
@@ -303,6 +304,94 @@ class ProductType(TimestampMixin, Base):
     )
 
 
+class ProductGroup(TimestampMixin, Base):
+    __tablename__ = "product_groups"
+    __table_args__ = (
+        UniqueConstraint("name", name="product_groups_name_uq"),
+        Index("product_groups_name_sort", "name"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    product_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class ProductGroupItem(TimestampMixin, Base):
+    __tablename__ = "product_group_items"
+    __table_args__ = (
+        Index("product_group_items_group_id", "product_group_id"),
+        Index("product_group_items_product_id", "product_id"),
+    )
+
+    product_group_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "product_groups.id",
+            ondelete="CASCADE",
+            name="fk_product_group_items_product_group_id_product_groups",
+        ),
+        primary_key=True,
+        nullable=False,
+    )
+    product_id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        nullable=False,
+    )
+
+
+class Rack(TimestampMixin, Base):
+    __tablename__ = "racks"
+    __table_args__ = (
+        UniqueConstraint("name", name="racks_name_uq"),
+        Index("racks_name_sort", "name"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    row_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    column_count: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class RackSlot(TimestampMixin, Base):
+    __tablename__ = "rack_slots"
+    __table_args__ = (
+        UniqueConstraint("rack_id", "slot_code", name="rack_slots_rack_code_uq"),
+        Index("rack_slots_rack_id", "rack_id"),
+        Index("rack_slots_product_id", "product_id"),
+        Index(
+            "rack_slots_product_id_uq",
+            "product_id",
+            unique=True,
+            postgresql_where=text("product_id IS NOT NULL"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    rack_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("racks.id", ondelete="CASCADE", name="fk_rack_slots_rack_id_racks"),
+        nullable=False,
+    )
+    slot_code: Mapped[str] = mapped_column(Text, nullable=False)
+    product_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+
 __all__ = [
     "AdminToken",
     "Base",
@@ -311,7 +400,11 @@ __all__ = [
     "MoneyConfig",
     "Partner",
     "PartnerToken",
+    "ProductGroup",
+    "ProductGroupItem",
     "ProductType",
+    "Rack",
+    "RackSlot",
     "Subcategory",
     "User",
 ]

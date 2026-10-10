@@ -42,8 +42,8 @@ Statuses: Not started → Built → Done.
 | 1 | Initialize Alembic under `backend/`, using `DATABASE_URL` from `backend/.env`; prepare an empty baseline migration. | — | Done | See `migration-db/dev/2026-10-09-01-alembic-baseline.md` |
 | 2 | Core auth tables: `users`, `admin_tokens`, `partners`, `partner_tokens`, `money_config`. Schema only, no data copy yet. | REL-01, REL-02, REL-03 | Done | See `migration-db/dev/2026-10-09-02-auth-schema.md` |
 | 3 | Taxonomy tables: `categories`, `subcategories`, `brands`, `product_types`. Foreign keys by id only, not by name. | RSK-06, REL-06, REL-07 | Built | See `migration-db/dev/2026-10-10-03-taxonomy-schema.md` |
-| 4 | `product_groups` + join table `product_group_items` (replaces the two-sided `productIds` / `productGroupIds` arrays). | REL-11 | Not started | |
-| 5 | `racks` + `rack_slots` (one row per slot, not a nested array). | REL-12, TXN-15 | Not started | |
+| 4 | `product_groups` + join table `product_group_items` (replaces the two-sided `productIds` / `productGroupIds` arrays). | REL-11 | Built | See `migration-db/dev/2026-10-10-04-product-groups-schema.md` |
+| 5 | `racks` + `rack_slots` (one row per slot, not a nested array). | REL-12, TXN-15 | Built | See `migration-db/dev/2026-10-10-05-racks-schema.md` |
 | 6 | `catalog` (products) table. All taxonomy links are id foreign keys. | RSK-06 | Not started | |
 | 7 | `pricing` + `pricing_history`, with `ON DELETE CASCADE` from `catalog.product_code`. | RSK-05, REL-16, REL-17 | Not started | |
 | 8 | `purchases` + `purchase_lines`. Add required `partner_id` column (was indexed but never written in Mongo). | RSK-07 | Not started | |

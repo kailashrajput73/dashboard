@@ -24,7 +24,15 @@ EXPECTED_TAXONOMY_TABLES = {
     "product_types",
     "subcategories",
 }
-EXPECTED_SCHEMA_TABLES = EXPECTED_TABLES | EXPECTED_TAXONOMY_TABLES
+EXPECTED_ROW4_TABLES = EXPECTED_TABLES | EXPECTED_TAXONOMY_TABLES | {
+    "product_group_items",
+    "product_groups",
+}
+EXPECTED_ROW5_TABLES = EXPECTED_ROW4_TABLES | {
+    "rack_slots",
+    "racks",
+}
+EXPECTED_SCHEMA_TABLES = EXPECTED_ROW5_TABLES
 
 
 @unittest.skipUnless(
@@ -42,13 +50,15 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             {"alembic_version"},
             EXPECTED_TABLES,
             EXPECTED_TABLES | EXPECTED_TAXONOMY_TABLES,
+            EXPECTED_ROW4_TABLES,
         )
         if before not in allowed_before:
             cls.engine.dispose()
             raise AssertionError(
                 "TEST_DATABASE_URL must point to an empty database, the row-1 "
-                "baseline, the row-2 schema, or the row-3 taxonomy schema; "
-                f"found tables: {sorted(before)}"
+                "baseline, the row-2 schema, the row-3 taxonomy schema, or the "
+                "row-4 product-groups schema; found tables: "
+                f"{sorted(before)}"
             )
 
         with patch.dict(os.environ, {"DATABASE_URL": cls.database_url}):
@@ -61,7 +71,7 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls.engine.dispose()
 
-    def test_row_three_schema_tables_exist_after_migration(self) -> None:
+    def test_row_five_schema_tables_exist_after_migration(self) -> None:
         self.assertEqual(self.tables, EXPECTED_SCHEMA_TABLES)
 
     def test_foreign_keys_unique_constraints_and_indexes_exist(self) -> None:
@@ -71,6 +81,8 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             ("partner_tokens", "partner_id", "partners", "id"),
             ("money_config", "admin_id", "users", "id"),
             ("subcategories", "category_id", "categories", "id"),
+            ("product_group_items", "product_group_id", "product_groups", "id"),
+            ("rack_slots", "rack_id", "racks", "id"),
         }
         actual_foreign_keys = {
             (
@@ -79,14 +91,29 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 fk["referred_table"],
                 fk["referred_columns"][0],
             )
-            for table in ("admin_tokens", "partner_tokens", "money_config", "subcategories")
+            for table in (
+                "admin_tokens",
+                "partner_tokens",
+                "money_config",
+                "subcategories",
+                "product_group_items",
+                "rack_slots",
+            )
             for fk in inspector.get_foreign_keys(table)
         }
         self.assertEqual(actual_foreign_keys, expected_foreign_keys)
 
-        for table in ("admin_tokens", "partner_tokens", "money_config", "subcategories"):
+        expected_ondelete = {
+            "admin_tokens": "RESTRICT",
+            "partner_tokens": "RESTRICT",
+            "money_config": "RESTRICT",
+            "subcategories": "RESTRICT",
+            "product_group_items": "CASCADE",
+            "rack_slots": "CASCADE",
+        }
+        for table, expected_delete in expected_ondelete.items():
             for foreign_key in inspector.get_foreign_keys(table):
-                self.assertEqual(foreign_key["options"]["ondelete"], "RESTRICT")
+                self.assertEqual(foreign_key["options"]["ondelete"], expected_delete)
 
         self.assertEqual(
             {
@@ -99,6 +126,9 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                     "subcategories",
                     "brands",
                     "product_types",
+                    "product_groups",
+                    "racks",
+                    "rack_slots",
                 )
                 for constraint in inspector.get_unique_constraints(table)
             },
@@ -110,6 +140,9 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("subcategories", "subcategories_category_name_uq"),
                 ("brands", "brands_name_uq"),
                 ("product_types", "product_types_name_uq"),
+                ("product_groups", "product_groups_name_uq"),
+                ("racks", "racks_name_uq"),
+                ("rack_slots", "rack_slots_rack_code_uq"),
             },
         )
         indexes = {
@@ -123,6 +156,10 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 "subcategories",
                 "brands",
                 "product_types",
+                "product_groups",
+                "product_group_items",
+                "racks",
+                "rack_slots",
             )
             for index in inspector.get_indexes(table)
         }
@@ -142,6 +179,13 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("subcategories", "subcategories_category_name_sort", False),
                 ("brands", "brands_name_sort", False),
                 ("product_types", "product_types_name_sort", False),
+                ("product_groups", "product_groups_name_sort", False),
+                ("product_group_items", "product_group_items_group_id", False),
+                ("product_group_items", "product_group_items_product_id", False),
+                ("racks", "racks_name_sort", False),
+                ("rack_slots", "rack_slots_rack_id", False),
+                ("rack_slots", "rack_slots_product_id", False),
+                ("rack_slots", "rack_slots_product_id_uq", True),
             }.issubset(indexes)
         )
 
