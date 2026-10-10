@@ -46,8 +46,8 @@ Statuses: Not started → Built → Done.
 | 5 | `racks` + `rack_slots` (one row per slot, not a nested array). | REL-12, TXN-15 | Built | See `migration-db/dev/2026-10-10-05-racks-schema.md` |
 | 6 | `catalog` (products) table. All taxonomy links are id foreign keys. | RSK-06 | Built | See `migration-db/dev/2026-10-10-06-catalog-schema.md` |
 | 7 | `pricing` + `pricing_history`, with `ON DELETE CASCADE` from `catalog.product_code`. | RSK-05, REL-16, REL-17 | Built | See `migration-db/dev/2026-10-10-07-pricing-schema.md` |
-| 8 | `purchases` + `purchase_lines`. Add required `partner_id` column (was indexed but never written in Mongo). | RSK-07 | Not started | |
-| 9 | `rfqs` + `rfq_lines`. | REL-04, REL-14 | Not started | |
+| 8 | `purchases` + `purchase_lines`. Add required `partner_id` column (was indexed but never written in Mongo). | RSK-07 | Built | See `migration-db/dev/2026-10-10-08-purchases-schema.md` |
+| 9 | `rfqs` + `rfq_lines`. | REL-04, REL-14 | Built | See `migration-db/dev/2026-10-10-09-rfqs-schema.md` |
 | 10 | `reward_ledger`. | REL-05, REL-19 | Not started | |
 | 11 | `dispatches` + `dispatch_lines`. Unique constraint on `source_rfq_id` so a second dispatch against the same RFQ is rejected by the database. | RSK-10, REL-18 | Not started | |
 | 12 | Data migration script: copy real Mongo data into rows 2–4 tables (auth + taxonomy). Dry-run then real run, both counted and logged. | — | Not started | |

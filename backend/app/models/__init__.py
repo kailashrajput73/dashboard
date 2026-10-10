@@ -480,6 +480,151 @@ class PricingHistory(TimestampMixin, Base):
     discount: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
+class Purchase(TimestampMixin, Base):
+    __tablename__ = "purchases"
+    __table_args__ = (
+        Index("purchases_createdAt", text("created_at DESC")),
+        Index("purchases_partner_created", "partner_id", text("created_at DESC")),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    partner_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "partners.id",
+            ondelete="RESTRICT",
+            name="fk_purchases_partner_id_partners",
+        ),
+        nullable=False,
+    )
+
+
+class PurchaseLine(TimestampMixin, Base):
+    __tablename__ = "purchase_lines"
+    __table_args__ = (
+        Index("purchase_lines_purchase_id", "purchase_id"),
+        Index("purchase_lines_product_id", "product_id"),
+        Index("purchase_lines_product_code", "product_code"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    purchase_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "purchases.id",
+            ondelete="CASCADE",
+            name="fk_purchase_lines_purchase_id_purchases",
+        ),
+        nullable=False,
+    )
+    product_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "catalog.id",
+            ondelete="RESTRICT",
+            name="fk_purchase_lines_product_id_catalog",
+        ),
+        nullable=False,
+    )
+    product_code: Mapped[str] = mapped_column(Text, nullable=False)
+    product_name: Mapped[str] = mapped_column(Text, nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    list_price: Mapped[float] = mapped_column(Float, nullable=False)
+    purchase_discount: Mapped[float] = mapped_column(
+        Float, nullable=False, server_default=text("0")
+    )
+    rack_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "racks.id",
+            ondelete="RESTRICT",
+            name="fk_purchase_lines_rack_id_racks",
+        ),
+        nullable=True,
+    )
+    rack_slot: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class Rfq(TimestampMixin, Base):
+    __tablename__ = "rfqs"
+    __table_args__ = (
+        PrimaryKeyConstraint("id", name="rfqs_id_uq"),
+        Index("rfqs_partner_id", "partner_id"),
+        Index("rfqs_partner_status", "partner_id", "status"),
+        Index("rfqs_status_created", "status", text("created_at DESC")),
+        Index("rfqs_created_at", text("created_at DESC")),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    partner_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "partners.id",
+            ondelete="RESTRICT",
+            name="fk_rfqs_partner_id_partners",
+        ),
+        nullable=False,
+    )
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    grand_total: Mapped[float] = mapped_column(Float, nullable=False)
+    special_discount_percent: Mapped[float] = mapped_column(Float, nullable=False)
+    reward_points: Mapped[int] = mapped_column(Integer, nullable=False)
+    delivery_mode: Mapped[str] = mapped_column(Text, nullable=False)
+    scheduled_at: Mapped[str | None] = mapped_column(Text, nullable=True)
+    history: Mapped[list[dict[str, object]]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+
+
+class RfqLine(TimestampMixin, Base):
+    __tablename__ = "rfq_lines"
+    __table_args__ = (
+        Index("rfq_lines_rfq_id", "rfq_id"),
+        Index("rfq_lines_product_id", "product_id"),
+        Index("rfq_lines_product_code", "product_code"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    rfq_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("rfqs.id", ondelete="CASCADE", name="fk_rfq_lines_rfq_id_rfqs"),
+        nullable=False,
+    )
+    product_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "catalog.id",
+            ondelete="RESTRICT",
+            name="fk_rfq_lines_product_id_catalog",
+        ),
+        nullable=False,
+    )
+    product_code: Mapped[str] = mapped_column(Text, nullable=False)
+    product_name: Mapped[str] = mapped_column(Text, nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    unit_price: Mapped[float] = mapped_column(Float, nullable=False)
+
+
 class ProductGroup(TimestampMixin, Base):
     __tablename__ = "product_groups"
     __table_args__ = (
@@ -592,6 +737,10 @@ __all__ = [
     "PartnerToken",
     "Pricing",
     "PricingHistory",
+    "Purchase",
+    "PurchaseLine",
+    "Rfq",
+    "RfqLine",
     "ProductGroup",
     "ProductGroupItem",
     "ProductType",
