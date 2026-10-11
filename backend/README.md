@@ -36,7 +36,8 @@ CREATE DATABASE quotation_db_pg OWNER quotation_app;
 `quotation_db_pg` is intentionally distinct from MongoDB's `quotation_db`.
 Copy `.env.example` to `.env`, replace the placeholder with the role password,
 then install the Python dependencies and run the connection check from the
-repository root:
+repository root. After the venv exists, install the full backend dependency set
+so `pymongo` is present before any migration script runs:
 
 ```powershell
 Copy-Item backend\.env.example backend\.env
@@ -61,7 +62,8 @@ sudo -u postgres psql
 
 Run the same `CREATE ROLE`, `\password`, and `CREATE DATABASE` commands in
 `psql`. Copy `backend/.env.example` to `backend/.env`, set the password, then
-run from the repository root:
+run from the repository root. After the venv is created, install the backend
+requirements explicitly:
 
 ```bash
 python3 -m venv backend/.venv

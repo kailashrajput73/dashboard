@@ -50,8 +50,8 @@ Statuses: Not started → Built → Done.
 | 9 | `rfqs` + `rfq_lines`. | REL-04, REL-14 | Built | See `migration-db/dev/2026-10-10-09-rfqs-schema.md` |
 | 10 | `reward_ledger`. | REL-05, REL-19 | Built | See `migration-db/dev/2026-10-10-10-reward-ledger-schema.md` |
 | 11 | `dispatches` + `dispatch_lines`. Unique constraint on `source_rfq_id` so a second dispatch against the same RFQ is rejected by the database. | RSK-10, REL-18 | Built | See `migration-db/dev/2026-10-10-11-dispatches-schema.md` |
-| 12 | Data migration script: copy real Mongo data into rows 2–4 tables (auth + taxonomy). Dry-run then real run, both counted and logged. | — | Not started | |
-| 13 | Data migration script: copy catalog + pricing (rows 6–7). Flag and report the 285 orphaned pricing codes found in the inventory instead of silently dropping or keeping them. | RSK-05 | Not started | |
+| 12 | Data migration script: copy real Mongo data into rows 2–4 tables (auth + taxonomy). Dry-run then real run, both counted and logged. | — | Built | See `migration-db/dev/2026-10-11-12-migrate-auth-taxonomy.md` |
+| 13 | Data migration script: copy catalog + pricing (rows 6–7). Flag and report the 285 orphaned pricing codes found in the inventory instead of silently dropping or keeping them. | RSK-05 | Built | See `migration-db/dev/2026-10-11-13-migrate-catalog-pricing.md` |
 | 14 | Data migration script: copy purchases, rfqs, reward ledger, dispatches (rows 8–11). | — | Not started | |
 | 15 | Wrap purchase creation in one Postgres transaction (stock update + purchase row together). | TXN-16 | Not started | |
 | 16 | Wrap RFQ approval in one transaction (status update + reward ledger insert together). | TXN-17 | Not started | |
