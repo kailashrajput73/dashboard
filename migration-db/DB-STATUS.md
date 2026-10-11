@@ -53,7 +53,7 @@ Statuses: Not started → Built → Done.
 | 12 | Data migration script: copy real Mongo data into rows 2–4 tables (auth + taxonomy). Dry-run then real run, both counted and logged. | — | Built | See `migration-db/dev/2026-10-11-12-migrate-auth-taxonomy.md` |
 | 13 | Data migration script: copy catalog + pricing (rows 6–7). Flag and report the 285 orphaned pricing codes found in the inventory instead of silently dropping or keeping them. | RSK-05 | Built | See `migration-db/dev/2026-10-11-13-migrate-catalog-pricing.md` |
 | 14 | Data migration script: copy purchases, rfqs, reward ledger, dispatches (rows 8–11). | — | Not started | |
-| 15 | Wrap purchase creation in one Postgres transaction (stock update + purchase row together). | TXN-16 | Not started | |
+| 15 | Wrap purchase creation in one Postgres transaction (stock update + purchase row together). | TXN-16 | Built | See `migration-db/dev/2026-10-11-15-purchase-transaction.md` |
 | 16 | Wrap RFQ approval in one transaction (status update + reward ledger insert together). | TXN-17 | Not started | |
 | 17 | Wrap dispatch creation in one transaction (stock decrement + dispatch row + RFQ status update together, using the new unique constraint from row 11). | TXN-18, RSK-10 | Not started | |
 | 18 | Implement auth + taxonomy API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. Keep the Mongo code path intact for rollback. | — | Not started | |
