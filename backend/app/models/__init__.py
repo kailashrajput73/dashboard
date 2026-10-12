@@ -224,6 +224,12 @@ class Category(TimestampMixin, Base):
             postgresql_where=text("deleted_at IS NULL"),
         ),
         Index("categories_name_sort", "name"),
+        Index(
+            "categories_active_sort",
+            "is_active",
+            "name",
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
     )
 
     id: Mapped[str] = mapped_column(
@@ -337,20 +343,51 @@ class Catalog(TimestampMixin, Base):
     __tablename__ = "catalog"
     __table_args__ = (
         UniqueConstraint("product_code", name="catalog_product_code_uq"),
+        Index("catalog_deleted_at", "deleted_at"),
         Index("catalog_category_id", "category_id"),
         Index("catalog_subcategory_id", "subcategory_id"),
         Index("catalog_brand_id", "brand_id"),
         Index("catalog_product_type_id", "product_type_id"),
         Index("catalog_rack_id", "rack_id"),
         Index("catalog_category_name_sort", "category", "name"),
+        Index(
+            "catalog_tree_category_active",
+            func.lower(text("category")),
+            "is_active",
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
         Index("catalog_brand", "brand"),
+        Index("catalog_brand_ci", func.lower(text("brand"))),
         Index("catalog_rack_name_sort", "rack_id", "name"),
         Index("catalog_type_name", "type_name"),
+        Index("catalog_type_name_ci", func.lower(text("type_name"))),
         Index("catalog_product_group", "product_group"),
         Index("catalog_subcategory", "subcategory"),
+        Index("catalog_subcategory_ci", func.lower(text("subcategory"))),
         Index("catalog_product_class", "product_class"),
+        Index("catalog_product_class_ci", func.lower(text("product_class"))),
         Index("catalog_size_mm", "size_mm"),
         Index("catalog_name_sort", "name"),
+        Index(
+            "catalog_name_trgm",
+            text("name gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+        Index(
+            "catalog_product_code_trgm",
+            text("product_code gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+        Index(
+            "catalog_brand_trgm",
+            text("brand gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+        Index(
+            "catalog_aliases_trgm",
+            text("(aliases::text) gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
         Index("catalog_stock_reorder", "stock", "reorder_level"),
     )
 
@@ -770,6 +807,7 @@ class ProductGroup(TimestampMixin, Base):
     __table_args__ = (
         UniqueConstraint("name", name="product_groups_name_uq"),
         Index("product_groups_name_sort", "name"),
+        Index("product_groups_name_ci", func.lower(text("name"))),
     )
 
     id: Mapped[str] = mapped_column(
@@ -785,8 +823,8 @@ class ProductGroup(TimestampMixin, Base):
 class ProductGroupItem(TimestampMixin, Base):
     __tablename__ = "product_group_items"
     __table_args__ = (
-        Index("product_group_items_group_id", "product_group_id"),
-        Index("product_group_items_product_id", "product_id"),
+        Index("product_group_items_group_deleted", "product_group_id", "deleted_at"),
+        Index("product_group_items_product_deleted", "product_id", "deleted_at"),
     )
 
     product_group_id: Mapped[str] = mapped_column(

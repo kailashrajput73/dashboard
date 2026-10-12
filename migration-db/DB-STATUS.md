@@ -57,7 +57,7 @@ Statuses: Not started → Built → Done.
 | 16 | Wrap RFQ approval in one transaction (status update + reward ledger insert together). | TXN-17 | Built | See `migration-db/dev/2026-10-11-16-rfq-approve-transaction.md` |
 | 17 | Wrap dispatch creation in one transaction (stock decrement + dispatch row + RFQ status update together, using the new unique constraint from row 11). | TXN-18, RSK-10 | Built | See `migration-db/dev/2026-10-11-17-dispatch-transaction.md` |
 | 18 | Implement auth + taxonomy API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. Keep the Mongo code path intact for rollback. | — | Built | See `migration-db/dev/2026-10-12-18-auth-taxonomy-api.md` |
-| 19 | Implement catalog + pricing API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. | — | Not started | |
+| 19 | Implement catalog + pricing API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. | — | Built | See `migration-db/dev/2026-10-12-19-catalog-pricing-api.md` |
 | 20 | Implement purchases, RFQ, dispatch, and reward-ledger API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. | — | Not started | |
 | 21 | Full side-by-side check of every route against PostgreSQL; list anything missed before cutover. | — | Not started | |
 | 22 | After row 21 is Done, decommission `backend_refactor/`, remove its Motor/PyMongo dependency and old-folder usage; optionally rename/swap at deploy. | RSK-04 (avoids repeating it) | Not started | |

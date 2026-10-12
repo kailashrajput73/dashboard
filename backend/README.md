@@ -103,9 +103,9 @@ psql -U quotation_app -h 127.0.0.1 -p 5432 -d quotation_db_pg -c \
 ```
 
 Set the local PostgreSQL credentials in `backend/.env` before upgrading. The
-current schema revision is `0012_auth_taxonomy_api`; it includes
-the application tables from earlier migration rows and the row-18 auth and
-taxonomy uniqueness constraints. These `psql` examples use the role and
+current schema revision is `0013_catalog_api_indexes`; it includes
+the application tables from earlier migration rows, row-18 auth/taxonomy
+constraints, and catalog API filter/search indexes. These `psql` examples use the role and
 database created in the local setup above; substitute your own connection
 settings if they differ.
 
@@ -151,3 +151,78 @@ The test database must already be migrated to `head`; use the same URL for
 `DATABASE_URL` when running Alembic. Tests wrap writes in a rollback-only
 transaction and do not require MongoDB. Leave `TEST_DATABASE_URL` unset to
 run the database-independent tests only.
+
+## Catalog and pricing API (row 19)
+
+The catalog, pricing, tree, and import routes are mounted under `/api` and
+use the admin Bearer token dependency, except the existing passcode-body
+operations `POST /catalog/{item_id}/delete-secured`,
+`POST /catalog/purge-by-field`, and `POST /catalog/wipe-all`. Catalog list
+and tree reads return the existing `{success, data, error}` response envelope.
+Import endpoints accept parsed JSON rows (not multipart CSV uploads); parse
+the spreadsheet using the existing import templates before posting.
+
+The master import accepts `items` plus the optional `categoryMode` and
+`overrideCategory` fields. A minimal row is:
+
+```json
+{
+  "items": [
+    {
+      "name": "UPVC Pipe",
+      "category": "Pipes",
+      "type": "UPVC",
+      "productClass": "Sch 40",
+      "brand": "Acme",
+      "subcategory": "Drainage",
+      "productCode": "ACME-UPVC-SCH40-25",
+      "mrp": 100,
+      "discount": 10,
+      "sizeMm": 25
+    }
+  ]
+}
+```
+
+The spreadsheet header rows remain the read-only templates in
+`web/src/utils/import-templates.ts`: master includes `Category`, `Type`,
+`Sub-Category`, `class`, `Brand`, `Product Name`, `Product Code`, and the
+price/stock attributes; pricing uses `Product Code`, `MRP (Rs) per nos`,
+`discount`, and `Selling Price`; stock uses `Product Code` and `qty`.
+Pricing imports skip codes not present in catalog and report them in
+`skipped`, rather than creating orphan pricing rows. Catalog create/update,
+pricing/history writes, imports, and full-tree reset each run in one
+PostgreSQL transaction. Full-tree reset preserves rows with `deleted_at`
+and clears occupied rack-slot links.
+
+After upgrading a disposable database and setting `TEST_DATABASE_URL`, run
+`test_catalog_api.py` from the `backend/` directory:
+
+### Windows PowerShell
+
+```powershell
+$env:DATABASE_URL = $env:TEST_DATABASE_URL
+.\.venv\Scripts\alembic.exe upgrade head
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p 'test_catalog_api.py' -v
+```
+
+### macOS
+
+```bash
+export DATABASE_URL="$TEST_DATABASE_URL"
+.venv/bin/alembic upgrade head
+.venv/bin/python -m unittest discover -s tests -p 'test_catalog_api.py' -v
+```
+
+### Linux
+
+```bash
+export DATABASE_URL="$TEST_DATABASE_URL"
+.venv/bin/alembic upgrade head
+.venv/bin/python -m unittest discover -s tests -p 'test_catalog_api.py' -v
+```
+
+To compare the same behavior with Mongo, run the PostgreSQL API on port 8001
+and the Mongo mirror on port 8000. Register/log in an admin on each backend
+and use each returned token for the same catalog requests. No web proxy or
+frontend configuration was changed.

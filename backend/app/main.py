@@ -4,10 +4,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 from starlette.middleware.cors import CORSMiddleware
 
 from .errors import AuthenticationError
-from .routers import auth, partners_team, subcategories, taxonomy
+from .routers import auth, catalog, partners_team, subcategories, taxonomy
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 load_dotenv(BACKEND_DIR / ".env")
@@ -28,6 +30,24 @@ async def authentication_error_response(
         content={"success": False, "data": None, "error": exc.detail},
         headers=exc.headers,
     )
+
+
+async def catalog_validation_error_response(
+    request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
+    if request.url.path == "/api/catalog" or request.url.path.startswith(
+        "/api/catalog/"
+    ):
+        return JSONResponse(
+            status_code=422,
+            content={
+                "success": False,
+                "data": None,
+                "error": "Request validation failed",
+            },
+        )
+    return await request_validation_exception_handler(request, exc)
 
 
 def get_cors_origins() -> list[str]:
@@ -54,7 +74,12 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.add_exception_handler(AuthenticationError, authentication_error_response)
+    app.add_exception_handler(
+        RequestValidationError,
+        catalog_validation_error_response,
+    )
     app.include_router(auth.router)
+    app.include_router(catalog.router)
     app.include_router(partners_team.router)
     app.include_router(taxonomy.router)
     app.include_router(subcategories.router)
