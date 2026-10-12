@@ -56,7 +56,7 @@ Statuses: Not started → Built → Done.
 | 15 | Wrap purchase creation in one Postgres transaction (stock update + purchase row together). | TXN-16 | Built | See `migration-db/dev/2026-10-11-15-purchase-transaction.md` |
 | 16 | Wrap RFQ approval in one transaction (status update + reward ledger insert together). | TXN-17 | Built | See `migration-db/dev/2026-10-11-16-rfq-approve-transaction.md` |
 | 17 | Wrap dispatch creation in one transaction (stock decrement + dispatch row + RFQ status update together, using the new unique constraint from row 11). | TXN-18, RSK-10 | Built | See `migration-db/dev/2026-10-11-17-dispatch-transaction.md` |
-| 18 | Implement auth + taxonomy API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. Keep the Mongo code path intact for rollback. | — | Not started | |
+| 18 | Implement auth + taxonomy API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. Keep the Mongo code path intact for rollback. | — | Built | See `migration-db/dev/2026-10-12-18-auth-taxonomy-api.md` |
 | 19 | Implement catalog + pricing API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. | — | Not started | |
 | 20 | Implement purchases, RFQ, dispatch, and reward-ledger API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. | — | Not started | |
 | 21 | Full side-by-side check of every route against PostgreSQL; list anything missed before cutover. | — | Not started | |

@@ -46,7 +46,7 @@ def _bearer_token(authorization: str | None, missing_message: str) -> str:
 
 def get_current_admin(
     authorization: Annotated[str | None, Header()] = None,
-    session: Session = Depends(get_db_session),
+    session: Session = Depends(get_db_session, use_cache=False),
 ) -> AuthenticatedPrincipal:
     """Resolve a team Bearer token through admin_tokens and its users row."""
     token = _bearer_token(authorization, "Missing admin token")
@@ -69,7 +69,7 @@ def get_current_admin(
 
 def get_current_partner(
     authorization: Annotated[str | None, Header()] = None,
-    session: Session = Depends(get_db_session),
+    session: Session = Depends(get_db_session, use_cache=False),
 ) -> AuthenticatedPrincipal:
     """Resolve the same partner Bearer token flow used by RTE-06."""
     token = _bearer_token(authorization, "Missing partner token")

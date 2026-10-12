@@ -47,6 +47,14 @@ class TimestampMixin:
 class User(TimestampMixin, Base):
     __tablename__ = "users"
     __table_args__ = (
+        Index(
+            "users_contact_number_uq",
+            "contact_number",
+            unique=True,
+            postgresql_where=text(
+                "contact_number IS NOT NULL AND deleted_at IS NULL"
+            ),
+        ),
         Index("users_role_contact", "role", "contact_number"),
         Index("users_contact", "contact_number"),
         Index("users_role_name_sort", "role", "name"),
@@ -209,7 +217,12 @@ class MoneyConfig(TimestampMixin, Base):
 class Category(TimestampMixin, Base):
     __tablename__ = "categories"
     __table_args__ = (
-        UniqueConstraint("name", name="categories_name_uq"),
+        Index(
+            "categories_name_ci_uq",
+            func.lower(text("name")),
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
         Index("categories_name_sort", "name"),
     )
 
@@ -235,7 +248,13 @@ class Category(TimestampMixin, Base):
 class Subcategory(TimestampMixin, Base):
     __tablename__ = "subcategories"
     __table_args__ = (
-        UniqueConstraint("category_id", "name", name="subcategories_category_name_uq"),
+        Index(
+            "subcategories_category_name_ci_uq",
+            "category_id",
+            func.lower(text("name")),
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
         Index("subcategories_category_id", "category_id"),
         Index("subcategories_category_name_sort", "category_id", "name"),
     )
@@ -261,7 +280,12 @@ class Subcategory(TimestampMixin, Base):
 class Brand(TimestampMixin, Base):
     __tablename__ = "brands"
     __table_args__ = (
-        UniqueConstraint("name", name="brands_name_uq"),
+        Index(
+            "brands_name_ci_uq",
+            func.lower(text("name")),
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
         Index("brands_name_sort", "name"),
     )
 
@@ -284,7 +308,12 @@ class Brand(TimestampMixin, Base):
 class ProductType(TimestampMixin, Base):
     __tablename__ = "product_types"
     __table_args__ = (
-        UniqueConstraint("name", name="product_types_name_uq"),
+        Index(
+            "product_types_name_ci_uq",
+            func.lower(text("name")),
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
         Index("product_types_name_sort", "name"),
     )
 

@@ -103,12 +103,11 @@ psql -U quotation_app -h 127.0.0.1 -p 5432 -d quotation_db_pg -c \
 ```
 
 Set the local PostgreSQL credentials in `backend/.env` before upgrading. The
-current revision should be `0002_core_auth_schema (head)`. The only public
-base tables at this row are `admin_tokens`, `alembic_version`, `money_config`,
-`partner_tokens`, `partners`, and `users`; taxonomy and later-row application
-tables should not exist yet. These `psql` examples use the role and database
-created in the local setup above; substitute your own connection settings if
-they differ.
+current schema revision is `0012_auth_taxonomy_api`; it includes
+the application tables from earlier migration rows and the row-18 auth and
+taxonomy uniqueness constraints. These `psql` examples use the role and
+database created in the local setup above; substitute your own connection
+settings if they differ.
 
 ## Local API server and CORS
 
@@ -131,3 +130,24 @@ server or browser CORS behavior. `web/vite.config.ts` currently sets only
 the Vite port (`5173`) and defines no API proxy; no frontend proxy or API
 client was changed in this row. If a later migration task needs Vite to proxy
 to PostgreSQL, it can add an explicit `VITE_API_URL` or proxy target then.
+
+Check the health endpoint while the server is running:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8001/api/health
+```
+
+The row-18 auth, partner/team, taxonomy, and subcategory routes are mounted
+under `/api`. After applying migrations through `head`, PostgreSQL-backed API
+tests run from this directory with a disposable database in
+`TEST_DATABASE_URL`:
+
+```powershell
+$env:TEST_DATABASE_URL = "postgresql+psycopg://quotation_app:YOUR_PASSWORD@127.0.0.1:5432/quotation_test"
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+The test database must already be migrated to `head`; use the same URL for
+`DATABASE_URL` when running Alembic. Tests wrap writes in a rollback-only
+transaction and do not require MongoDB. Leave `TEST_DATABASE_URL` unset to
+run the database-independent tests only.
