@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -109,7 +109,7 @@ def create_purchase(
         session.add(purchase)
 
         response_lines: list[dict[str, Any]] = []
-        for line, product, rack, slot in prepared:
+        for index, (line, product, rack, slot) in enumerate(prepared):
             session.add(
                 PurchaseLine(
                     purchase_id=purchase_id,
@@ -121,6 +121,8 @@ def create_purchase(
                     purchase_discount=line.purchaseDiscount,
                     rack_id=rack.id if rack is not None else None,
                     rack_slot=line.rackSlot,
+                    created_at=created_at + timedelta(microseconds=index),
+                    updated_at=created_at + timedelta(microseconds=index),
                 )
             )
             response_lines.append(
@@ -197,3 +199,53 @@ def create_purchase(
             },
             "error": None,
         }
+
+
+def list_purchases(session: Session) -> dict[str, Any]:
+    purchases = list(
+        session.scalars(
+            select(Purchase)
+            .where(Purchase.deleted_at.is_(None))
+            .order_by(Purchase.created_at.desc())
+        )
+    )
+    purchase_ids = [purchase.id for purchase in purchases]
+    lines_by_purchase: dict[str, list[PurchaseLine]] = {
+        purchase_id: [] for purchase_id in purchase_ids
+    }
+    if purchase_ids:
+        lines = session.scalars(
+            select(PurchaseLine)
+            .where(
+                PurchaseLine.purchase_id.in_(purchase_ids),
+                PurchaseLine.deleted_at.is_(None),
+            )
+            .order_by(PurchaseLine.created_at, PurchaseLine.id)
+        )
+        for line in lines:
+            lines_by_purchase[line.purchase_id].append(line)
+
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": purchase.id,
+                "lines": [
+                    {
+                        "productId": line.product_id,
+                        "productCode": line.product_code,
+                        "productName": line.product_name,
+                        "quantity": line.quantity,
+                        "listPrice": line.list_price,
+                        "purchaseDiscount": line.purchase_discount,
+                        "rackId": line.rack_id,
+                        "rackSlot": line.rack_slot,
+                    }
+                    for line in lines_by_purchase[purchase.id]
+                ],
+                "createdAt": purchase.created_at.isoformat(),
+            }
+            for purchase in purchases
+        ],
+        "error": None,
+    }

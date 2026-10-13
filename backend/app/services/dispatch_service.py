@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -10,7 +10,14 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.models import Catalog, Dispatch, DispatchLine, Rfq
+from app.models import (
+    Catalog,
+    Dispatch,
+    DispatchLine,
+    Purchase,
+    PurchaseLine,
+    Rfq,
+)
 
 
 class DispatchLineInput(BaseModel):
@@ -102,7 +109,7 @@ def create_dispatch(
                         Catalog.deleted_at.is_(None),
                     )
                 )
-                if product is None:
+                if product is None or line.quantity <= 0:
                     errors.append(
                         f"Line {index}: valid product code and positive quantity "
                         "are required"
@@ -133,7 +140,7 @@ def create_dispatch(
             session.add(dispatch)
             session.flush([dispatch])
 
-            for line, product in prepared:
+            for index, (line, product) in enumerate(prepared):
                 product_code = line.productCode.strip()
                 stock_result = session.execute(
                     update(Catalog)
@@ -158,6 +165,8 @@ def create_dispatch(
                         product_name=product.name,
                         quantity=line.quantity,
                         unit_price=product.standard_rate,
+                        created_at=created_at + timedelta(microseconds=index),
+                        updated_at=created_at + timedelta(microseconds=index),
                     )
                 )
                 response_lines.append(
@@ -201,3 +210,162 @@ def create_dispatch(
         if _is_duplicate_source_rfq(error):
             raise DispatchConflictError("RFQ already has a dispatch") from error
         raise
+
+
+def list_dispatches(session: Session) -> dict[str, Any]:
+    dispatches = list(
+        session.scalars(
+            select(Dispatch)
+            .where(Dispatch.deleted_at.is_(None))
+            .order_by(Dispatch.created_at.desc())
+        )
+    )
+    dispatch_ids = [dispatch.id for dispatch in dispatches]
+    lines_by_dispatch: dict[str, list[DispatchLine]] = {
+        dispatch_id: [] for dispatch_id in dispatch_ids
+    }
+    if dispatch_ids:
+        lines = session.scalars(
+            select(DispatchLine)
+            .where(
+                DispatchLine.dispatch_id.in_(dispatch_ids),
+                DispatchLine.deleted_at.is_(None),
+            )
+            .order_by(DispatchLine.created_at, DispatchLine.id)
+        )
+        for line in lines:
+            lines_by_dispatch[line.dispatch_id].append(line)
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": dispatch.id,
+                "sourceRfqId": dispatch.source_rfq_id,
+                "customerName": dispatch.customer_name,
+                "customerPhone": dispatch.customer_phone,
+                "lines": [
+                    {
+                        "productId": line.product_id,
+                        "productCode": line.product_code,
+                        "productName": line.product_name,
+                        "quantity": line.quantity,
+                        "unitPrice": line.unit_price,
+                    }
+                    for line in lines_by_dispatch[dispatch.id]
+                ],
+                "createdAt": dispatch.created_at.isoformat(),
+            }
+            for dispatch in dispatches
+        ],
+        "error": None,
+    }
+
+
+def inventory_view(session: Session) -> dict[str, Any]:
+    products = session.scalars(
+        select(Catalog)
+        .where(Catalog.deleted_at.is_(None))
+        .order_by(Catalog.name)
+    )
+    data: list[dict[str, Any]] = []
+    for product in products:
+        stock = float(product.stock)
+        unit_cost = (
+            product.last_purchase_price
+            if product.last_purchase_price is not None
+            else product.standard_rate
+        )
+        data.append(
+            {
+                "productId": product.id,
+                "productCode": product.product_code,
+                "name": product.name,
+                "category": product.category,
+                "brand": product.brand,
+                "stock": stock,
+                "reorderLevel": float(product.reorder_level),
+                "unitCost": float(unit_cost),
+                "valuation": stock * float(unit_cost),
+                "rackName": product.rack_name,
+                "rackSlot": product.rack_slot,
+            }
+        )
+    return {"success": True, "data": data, "error": None}
+
+
+def low_stock_inventory(session: Session) -> dict[str, Any]:
+    inventory = inventory_view(session)["data"]
+    return {
+        "success": True,
+        "data": [
+            item
+            for item in inventory
+            if item["stock"] <= item["reorderLevel"]
+        ],
+        "error": None,
+    }
+
+
+def inventory_transactions(session: Session) -> dict[str, Any]:
+    purchases = list(
+        session.scalars(
+            select(Purchase).where(Purchase.deleted_at.is_(None))
+        )
+    )
+    dispatches = list(
+        session.scalars(
+            select(Dispatch).where(Dispatch.deleted_at.is_(None))
+        )
+    )
+
+    entries: list[dict[str, Any]] = []
+    purchase_ids = [purchase.id for purchase in purchases]
+    if purchase_ids:
+        purchase_lines = session.scalars(
+            select(PurchaseLine)
+            .where(
+                PurchaseLine.purchase_id.in_(purchase_ids),
+                PurchaseLine.deleted_at.is_(None),
+            )
+            .order_by(PurchaseLine.created_at, PurchaseLine.id)
+        )
+        purchases_by_id = {purchase.id: purchase for purchase in purchases}
+        for line in purchase_lines:
+            purchase = purchases_by_id[line.purchase_id]
+            entries.append(
+                {
+                    "type": "in",
+                    "referenceId": purchase.id,
+                    "productCode": line.product_code,
+                    "productName": line.product_name,
+                    "quantity": line.quantity,
+                    "at": purchase.created_at.isoformat(),
+                }
+            )
+
+    dispatch_ids = [dispatch.id for dispatch in dispatches]
+    if dispatch_ids:
+        dispatch_lines = session.scalars(
+            select(DispatchLine)
+            .where(
+                DispatchLine.dispatch_id.in_(dispatch_ids),
+                DispatchLine.deleted_at.is_(None),
+            )
+            .order_by(DispatchLine.created_at, DispatchLine.id)
+        )
+        dispatches_by_id = {dispatch.id: dispatch for dispatch in dispatches}
+        for line in dispatch_lines:
+            dispatch = dispatches_by_id[line.dispatch_id]
+            entries.append(
+                {
+                    "type": "out",
+                    "referenceId": dispatch.id,
+                    "productCode": line.product_code,
+                    "productName": line.product_name,
+                    "quantity": line.quantity,
+                    "at": dispatch.created_at.isoformat(),
+                }
+            )
+
+    entries.sort(key=lambda entry: entry["at"], reverse=True)
+    return {"success": True, "data": entries, "error": None}

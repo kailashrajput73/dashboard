@@ -551,6 +551,7 @@ class Purchase(TimestampMixin, Base):
     __table_args__ = (
         Index("purchases_createdAt", text("created_at DESC")),
         Index("purchases_partner_created", "partner_id", text("created_at DESC")),
+        Index("purchases_deleted_at", "deleted_at"),
     )
 
     id: Mapped[str] = mapped_column(
@@ -576,6 +577,13 @@ class PurchaseLine(TimestampMixin, Base):
         Index("purchase_lines_purchase_id", "purchase_id"),
         Index("purchase_lines_product_id", "product_id"),
         Index("purchase_lines_product_code", "product_code"),
+        Index(
+            "purchase_lines_purchase_created",
+            "purchase_id",
+            "created_at",
+            "id",
+        ),
+        Index("purchase_lines_deleted_at", "deleted_at"),
     )
 
     id: Mapped[str] = mapped_column(
@@ -629,6 +637,13 @@ class Rfq(TimestampMixin, Base):
         Index("rfqs_partner_status", "partner_id", "status"),
         Index("rfqs_status_created", "status", text("created_at DESC")),
         Index("rfqs_created_at", text("created_at DESC")),
+        Index("rfqs_deleted_at", "deleted_at"),
+        Index(
+            "rfqs_partner_id_trgm",
+            "partner_id",
+            postgresql_using="gin",
+            postgresql_ops={"partner_id": "gin_trgm_ops"},
+        ),
     )
 
     id: Mapped[str] = mapped_column(
@@ -663,6 +678,20 @@ class RfqLine(TimestampMixin, Base):
         Index("rfq_lines_rfq_id", "rfq_id"),
         Index("rfq_lines_product_id", "product_id"),
         Index("rfq_lines_product_code", "product_code"),
+        Index("rfq_lines_rfq_created", "rfq_id", "created_at", "id"),
+        Index("rfq_lines_deleted_at", "deleted_at"),
+        Index(
+            "rfq_lines_product_code_trgm",
+            "product_code",
+            postgresql_using="gin",
+            postgresql_ops={"product_code": "gin_trgm_ops"},
+        ),
+        Index(
+            "rfq_lines_product_name_trgm",
+            "product_name",
+            postgresql_using="gin",
+            postgresql_ops={"product_name": "gin_trgm_ops"},
+        ),
     )
 
     id: Mapped[str] = mapped_column(
@@ -697,6 +726,7 @@ class RewardLedger(TimestampMixin, Base):
         Index("reward_ledger_requester_created", "requester_id", text("created_at DESC")),
         Index("reward_ledger_requester_type", "requester_id", "type"),
         Index("reward_ledger_quotation_type", "quotation_id", "type"),
+        Index("reward_ledger_deleted_at", "deleted_at"),
         Index(
             "reward_ledger_one_earned_per_quotation_uq",
             "quotation_id",
@@ -743,6 +773,7 @@ class Dispatch(TimestampMixin, Base):
             unique=True,
             postgresql_where=text("source_rfq_id IS NOT NULL"),
         ),
+        Index("dispatches_deleted_at", "deleted_at"),
     )
 
     id: Mapped[str] = mapped_column(
@@ -770,6 +801,13 @@ class DispatchLine(TimestampMixin, Base):
         Index("dispatch_lines_dispatch_id", "dispatch_id"),
         Index("dispatch_lines_product_id", "product_id"),
         Index("dispatch_lines_product_code", "product_code"),
+        Index(
+            "dispatch_lines_dispatch_created",
+            "dispatch_id",
+            "created_at",
+            "id",
+        ),
+        Index("dispatch_lines_deleted_at", "deleted_at"),
     )
 
     id: Mapped[str] = mapped_column(

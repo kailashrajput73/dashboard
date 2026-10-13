@@ -9,7 +9,15 @@ from fastapi.exception_handlers import request_validation_exception_handler
 from starlette.middleware.cors import CORSMiddleware
 
 from .errors import AuthenticationError
-from .routers import auth, catalog, partners_team, subcategories, taxonomy
+from .routers import (
+    auth,
+    catalog,
+    dispatch_inventory,
+    partners_team,
+    purchases_rfq,
+    subcategories,
+    taxonomy,
+)
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 load_dotenv(BACKEND_DIR / ".env")
@@ -32,12 +40,31 @@ async def authentication_error_response(
     )
 
 
-async def catalog_validation_error_response(
+async def request_validation_error_response(
     request: Request,
     exc: RequestValidationError,
 ) -> JSONResponse:
-    if request.url.path == "/api/catalog" or request.url.path.startswith(
-        "/api/catalog/"
+    path = request.url.path
+    operational_path = (
+        path
+        in {
+            "/api/purchases",
+            "/api/purchases/import",
+            "/api/rfqs",
+            "/api/dispatches",
+            "/api/inventory",
+        }
+        or path.startswith("/api/rfqs/")
+        or path.startswith("/api/inventory/")
+        or (
+            path.startswith("/api/partners/")
+            and path.endswith("/rewards")
+        )
+    )
+    if (
+        path == "/api/catalog"
+        or path.startswith("/api/catalog/")
+        or operational_path
     ):
         return JSONResponse(
             status_code=422,
@@ -76,10 +103,12 @@ def create_app() -> FastAPI:
     app.add_exception_handler(AuthenticationError, authentication_error_response)
     app.add_exception_handler(
         RequestValidationError,
-        catalog_validation_error_response,
+        request_validation_error_response,
     )
     app.include_router(auth.router)
     app.include_router(catalog.router)
+    app.include_router(purchases_rfq.router)
+    app.include_router(dispatch_inventory.router)
     app.include_router(partners_team.router)
     app.include_router(taxonomy.router)
     app.include_router(subcategories.router)
