@@ -7,6 +7,7 @@ import catalogMock from '../../../mocks/catalog_mock_data.json';
 import { HomeDashboard } from '../../home/HomeDashboard';
 import { StorefrontHeader } from '../../../shared/StorefrontHeader';
 import { WebSideMenu } from '../../../shared/WebSideMenu';
+import { StorefrontFooter } from '../../../shared/StorefrontFooter';
 import mock from './MainShell.mock.json';
 import {
   Shell,
@@ -90,6 +91,8 @@ export function MainShell() {
           title={mock.floatingActionButton.tooltip}
           aria-label={mock.floatingActionButton.tooltip}
           onClick={openAiAssistant}
+      <StorefrontFooter webOnly />
+
         >
           <i className={`pi ${mock.floatingActionButton.icon}`} aria-hidden="true" />
         </Fab>

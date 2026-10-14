@@ -71,3 +71,9 @@ function App() {
 }
 
 export default App;
+                AppRoutes.about,
+                AppRoutes.contact,
+                AppRoutes.privacyPolicy,
+                AppRoutes.terms,
+                AppRoutes.cancellationRefunds,
+                AppRoutes.shippingDelivery,

@@ -44,6 +44,13 @@ export interface OtpVerificationArgs {
 }
 
 /** Flutter `SignupFlowArgs` — passed as router `state`. */
+  /** Web-only company pages linked from `StorefrontFooter` (stubs for now). */
+  about: '/about',
+  contact: '/contact',
+  privacyPolicy: '/privacy-policy',
+  terms: '/terms',
+  cancellationRefunds: '/cancellation-refunds',
+  shippingDelivery: '/shipping-delivery',
 export interface SignupFlowArgs {
   mobileNumber: string;
   fullName: string;
