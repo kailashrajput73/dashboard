@@ -13,7 +13,6 @@ class PurchaseLineRequest(BaseModel):
 
 
 class PurchaseRequest(BaseModel):
-    partnerId: str | None = None
     lines: list[PurchaseLineRequest]
 
 
@@ -42,3 +41,46 @@ class DispatchRequest(BaseModel):
     sourceRfqId: str | None = None
     customerName: str | None = None
     customerPhone: str | None = None
+
+
+class RackRequest(BaseModel):
+    name: str
+    rows: int
+    columns: int
+
+
+class RackAssignmentRequest(BaseModel):
+    productId: str
+    slotCode: str
+
+
+class ServiceRequestCreateRequest(BaseModel):
+    serviceType: str = Field(..., pattern="^(plumber|electrician)$")
+    customerName: str
+    customerPhone: str
+    description: str
+    address: str = ""
+    pincode: str = ""
+    city: str = ""
+    area: str = ""
+
+
+class ServiceRequestUpdateRequest(BaseModel):
+    status: str | None = Field(
+        default=None,
+        pattern="^(pending|in_progress|completed|cancelled)$",
+    )
+    recommendedName: str | None = None
+    recommendedPhone: str | None = None
+    adminNote: str | None = None
+    actor: str | None = "admin"
+    note: str | None = None
+
+
+class MoneyConfigRequest(BaseModel):
+    discountPercent: float = 0
+    gstPercent: float = 0
+    specialDiscountPercent: float = 0
+    showDiscount: bool = True
+    showGst: bool = True
+    showSpecialDiscount: bool = False

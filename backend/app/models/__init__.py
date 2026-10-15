@@ -560,14 +560,14 @@ class Purchase(TimestampMixin, Base):
         default=_new_id,
         server_default=text("gen_random_uuid()::text"),
     )
-    partner_id: Mapped[str] = mapped_column(
+    partner_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey(
             "partners.id",
             ondelete="RESTRICT",
             name="fk_purchases_partner_id_partners",
         ),
-        nullable=False,
+        nullable=True,
     )
 
 
@@ -840,12 +840,85 @@ class DispatchLine(TimestampMixin, Base):
     unit_price: Mapped[float] = mapped_column(Float, nullable=False)
 
 
+class ServiceRequest(TimestampMixin, Base):
+    __tablename__ = "service_requests"
+    __table_args__ = (
+        PrimaryKeyConstraint("id", name="service_requests_id_uq"),
+        Index(
+            "service_requests_status_type_created",
+            "status",
+            "service_type",
+            text("created_at DESC"),
+        ),
+        Index("service_requests_service_type", "service_type"),
+        Index("service_requests_createdAt", text("created_at DESC")),
+        Index("service_requests_deleted_at", "deleted_at"),
+        Index(
+            "service_requests_customer_name_trgm",
+            text("customer_name gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+        Index(
+            "service_requests_customer_phone_trgm",
+            text("customer_phone gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+        Index(
+            "service_requests_service_type_trgm",
+            text("service_type gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+        Index(
+            "service_requests_description_trgm",
+            text("description gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+        Index(
+            "service_requests_city_trgm",
+            text("city gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+        Index(
+            "service_requests_area_trgm",
+            text("area gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    service_type: Mapped[str] = mapped_column(Text, nullable=False)
+    customer_name: Mapped[str] = mapped_column(Text, nullable=False)
+    customer_phone: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    address: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    pincode: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    city: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    area: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    recommended_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    recommended_phone: Mapped[str | None] = mapped_column(Text, nullable=True)
+    admin_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    history: Mapped[list[dict[str, object]]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+
+
 class ProductGroup(TimestampMixin, Base):
     __tablename__ = "product_groups"
     __table_args__ = (
         UniqueConstraint("name", name="product_groups_name_uq"),
         Index("product_groups_name_sort", "name"),
-        Index("product_groups_name_ci", func.lower(text("name"))),
+        Index(
+            "product_groups_name_ci",
+            func.lower(text("name")),
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
     )
 
     id: Mapped[str] = mapped_column(
@@ -892,6 +965,12 @@ class Rack(TimestampMixin, Base):
     __table_args__ = (
         UniqueConstraint("name", name="racks_name_uq"),
         Index("racks_name_sort", "name"),
+        Index(
+            "racks_name_ci",
+            func.lower(text("name")),
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
     )
 
     id: Mapped[str] = mapped_column(
@@ -960,6 +1039,7 @@ __all__ = [
     "RewardLedger",
     "Dispatch",
     "DispatchLine",
+    "ServiceRequest",
     "ProductGroup",
     "ProductGroupItem",
     "ProductType",

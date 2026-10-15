@@ -59,7 +59,6 @@ def create_purchase(
     try:
         return purchase_service.create_purchase(
             session,
-            partner_id=body.partnerId,
             lines=lines,
         )
     except PurchaseValidationError as error:

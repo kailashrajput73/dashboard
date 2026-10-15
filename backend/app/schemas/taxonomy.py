@@ -36,6 +36,11 @@ class ProductTypeUpdateIn(BaseModel):
     imageUrl: str | None = None
 
 
+class ProductGroupIn(BaseModel):
+    name: str
+    productIds: list[str]
+
+
 class AdminPasscodeIn(BaseModel):
     contactNumber: str
     passcode: str

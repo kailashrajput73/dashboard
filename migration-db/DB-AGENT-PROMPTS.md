@@ -50,3 +50,8 @@ STOP. Do not code. This row looks too big for one go.
 Propose a split into smaller rows (a, b, c), each one testable on its own.
 Wait for my approval before changing DB-STATUS.md.
 ```
+
+## E. After row 21 audit — fix layers (one layer at a time)
+
+Row 21 is **audit only** (Built/Done + `dbmigrate(21): …`).  
+Implementation prompts and Layer 1–4 order: **`migration-db/POST-ROW21-FIX-PLAN.md`**.

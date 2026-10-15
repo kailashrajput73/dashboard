@@ -4,6 +4,7 @@ import os
 import unittest
 from uuid import uuid4
 
+from pydantic import ValidationError
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
@@ -11,6 +12,30 @@ from sqlalchemy.orm import Session
 from app.db import get_db_session
 from app.deps.auth import AuthenticatedPrincipal, get_current_admin
 from app.main import app
+from app.schemas.operational import PurchaseRequest
+
+
+class PurchaseRequestContractTests(unittest.TestCase):
+    def test_purchase_request_contains_only_lines(self) -> None:
+        request = PurchaseRequest.model_validate(
+            {
+                "partnerId": "ignored-by-mongo-contract",
+                "lines": [
+                    {
+                        "productCode": "TEST-CODE",
+                        "quantity": 1,
+                        "listPrice": 10,
+                    }
+                ],
+            }
+        )
+
+        self.assertEqual(set(request.model_dump()), {"lines"})
+        self.assertEqual(request.lines[0].productCode, "TEST-CODE")
+
+    def test_purchase_request_requires_lines(self) -> None:
+        with self.assertRaises(ValidationError):
+            PurchaseRequest.model_validate({})
 
 
 @unittest.skipUnless(
@@ -103,7 +128,6 @@ class OperationalAPITests(unittest.TestCase):
 
     def test_purchase_and_import_use_transactional_stock_update(self) -> None:
         payload = {
-            "partnerId": self.partner_id,
             "lines": [
                 {
                     "productCode": self.product_code,
@@ -115,7 +139,18 @@ class OperationalAPITests(unittest.TestCase):
         for path in ("/api/purchases", "/api/purchases/import"):
             response = self.client.post(path, json=payload)
             self.assertEqual(response.status_code, 200, response.text)
-            self.assertTrue(response.json()["success"])
+            result = response.json()
+            self.assertTrue(result["success"])
+            self.assertEqual(
+                set(result["data"]),
+                {"id", "lines", "createdAt"},
+            )
+            self.assertIsNone(
+                self.session.execute(
+                    text("SELECT partner_id FROM purchases WHERE id = :id"),
+                    {"id": result["data"]["id"]},
+                ).scalar_one()
+            )
 
         self.assertEqual(
             self.session.execute(
@@ -125,29 +160,41 @@ class OperationalAPITests(unittest.TestCase):
             14,
         )
 
-    def test_purchase_without_partner_returns_validation_envelope(self) -> None:
-        response = self.client.post(
-            "/api/purchases",
-            json={
-                "lines": [
-                    {
-                        "productCode": self.product_code,
-                        "quantity": 1,
-                        "listPrice": 100,
-                    }
-                ]
-            },
-        )
+    def test_dashboard_snapshot_returns_live_operational_metrics(self) -> None:
+        response = self.client.get("/api/dashboard/snapshot")
 
-        self.assertEqual(response.status_code, 400, response.text)
+        self.assertEqual(response.status_code, 200, response.text)
+        result = response.json()
         self.assertEqual(
-            response.json(),
+            set(result),
+            {"success", "data", "error"},
+        )
+        self.assertTrue(result["success"])
+        self.assertIsNone(result["error"])
+        snapshot = result["data"]
+        self.assertEqual(
+            set(snapshot),
             {
-                "success": False,
-                "data": {"errors": ["Partner id is required"]},
-                "error": "Purchase validation failed",
+                "catalogCount",
+                "categoryCount",
+                "totalStockUnits",
+                "lowStockCount",
+                "rfqCounts",
+                "pendingRfqs",
+                "partnersTotal",
+                "partnersKycApproved",
+                "dispatchValue7d",
+                "dispatchCount7d",
+                "salesWindowDays",
+                "topMovingProducts",
+                "slowMovingProducts",
             },
         )
+        self.assertEqual(snapshot["catalogCount"], 1)
+        self.assertEqual(snapshot["categoryCount"], 1)
+        self.assertEqual(snapshot["totalStockUnits"], 10)
+        self.assertEqual(snapshot["partnersTotal"], 1)
+        self.assertEqual(snapshot["salesWindowDays"], 30)
 
     def test_rfq_crud_search_and_history(self) -> None:
         rfq_id = self._create_rfq()

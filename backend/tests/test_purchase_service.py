@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 
 from app.services.purchase_service import (
     PurchaseLineInput,
-    PurchaseValidationError,
     create_purchase,
 )
 
@@ -53,7 +52,6 @@ class PurchaseServiceTransactionTests(unittest.TestCase):
             join_transaction_mode="create_savepoint",
         )
         suffix = uuid4().hex
-        self.partner_id = str(uuid4())
         self.category_id = str(uuid4())
         self.product_ids = [str(uuid4()), str(uuid4())]
         self.product_codes = [f"TXN15-A-{suffix}", f"TXN15-B-{suffix}"]
@@ -61,10 +59,6 @@ class PurchaseServiceTransactionTests(unittest.TestCase):
         self.rack_name = f"TXN15 rack {suffix}"
         self.slot_id = str(uuid4())
 
-        self.connection.execute(
-            text("INSERT INTO partners (id, name) VALUES (:id, :name)"),
-            {"id": self.partner_id, "name": f"TXN15 partner {suffix}"},
-        )
         self.connection.execute(
             text("INSERT INTO categories (id, name) VALUES (:id, :name)"),
             {"id": self.category_id, "name": f"TXN15 category {suffix}"},
@@ -120,7 +114,6 @@ class PurchaseServiceTransactionTests(unittest.TestCase):
     def test_create_purchase_updates_stock_and_rack_in_one_commit(self) -> None:
         result = create_purchase(
             self.session,
-            partner_id=self.partner_id,
             lines=[
                 PurchaseLineInput(
                     productCode=self.product_codes[0],
@@ -149,7 +142,7 @@ class PurchaseServiceTransactionTests(unittest.TestCase):
             text("SELECT partner_id FROM purchases WHERE id = :purchase_id"),
             {"purchase_id": purchase["id"]},
         ).one()
-        self.assertEqual(saved_purchase.partner_id, self.partner_id)
+        self.assertIsNone(saved_purchase.partner_id)
         saved_line = self.session.execute(
             text(
                 """
@@ -193,34 +186,32 @@ class PurchaseServiceTransactionTests(unittest.TestCase):
             self.product_ids[0],
         )
 
-    def test_missing_partner_is_rejected_before_writes(self) -> None:
-        with self.assertRaises(PurchaseValidationError) as raised:
-            create_purchase(
-                self.session,
-                partner_id=" ",
-                lines=[
-                    PurchaseLineInput(
-                        productCode=self.product_codes[0],
-                        quantity=2,
-                        listPrice=5,
-                    )
-                ],
-            )
-
-        self.assertEqual(raised.exception.errors, ["Partner id is required"])
-        self.assertEqual(
-            self.session.execute(
-                text("SELECT count(*) FROM purchases WHERE partner_id = :partner_id"),
-                {"partner_id": self.partner_id},
-            ).scalar_one(),
-            0,
+    def test_purchase_without_partner_is_saved_and_updates_stock(self) -> None:
+        result = create_purchase(
+            self.session,
+            lines=[
+                PurchaseLineInput(
+                    productCode=self.product_codes[0],
+                    quantity=2,
+                    listPrice=5,
+                )
+            ],
         )
+
+        self.assertTrue(result["success"])
+        self.assertIsNone(result["error"])
+        purchase = result["data"]
+        saved_partner_id = self.session.execute(
+            text("SELECT partner_id FROM purchases WHERE id = :id"),
+            {"id": purchase["id"]},
+        ).scalar_one()
+        self.assertIsNone(saved_partner_id)
         self.assertEqual(
             self.session.execute(
                 text("SELECT stock FROM catalog WHERE id = :id"),
                 {"id": self.product_ids[0]},
             ).scalar_one(),
-            10,
+            12,
         )
 
     def test_later_stock_failure_rolls_back_earlier_purchase_writes(self) -> None:
@@ -252,7 +243,6 @@ class PurchaseServiceTransactionTests(unittest.TestCase):
         with self.assertRaises(DBAPIError):
             create_purchase(
                 self.session,
-                partner_id=self.partner_id,
                 lines=[
                     PurchaseLineInput(
                         productCode=self.product_codes[0],
@@ -269,23 +259,17 @@ class PurchaseServiceTransactionTests(unittest.TestCase):
 
         self.assertEqual(
             self.session.execute(
-                text("SELECT count(*) FROM purchases WHERE partner_id = :partner_id"),
-                {"partner_id": self.partner_id},
-            ).scalar_one(),
-            0,
-        )
-        self.assertEqual(
-            self.session.execute(
                 text(
                     """
                     SELECT count(*)
-                    FROM purchase_lines AS purchase_line
-                    JOIN purchases AS purchase
-                      ON purchase.id = purchase_line.purchase_id
-                    WHERE purchase.partner_id = :partner_id
+                    FROM purchase_lines
+                    WHERE product_id IN (:first, :second)
                     """
                 ),
-                {"partner_id": self.partner_id},
+                {
+                    "first": self.product_ids[0],
+                    "second": self.product_ids[1],
+                },
             ).scalar_one(),
             0,
         )

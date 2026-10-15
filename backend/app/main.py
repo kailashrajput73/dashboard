@@ -12,9 +12,15 @@ from .errors import AuthenticationError
 from .routers import (
     auth,
     catalog,
+    dashboard,
     dispatch_inventory,
+    media_proxy,
+    money_config,
     partners_team,
+    product_groups,
     purchases_rfq,
+    racks,
+    service_requests,
     subcategories,
     taxonomy,
 )
@@ -53,9 +59,13 @@ async def request_validation_error_response(
             "/api/rfqs",
             "/api/dispatches",
             "/api/inventory",
+            "/api/service-requests",
         }
+        or path == "/api/media/proxy"
         or path.startswith("/api/rfqs/")
         or path.startswith("/api/inventory/")
+        or path.startswith("/api/service-requests/")
+        or path.startswith("/api/money-config/")
         or (
             path.startswith("/api/partners/")
             and path.endswith("/rewards")
@@ -107,9 +117,15 @@ def create_app() -> FastAPI:
     )
     app.include_router(auth.router)
     app.include_router(catalog.router)
+    app.include_router(dashboard.router)
     app.include_router(purchases_rfq.router)
     app.include_router(dispatch_inventory.router)
+    app.include_router(media_proxy.router)
+    app.include_router(money_config.router)
     app.include_router(partners_team.router)
+    app.include_router(product_groups.router)
+    app.include_router(racks.router)
+    app.include_router(service_requests.router)
     app.include_router(taxonomy.router)
     app.include_router(subcategories.router)
 

@@ -71,6 +71,7 @@ def _run_transaction(
             "product_types_name_ci_uq",
             "subcategories_category_name_ci_uq",
             "product_groups_name_uq",
+            "product_groups_name_ci",
         }:
             return error_response(409, "A taxonomy or product group name already exists")
         raise

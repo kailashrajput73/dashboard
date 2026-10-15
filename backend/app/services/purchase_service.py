@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from app.models import Catalog, Partner, Purchase, PurchaseLine, Rack, RackSlot
+from app.models import Catalog, Purchase, PurchaseLine, Rack, RackSlot
 
 
 class PurchaseLineInput(BaseModel):
@@ -34,22 +34,9 @@ class PurchaseWriteConflict(RuntimeError):
 def create_purchase(
     session: Session,
     *,
-    partner_id: str | None,
     lines: Sequence[PurchaseLineInput],
 ) -> dict[str, Any]:
     with session.begin():
-        if partner_id is None or not partner_id.strip():
-            raise PurchaseValidationError(["Partner id is required"])
-
-        partner = session.scalar(
-            select(Partner.id).where(
-                Partner.id == partner_id,
-                Partner.deleted_at.is_(None),
-            )
-        )
-        if partner is None:
-            raise PurchaseValidationError(["Partner not found"])
-
         errors: list[str] = []
         prepared: list[tuple[PurchaseLineInput, Catalog, Rack | None, RackSlot | None]] = []
         for index, line in enumerate(lines, start=1):
@@ -103,7 +90,7 @@ def create_purchase(
         created_at = datetime.now(timezone.utc)
         purchase = Purchase(
             id=purchase_id,
-            partner_id=partner_id,
+            partner_id=None,
             created_at=created_at,
         )
         session.add(purchase)

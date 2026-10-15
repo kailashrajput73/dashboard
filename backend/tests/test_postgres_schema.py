@@ -40,7 +40,7 @@ EXPECTED_ROW8_TABLES = EXPECTED_ROW7_TABLES | {"purchase_lines", "purchases"}
 EXPECTED_ROW9_TABLES = EXPECTED_ROW8_TABLES | {"rfq_lines", "rfqs"}
 EXPECTED_ROW10_TABLES = EXPECTED_ROW9_TABLES | {"reward_ledger"}
 EXPECTED_ROW11_TABLES = EXPECTED_ROW10_TABLES | {"dispatch_lines", "dispatches"}
-EXPECTED_SCHEMA_TABLES = EXPECTED_ROW11_TABLES
+EXPECTED_SCHEMA_TABLES = EXPECTED_ROW11_TABLES | {"service_requests"}
 
 
 @unittest.skipUnless(
@@ -90,9 +90,9 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls.engine.dispose()
 
-    def test_row_eleven_schema_tables_exist_after_migration(self) -> None:
+    def test_row_eleven_and_service_request_schema_tables_exist_after_migration(self) -> None:
         self.assertEqual(self.tables, EXPECTED_SCHEMA_TABLES)
-        self.assertNotIn("service_requests", self.tables)
+        self.assertIn("service_requests", self.tables)
 
     def test_foreign_keys_unique_constraints_and_indexes_exist(self) -> None:
         inspector = inspect(self.engine)
@@ -262,6 +262,7 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 "reward_ledger",
                 "dispatches",
                 "dispatch_lines",
+                "service_requests",
             )
             for index in inspector.get_indexes(table)
         }
@@ -288,10 +289,11 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("product_types", "product_types_name_sort", False),
                 ("product_types", "product_types_name_ci_uq", True),
                 ("product_groups", "product_groups_name_sort", False),
-                ("product_groups", "product_groups_name_ci", False),
+                ("product_groups", "product_groups_name_ci", True),
                 ("product_group_items", "product_group_items_group_deleted", False),
                 ("product_group_items", "product_group_items_product_deleted", False),
                 ("racks", "racks_name_sort", False),
+                ("racks", "racks_name_ci", True),
                 ("rack_slots", "rack_slots_rack_id", False),
                 ("rack_slots", "rack_slots_product_id", False),
                 ("rack_slots", "rack_slots_product_id_uq", True),
@@ -355,13 +357,23 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("dispatch_lines", "dispatch_lines_product_code", False),
                 ("dispatch_lines", "dispatch_lines_dispatch_created", False),
                 ("dispatch_lines", "dispatch_lines_deleted_at", False),
+                ("service_requests", "service_requests_status_type_created", False),
+                ("service_requests", "service_requests_service_type", False),
+                ("service_requests", "service_requests_createdAt", False),
+                ("service_requests", "service_requests_deleted_at", False),
+                ("service_requests", "service_requests_customer_name_trgm", False),
+                ("service_requests", "service_requests_customer_phone_trgm", False),
+                ("service_requests", "service_requests_service_type_trgm", False),
+                ("service_requests", "service_requests_description_trgm", False),
+                ("service_requests", "service_requests_city_trgm", False),
+                ("service_requests", "service_requests_area_trgm", False),
             }.issubset(indexes)
         )
         purchase_columns = {
             column["name"]: column
             for column in inspector.get_columns("purchases")
         }
-        self.assertFalse(purchase_columns["partner_id"]["nullable"])
+        self.assertTrue(purchase_columns["partner_id"]["nullable"])
         line_columns = {
             column["name"]: column
             for column in inspector.get_columns("purchase_lines")
@@ -376,6 +388,16 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
         self.assertTrue(rfq_columns["scheduled_at"]["nullable"])
         self.assertIsInstance(rfq_columns["history"]["type"], JSONB)
         self.assertEqual(inspector.get_pk_constraint("rfqs")["name"], "rfqs_id_uq")
+        service_request_columns = {
+            column["name"]: column
+            for column in inspector.get_columns("service_requests")
+        }
+        self.assertIsInstance(service_request_columns["history"]["type"], JSONB)
+        self.assertTrue(service_request_columns["deleted_at"]["nullable"])
+        self.assertEqual(
+            inspector.get_pk_constraint("service_requests")["name"],
+            "service_requests_id_uq",
+        )
         earned_index = next(
             index
             for index in inspector.get_indexes("reward_ledger")
