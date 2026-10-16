@@ -397,7 +397,7 @@ export default function PartnersPage() {
             <h2 style={sectionTitleStyle}>Documents</h2>
             {selected.documents?.length ? selected.documents.map((document, index) => (
               /^https?:\/\//i.test(document)
-                ? <p key={`${document}-${index}`} style={detailStyle}><a href={document} target="_blank" rel="noreferrer" data-testid={`partner-document-${index}`} style={{ color: colors.primary, overflowWrap: "anywhere" }}>{document}</a></p>
+                ? <p key={`${document}-${index}`} style={detailStyle}><a href={document} target="_blank" rel="noreferrer" data-testid={`partner-document-${index}`} style={{ color: colors.primary, overflowWrap: "anywhere", display: "inline-flex", alignItems: "center", gap: spacing.xs }}><Icon name="open-outline" size={16} color={colors.primary} />{document}</a></p>
                 : detailLine("Document", document)
             )) : <p style={detailStyle}>No documents provided.</p>}
 

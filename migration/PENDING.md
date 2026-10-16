@@ -260,6 +260,24 @@ Use disposable partners whose names start with `ZZ`. Do not change real partner 
 3. Apply partner search/status/manager filters and export again. Confirm only history belonging to the currently listed partners is included.
 4. Confirm export uses the already loaded partner list and does not issue one detail request per partner.
 
+### Row 21a-1: remove stale Money config route (Built)
+
+1. Open `/money-config` directly. Confirm the app does not render the Money config placeholder and the route is not registered in `web/src/App.tsx`.
+2. Open `/dashboard`, `/partners`, and `/settings` directly to confirm adjacent routes still load.
+
+### Row 21a-2: partner document external-link icon (Built)
+
+1. Open a partner with an HTTP(S) document URL. Confirm the `open-outline` icon appears immediately beside the document link and the link opens in a new tab.
+2. Confirm non-URL document text has no external-link icon and remains non-clickable.
+
+### Row 22a: app shell layout (Built)
+
+1. At 1366x768, visit every route in `web/src/App.tsx`. Confirm the document stays at 768px high and 1366px wide; page scrolling occurs inside the content pane, not on the document.
+2. Confirm the sidebar is 240px wide and 768px high. Scroll its menu and verify the menu moves inside the sidebar while Sign out remains visible.
+3. On Dashboard with enough content to overflow, scroll the main pane independently while the sidebar remains stationary.
+4. Open Login and Register. Confirm both remain centered without the sidebar and their forms remain reachable.
+5. Check horizontal overflow and clipped controls. Compare the Subcategories batch-import footer against the recorded 22b leftover; do not treat it as fixed by 22a.
+
 ## Decisions open
 
 - Row 6: Expo's class purge filters the stored product class. A legacy product shown under a class only through name inference may not be deleted by it. Compare with a real example.

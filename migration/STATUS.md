@@ -76,8 +76,12 @@ Statuses: Not started → Built → Done.
 | 20d | RFQ list Category and Product filters from loaded catalog and lines | Built | [dev/2026-10-10-20d-rfq-category-product-filters.md](dev/2026-10-10-20d-rfq-category-product-filters.md) |
 | 20e | Partners KYC-history CSV export | Built | [dev/2026-10-10-20e-partner-kyc-history-export.md](dev/2026-10-10-20e-partner-kyc-history-export.md) |
 | 21a | Check every Expo screen exists in `web/`. List anything missed. | Built | [dev/2026-10-13-21a-completeness-scan.md](dev/2026-10-13-21a-completeness-scan.md) |
+| 21a-1 | Remove stale `/money-config` route from web (Money config is skipped in current Expo). | Built | [dev/2026-10-16-21a-1-remove-money-config-route.md](dev/2026-10-16-21a-1-remove-money-config-route.md) |
+| 21a-2 | Show Expo's `open-outline` icon on external partner document links. | Built | [dev/2026-10-16-21a-2-partner-document-icon.md](dev/2026-10-16-21a-2-partner-document-icon.md) |
+| 22a | Match Expo app shell viewport sizing and independent sidebar/content scrolling. | Built | [dev/2026-10-16-22a-app-shell-layout.md](dev/2026-10-16-22a-app-shell-layout.md) |
+| 22b | Layout leftovers per page, from the 22a list | Not started | |
 | 21b | Production build and deploy | Not started | |
-| 21c | Remove Expo from `frontend/`, only after every screen is checked | Not started | |
+| 21c | Remove Expo from `frontend/`, only after layout parity (22a, 22b) and the final test pass | Not started | |
 
 ---
 
