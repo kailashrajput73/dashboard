@@ -109,7 +109,7 @@ function ToggleRow(props: { title: string; subtitle: string; value: boolean; onC
 }
 
 const pageStyle: React.CSSProperties = { minHeight: "100vh", background: colors.bg };
-const bodyStyle: React.CSSProperties = { maxWidth: 1000, padding: spacing.lg };
+const bodyStyle: React.CSSProperties = { padding: spacing.lg };
 const hintStyle: React.CSSProperties = { color: colors.textSecondary, lineHeight: "20px", margin: `0 0 ${spacing.lg}px` };
 const sectionStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, margin: `${spacing.lg}px 0 ${spacing.sm}px` };
 const dangerCardStyle: React.CSSProperties = { borderColor: colors.error, background: colors.errorBg };

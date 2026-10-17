@@ -160,7 +160,7 @@ function ModuleLink(props: { title: string; subtitle: string; icon: IconName; on
 }
 
 const pageStyle: React.CSSProperties = { minHeight: "100vh", background: colors.bg };
-const contentStyle: React.CSSProperties = { maxWidth: 1240, margin: "0 auto", padding: `${spacing.xl}px ${spacing.lg}px ${spacing.xl}px` };
+const contentStyle: React.CSSProperties = { padding: `${spacing.xl}px ${spacing.lg}px ${spacing.xl}px` };
 const sectionTitleStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` };
 const sectionHintStyle: React.CSSProperties = { color: colors.textSecondary, fontSize: 12, margin: "-4px 0 12px" };
 const loadingStyle: React.CSSProperties = { minHeight: 120, display: "grid", placeItems: "center" };

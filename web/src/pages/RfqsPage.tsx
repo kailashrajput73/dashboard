@@ -452,17 +452,17 @@ export default function RfqsPage() {
       />
       <div style={controlsStyle}>
         <Input testID="rfq-search" value={search} onChangeText={setSearch} placeholder="Search partner, phone, product, or code" style={{ marginBottom: spacing.sm }} />
-        <div style={filtersStyle}>
+        <div className="admin-chip-scroll" style={filtersStyle}>
           {(["all", "pending", "approved", "rejected", "dispatched"] as RfqStatus[]).map((key) => (
             <Chip key={key} label={`${statusLabel(key)} (${statusCounts[key]})`} selected={status === key} onPress={() => setStatus(key)} testID={`rfq-filter-${key}`} />
           ))}
         </div>
-        <div style={filtersStyle}>
+        <div className="admin-chip-scroll" style={filtersStyle}>
           <Chip label="All partners" selected={partnerFilter === "all"} onPress={() => setPartnerFilter("all")} testID="rfq-partner-filter-all" />
           {partnerOptions.map((partner) => <Chip key={partner.id} label={partner.name || partner.id.slice(0, 8)} selected={partnerFilter === partner.id} onPress={() => setPartnerFilter(partner.id)} testID={`rfq-partner-filter-${partner.id}`} />)}
         </div>
         {managerOptions.length > 0 ? (
-          <div style={filtersStyle}>
+          <div className="admin-chip-scroll" style={filtersStyle}>
             <Chip label="All managers" selected={managerFilter === "all"} onPress={() => setManagerFilter("all")} testID="rfq-manager-filter-all" />
             {managerOptions.map((manager) => <Chip key={manager} label={manager} selected={managerFilter === manager} onPress={() => setManagerFilter(manager)} testID={`rfq-manager-filter-${manager}`} />)}
           </div>
@@ -619,14 +619,14 @@ function statusColor(status: string): React.CSSProperties {
 }
 
 const controlsStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px 0` };
-const filtersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
+const filtersStyle: React.CSSProperties = { gap: spacing.sm, marginBottom: spacing.sm };
 const selectFiltersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
 const selectFilterLabelStyle: React.CSSProperties = { display: "grid", gap: spacing.xs, flex: "1 1 190px", color: colors.textSecondary, fontSize: 12, fontWeight: 600 };
 const selectFilterStyle: React.CSSProperties = { boxSizing: "border-box", width: "100%", minHeight: 40, padding: "7px 10px", border: `1px solid ${colors.borderStrong}`, borderRadius: radii.sm, color: colors.textPrimary, background: colors.surface, font: "inherit" };
 const dateFiltersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.xs };
 const validationStyle: React.CSSProperties = { color: colors.error, fontSize: 12, margin: `${spacing.xs}px 0 ${spacing.sm}px` };
 const successStyle: React.CSSProperties = { color: colors.success, background: colors.successBg, padding: `${spacing.sm}px ${spacing.lg}px`, margin: `0 ${spacing.lg}px ${spacing.sm}px`, borderRadius: radii.sm, fontWeight: 600 };
-const listStyle: React.CSSProperties = { maxWidth: 1100, margin: "0 auto", padding: `${spacing.md}px ${spacing.lg}px ${spacing.xl}px` };
+const listStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px ${spacing.xl}px` };
 const summaryBlockStyle: React.CSSProperties = { marginBottom: spacing.md };
 const summaryTitleStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` };
 const summaryGridStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: spacing.sm };

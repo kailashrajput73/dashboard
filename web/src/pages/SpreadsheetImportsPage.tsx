@@ -37,7 +37,7 @@ export default function SpreadsheetImportsPage() {
         subtitle="Three separate uploads — merge by product_code"
         onBack={() => navigate(-1)}
       />
-      <div style={{ maxWidth: 820, margin: "0 auto", padding: spacing.lg }}>
+      <div style={{ maxWidth: "none", margin: "0 auto", padding: spacing.lg }}>
         <Card style={{ backgroundColor: colors.primaryLight, marginBottom: spacing.md }}>
           <p style={{ color: colors.textPrimary, lineHeight: 1.5, margin: 0 }}>
             Batch master import lives under Subcategories → Import products (batch sheet). Use Purchases → Bulk CSV when stock arrives from a supplier.
@@ -63,7 +63,9 @@ export default function SpreadsheetImportsPage() {
                 cursor: "pointer",
               }}
             >
-              <Icon name={item.icon} size={22} color={colors.primary} />
+              <span style={iconWrapStyle}>
+                <Icon name={item.icon} size={22} color={colors.primary} />
+              </span>
               <span style={{ flex: 1 }}>
                 <span style={{ ...font.title, display: "block" }}>{item.title}</span>
                 <span style={{ color: colors.textSecondary, fontSize: 13 }}>{item.description}</span>
@@ -76,3 +78,14 @@ export default function SpreadsheetImportsPage() {
     </main>
   );
 }
+
+const iconWrapStyle: React.CSSProperties = {
+  display: "flex",
+  width: 44,
+  height: 44,
+  flexShrink: 0,
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: 12,
+  backgroundColor: colors.primaryLight,
+};

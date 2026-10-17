@@ -183,7 +183,7 @@ export default function ServiceRequestsPage() {
 const pageStyle: React.CSSProperties = { minHeight: "100vh", background: colors.bg };
 const controlsStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px 0` };
 const filtersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
-const contentStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 330px), 1fr))", gap: spacing.md, maxWidth: 1240, margin: "0 auto", padding: `${spacing.sm}px ${spacing.lg}px ${spacing.xl}px`, alignItems: "start" };
+const contentStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 330px), 1fr))", gap: spacing.md, padding: `${spacing.sm}px ${spacing.lg}px ${spacing.xl}px`, alignItems: "start" };
 const listPaneStyle: React.CSSProperties = { display: "grid", gap: spacing.sm, minWidth: 0 };
 const detailPaneStyle: React.CSSProperties = { minWidth: 0, background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: radii.md, padding: spacing.md };
 const requestCardStyle: React.CSSProperties = { width: "100%", boxSizing: "border-box", background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: radii.md, padding: spacing.md, color: colors.textPrimary, font: "inherit", textAlign: "left", cursor: "pointer" };

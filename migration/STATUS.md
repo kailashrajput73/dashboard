@@ -79,7 +79,9 @@ Statuses: Not started → Built → Done.
 | 21a-1 | Remove stale `/money-config` route from web (Money config is skipped in current Expo). | Built | [dev/2026-10-16-21a-1-remove-money-config-route.md](dev/2026-10-16-21a-1-remove-money-config-route.md) |
 | 21a-2 | Show Expo's `open-outline` icon on external partner document links. | Built | [dev/2026-10-16-21a-2-partner-document-icon.md](dev/2026-10-16-21a-2-partner-document-icon.md) |
 | 22a | Match Expo app shell viewport sizing and independent sidebar/content scrolling. | Built | [dev/2026-10-16-22a-app-shell-layout.md](dev/2026-10-16-22a-app-shell-layout.md) |
-| 22b | Layout leftovers per page, from the 22a list | Not started | |
+| 22b-1 | Layout audit report for the React-vs-Expo shell and leftover page-level issues; read-only measurement pass without app changes. | Built | [dev/2026-10-16-22b-layout-audit.md](dev/2026-10-16-22b-layout-audit.md) |
+| 22b-2 | Fix the shared layout root causes in the web shell and the repeated page-level leftovers from the audit. | Not started | |
+| 22b-3 | Resolve the remaining page-specific clipping and fixed-position issues after the shared shell fix. | Not started | |
 | 21b | Production build and deploy | Not started | |
 | 21c | Remove Expo from `frontend/`, only after layout parity (22a, 22b) and the final test pass | Not started | |
 

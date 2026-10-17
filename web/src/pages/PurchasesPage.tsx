@@ -391,8 +391,8 @@ export default function PurchasesPage() {
       </div>
 
       <div style={footerStyle}>
-        <Button testID="download-purchase-template" title="Template" icon="download-outline" onPress={() => downloadImportTemplate("purchase")} size="sm" variant="ghost" />
-        <Button testID="bulk-purchase-import" title="Bulk CSV" icon="cloud-upload-outline" onPress={() => fileInput.current?.click()} loading={saving} size="sm" />
+        <Button testID="download-purchase-template" title="Template" icon="download-outline" onPress={() => downloadImportTemplate("purchase")} size="sm" variant="ghost" fullWidth />
+        <Button testID="bulk-purchase-import" title="Bulk CSV" icon="cloud-upload-outline" onPress={() => fileInput.current?.click()} loading={saving} size="sm" fullWidth />
         <input ref={fileInput} type="file" accept=".csv,text/csv,text/plain,*/*" onChange={onBulkFileChange} data-testid="purchase-csv-file" style={{ display: "none" }} />
         <Button testID="new-purchase" title="Record purchase" icon="add" onPress={openCreate} fullWidth />
       </div>
@@ -449,8 +449,6 @@ export default function PurchasesPage() {
 }
 
 const contentStyle: React.CSSProperties = {
-  maxWidth: 1100,
-  margin: "0 auto",
   padding: spacing.lg,
   paddingBottom: 120,
 };
@@ -473,7 +471,7 @@ const dateStyle: React.CSSProperties = { color: colors.textMuted, fontSize: 12, 
 const lineStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: spacing.md, borderTop: `1px solid ${colors.border}`, paddingTop: spacing.sm, marginTop: spacing.sm };
 const productNameStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, overflowWrap: "anywhere" };
 const metaStyle: React.CSSProperties = { color: colors.textSecondary, fontSize: 12, marginTop: 3 };
-const footerStyle: React.CSSProperties = { position: "sticky", bottom: 0, display: "flex", flexWrap: "wrap", alignItems: "center", gap: spacing.sm, padding: spacing.md, background: colors.bg, borderTop: `1px solid ${colors.border}`, zIndex: 2 };
+const footerStyle: React.CSSProperties = { position: "sticky", bottom: 0, display: "flex", flexDirection: "column", alignItems: "stretch", padding: `${spacing.md}px ${spacing.lg}px`, background: colors.bg, borderTop: `1px solid ${colors.border}`, zIndex: 2 };
 const labelStyle: React.CSSProperties = { display: "block", color: colors.textSecondary, fontSize: 13, fontWeight: 600, margin: `${spacing.sm}px 0 6px` };
 const selectedStyle: React.CSSProperties = { color: colors.primary, fontSize: 12, margin: `${spacing.sm}px 0` };
 const iconActionStyle: React.CSSProperties = { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: 0, borderRadius: radii.sm, background: "transparent", cursor: "pointer", flexShrink: 0 };

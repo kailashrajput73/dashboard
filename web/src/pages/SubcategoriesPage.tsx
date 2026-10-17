@@ -417,7 +417,7 @@ export default function SubcategoriesPage() {
         <div style={emptyStyle}>No subcategories match your search.</div>
       )}
 
-      <div style={importBarStyle}>
+      <div className="admin-pane-footer" style={importBarStyle}>
         <Button
           testID="nav-batch-product-import"
           title="Import products (batch sheet)"
@@ -521,11 +521,7 @@ const headerActionsStyle: React.CSSProperties = {
 };
 
 const importBarStyle: React.CSSProperties = {
-  position: "fixed",
-  zIndex: 2,
   bottom: 12,
-  left: spacing.lg,
-  right: spacing.lg,
 };
 
 const iconActionStyle: React.CSSProperties = {

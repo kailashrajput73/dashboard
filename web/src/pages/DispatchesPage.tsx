@@ -295,7 +295,7 @@ export default function DispatchesPage() {
           </div>
         )}
       </div>
-      <div style={footerStyle}>
+      <div className="admin-pane-footer" style={footerStyle}>
         <Button testID="convert-rfq-dispatch" title={`Dispatch approved RFQ (${approvedRfqs.length})`} icon="swap-horizontal-outline" onPress={() => setRfqOpen(true)} fullWidth />
         <Button testID="retail-billing" title="Retail customer billing" icon="receipt-outline" onPress={openRetail} fullWidth style={{ marginTop: spacing.sm }} />
       </div>
@@ -331,7 +331,7 @@ const filtersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", g
 const dateFiltersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
 const validationStyle: React.CSSProperties = { color: colors.error, fontSize: 12, margin: `0 0 ${spacing.sm}px` };
 const successStyle: React.CSSProperties = { color: colors.success, padding: `0 ${spacing.lg}px ${spacing.sm}px`, fontWeight: 600 };
-const listStyle: React.CSSProperties = { maxWidth: 1100, margin: "0 auto", padding: `${spacing.md}px ${spacing.lg}px 180px` };
+const listStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px 180px` };
 const summaryBlockStyle: React.CSSProperties = { marginBottom: spacing.md };
 const summaryTitleStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` };
 const summaryGridStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: spacing.sm };
@@ -348,7 +348,7 @@ const rowRightStyle: React.CSSProperties = { display: "flex", flexDirection: "co
 const typeBadgeStyle: React.CSSProperties = { color: colors.primary, fontWeight: 700, fontSize: 11 };
 const detailBoxStyle: React.CSSProperties = { marginTop: spacing.sm, paddingTop: spacing.sm, borderTop: `1px solid ${colors.border}` };
 const detailLineStyle: React.CSSProperties = { color: colors.textSecondary, fontSize: 12, marginTop: 4, overflowWrap: "anywhere" };
-const footerStyle: React.CSSProperties = { position: "fixed", bottom: 12, left: spacing.lg, right: spacing.lg, maxWidth: 700, margin: "0 auto", zIndex: 2 };
+const footerStyle: React.CSSProperties = { bottom: 12 };
 const headerActionsStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: spacing.sm };
 const iconButtonStyle: React.CSSProperties = { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, padding: 4, border: 0, borderRadius: radii.sm, background: "transparent", cursor: "pointer", flexShrink: 0 };
 const emptyStyle: React.CSSProperties = { textAlign: "center", color: colors.textSecondary, padding: spacing.xl };

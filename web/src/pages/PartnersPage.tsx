@@ -344,10 +344,10 @@ export default function PartnersPage() {
       />
       <div style={controlsStyle}>
         <Input testID="partner-search" value={search} onChangeText={setSearch} placeholder="Search name, phone, pincode, city, or area" style={{ marginBottom: spacing.sm }} />
-        <div style={chipRowStyle}>
+        <div className="admin-chip-scroll" style={chipRowStyle}>
           {tabs.map((item) => <Chip key={item} label={item[0].toUpperCase() + item.slice(1)} selected={filter === item} onPress={() => setFilter(item)} testID={`partner-filter-${item}`} />)}
         </div>
-        <div style={chipRowStyle}>
+        <div className="admin-chip-scroll" style={chipRowStyle}>
           <Chip label="All managers" selected={!managerFilter} onPress={() => setManagerFilter("")} testID="partner-manager-all" />
           {managerOptions.map((manager) => <Chip key={manager} label={manager} selected={managerFilter === manager} onPress={() => setManagerFilter(manager)} testID={`partner-manager-${manager}`} />)}
         </div>
@@ -463,9 +463,9 @@ export default function PartnersPage() {
 
 const headerActionsStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: spacing.md };
 const iconButtonStyle: React.CSSProperties = { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, padding: 4, border: 0, borderRadius: radii.sm, background: "transparent", cursor: "pointer" };
-const controlsStyle: React.CSSProperties = { maxWidth: 1100, margin: "0 auto", padding: `${spacing.md}px ${spacing.lg}px 0` };
-const chipRowStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
-const listStyle: React.CSSProperties = { display: "grid", gap: spacing.sm, maxWidth: 1100, margin: "0 auto", padding: `${spacing.md}px ${spacing.lg}px` };
+const controlsStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px 0` };
+const chipRowStyle: React.CSSProperties = { gap: spacing.sm, marginBottom: spacing.sm };
+const listStyle: React.CSSProperties = { display: "grid", gap: spacing.sm, padding: `${spacing.md}px ${spacing.lg}px` };
 const partnerRowStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: spacing.md, width: "100%", padding: spacing.md, border: `1px solid ${colors.border}`, borderRadius: radii.md, background: colors.surface, color: colors.textPrimary, textAlign: "left", cursor: "pointer" };
 const partnerMainStyle: React.CSSProperties = { display: "grid", gap: 4, minWidth: 0, flex: 1 };
 const partnerNameStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, overflowWrap: "anywhere" };
