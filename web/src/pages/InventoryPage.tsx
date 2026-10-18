@@ -235,7 +235,7 @@ export default function InventoryPage() {
         )}
       />
 
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input
           testID="inventory-search"
           value={search}
@@ -262,7 +262,7 @@ export default function InventoryPage() {
       {loading ? (
         <div style={centerStyle}><span className="web-button-spinner" role="status" aria-label="Loading inventory" /></div>
       ) : (
-        <div style={listStyle}>
+        <div className="admin-list-scroll admin-page-container" style={listStyle}>
           <section style={summaryBlockStyle}>
             <h2 style={summaryTitleStyle}>Report summary</h2>
             <div style={summaryGridStyle}>{summary}</div>

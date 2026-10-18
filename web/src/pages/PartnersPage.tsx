@@ -342,7 +342,7 @@ export default function PartnersPage() {
           </div>
         )}
       />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input testID="partner-search" value={search} onChangeText={setSearch} placeholder="Search name, phone, pincode, city, or area" style={{ marginBottom: spacing.sm }} />
         <div className="admin-chip-scroll" style={chipRowStyle}>
           {tabs.map((item) => <Chip key={item} label={item[0].toUpperCase() + item.slice(1)} selected={filter === item} onPress={() => setFilter(item)} testID={`partner-filter-${item}`} />)}
@@ -358,7 +358,7 @@ export default function PartnersPage() {
       ) : partners.length === 0 ? (
         <p style={emptyStyle}>No partners found.</p>
       ) : (
-        <div style={listStyle}>
+        <div className="admin-list-scroll admin-page-container" style={listStyle}>
           {partners.map((partner) => (
             <button key={partner.id} type="button" data-testid={`partner-row-${partner.id}`} onClick={() => void openPartner(partner)} style={partnerRowStyle}>
               <span style={partnerMainStyle}>

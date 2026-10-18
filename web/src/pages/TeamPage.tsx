@@ -146,7 +146,7 @@ export default function TeamPage() {
   return (
     <main style={pageStyle}>
       <Header title="Team Management" subtitle={`${filtered.length} of ${users.length} users`} onBack={() => navigate(-1)} right={<button type="button" data-testid="open-add-team-user" aria-label="Add team user" title="Add team user" onClick={openCreate} style={iconButtonStyle}><Icon name="add-circle" size={25} color={colors.primary} /></button>} />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input testID="team-search" value={query} onChangeText={setQuery} placeholder="Search team" style={{ marginBottom: spacing.sm }} />
         <div style={filtersStyle}>{(["all", ...roles] as const).map((item) => <Chip key={item} label={item === "all" ? "All" : roleLabels[item]} selected={filter === item} onPress={() => setFilter(item)} testID={`team-filter-${item}`} />)}</div>
         <div style={summaryRowStyle}>
@@ -158,7 +158,7 @@ export default function TeamPage() {
       </div>
       {successMessage ? <p role="status" style={successStyle}>{successMessage}</p> : null}
       {loading ? <div style={centerStyle}><span className="web-button-spinner" role="status" aria-label="Loading team" /></div> : filtered.length === 0 ? <p style={emptyStyle}>No team users found.</p> : (
-        <div style={listStyle}>
+        <div className="admin-list-scroll admin-page-container" style={listStyle}>
           {filtered.map((user) => <article key={user.id} data-testid={`team-user-${user.id}`} style={userCardStyle}>
             <div style={userMainStyle}>
               <div style={userHeadingStyle}><strong style={userNameStyle}>{user.name}</strong><span style={{ ...statusBadgeStyle, ...(user.isActive ? activeBadgeStyle : inactiveBadgeStyle) }}>{user.isActive ? "Active" : "Inactive"}</span></div>

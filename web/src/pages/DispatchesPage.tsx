@@ -254,7 +254,7 @@ export default function DispatchesPage() {
   return (
     <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
       <Header title="Dispatch & Billing" subtitle={`${filteredDispatches.length} of ${dispatches.length} dispatch${dispatches.length === 1 ? "" : "es"}`} onBack={() => navigate(-1)} right={<div style={headerActionsStyle}><button type="button" data-testid="export-dispatches" aria-label="Export dispatches CSV" title="Export dispatches CSV" onClick={exportCsv} disabled={!filteredDispatches.length} style={iconButtonStyle}><Icon name="download-outline" size={23} color={filteredDispatches.length ? colors.primary : colors.textMuted} /></button><button type="button" data-testid="open-retail-dispatch" aria-label="Retail billing" title="Retail billing" onClick={openRetail} style={iconButtonStyle}><Icon name="add-circle" size={25} color={colors.primary} /></button></div>} />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input testID="dispatch-search" value={search} onChangeText={setSearch} placeholder="Search product, customer, or RFQ" style={{ marginBottom: spacing.sm }} />
         <div style={filtersStyle}>
           {(["all", "retail", "rfq"] as DispatchViewFilter[]).map((filter) => <Chip key={filter} label={filter === "all" ? "All" : filter === "retail" ? "Retail" : "RFQ-linked"} selected={dispatchType === filter} onPress={() => setDispatchType(filter)} testID={`dispatch-filter-${filter}`} />)}
@@ -266,7 +266,7 @@ export default function DispatchesPage() {
         {dateFilterError ? <p role="alert" style={validationStyle}>{dateFilterError}</p> : null}
       </div>
       {successMessage ? <p role="status" style={successStyle}>{successMessage}</p> : null}
-      <div style={listStyle}>
+      <div className="admin-list-scroll admin-page-container" style={listStyle}>
         <section style={summaryBlockStyle}>
           <h2 style={summaryTitleStyle}>Report summary</h2>
           <div style={summaryGridStyle}><SummaryCell label="Dispatches" value={String(summary.dispatchCount)} /><SummaryCell label="Lines" value={String(summary.lineCount)} /><SummaryCell label="Qty" value={String(summary.quantity)} /><SummaryCell label="Total" value={`₹${formatMoney(summary.value)}`} highlight /></div>

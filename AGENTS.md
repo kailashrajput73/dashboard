@@ -20,3 +20,8 @@ Branch: `web-migration-reactnative-to-react` only.
 2. Set the row to **Built** in `migration/STATUS.md`. Never set Done; the user does that after testing.
 3. Tell the user: what was built, which files changed, how to test it, and a commit message like `migrate(2): categories`.
 4. STOP.
+   ## Live handoff (every task)
+   - At the start, read migration/NOW.md. If the user names a task file in migration/tasks/, read it too.
+   - While you work, update migration/NOW.md after every batch and BEFORE you stop for any reason (usage limit, blocker, error). Say what is done, the files changed, and the exact next action.
+   - If NOW.md shows work already done, do not redo it. Continue at "Next action".
+   - Keep NOW.md under one screen. Overwrite it; do not append forever.

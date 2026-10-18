@@ -141,7 +141,7 @@ export function CatalogSpreadsheetImport(props: Props) {
   return (
     <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
       <Header title={props.title} subtitle={props.subtitle} onBack={() => navigate(-1)} />
-      <div style={{ maxWidth: "none", margin: "0 auto", padding: spacing.lg }}>
+      <div className="admin-page-container" style={{ maxWidth: "none", margin: "0 auto", padding: spacing.lg }}>
         <div style={{ backgroundColor: `${accent}18`, borderRadius: 8, padding: spacing.md, marginBottom: spacing.md }}>
           <span style={{ ...font.caption, color: accent, fontWeight: 700, display: "block", lineHeight: "14px" }}>
             {props.kind === "master"

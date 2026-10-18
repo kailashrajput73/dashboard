@@ -75,13 +75,15 @@ Statuses: Not started → Built → Done.
 | 20c | Team user list requests use `cache: "no-store"`, like Expo FIX-06 | Built | [dev/2026-10-10-20c-team-no-store.md](dev/2026-10-10-20c-team-no-store.md) |
 | 20d | RFQ list Category and Product filters from loaded catalog and lines | Built | [dev/2026-10-10-20d-rfq-category-product-filters.md](dev/2026-10-10-20d-rfq-category-product-filters.md) |
 | 20e | Partners KYC-history CSV export | Built | [dev/2026-10-10-20e-partner-kyc-history-export.md](dev/2026-10-10-20e-partner-kyc-history-export.md) |
-| 21a | Check every Expo screen exists in `web/`. List anything missed. | Built | [dev/2026-10-13-21a-completeness-scan.md](dev/2026-10-13-21a-completeness-scan.md) |
+| 21a | Check every Expo screen exists in `web/`. List anything missed. | Done | [dev/2026-10-13-21a-completeness-scan.md](dev/2026-10-13-21a-completeness-scan.md) |
 | 21a-1 | Remove stale `/money-config` route from web (Money config is skipped in current Expo). | Built | [dev/2026-10-16-21a-1-remove-money-config-route.md](dev/2026-10-16-21a-1-remove-money-config-route.md) |
 | 21a-2 | Show Expo's `open-outline` icon on external partner document links. | Built | [dev/2026-10-16-21a-2-partner-document-icon.md](dev/2026-10-16-21a-2-partner-document-icon.md) |
 | 22a | Match Expo app shell viewport sizing and independent sidebar/content scrolling. | Built | [dev/2026-10-16-22a-app-shell-layout.md](dev/2026-10-16-22a-app-shell-layout.md) |
-| 22b-1 | Layout audit report for the React-vs-Expo shell and leftover page-level issues; read-only measurement pass without app changes. | Built | [dev/2026-10-16-22b-layout-audit.md](dev/2026-10-16-22b-layout-audit.md) |
-| 22b-2 | Fix the shared layout root causes in the web shell and the repeated page-level leftovers from the audit. | Not started | |
+| 22b-1 | Layout audit report for the React-vs-Expo shell and leftover page-level issues; read-only measurement pass without app changes. | Done | [dev/2026-10-16-22b-layout-audit.md](dev/2026-10-16-22b-layout-audit.md) |
+| 22b-2 | Layout fixes: shell height, fixed buttons, page widths. | Built | [dev/2026-10-17-22b-2-layout-fixes.md](dev/2026-10-17-22b-2-layout-fixes.md) |
 | 22b-3 | Resolve the remaining page-specific clipping and fixed-position issues after the shared shell fix. | Not started | |
+| 22c-1 | Responsive shell and mobile navigation drawer below 1024px; preserve the existing desktop sidebar. | Built | [dev/2026-10-18-22c-a-responsive-layout.md](dev/2026-10-18-22c-a-responsive-layout.md) |
+| 22c-2 | Responsive page containers, mobile spacing, and internal horizontal scrolling for wide content. | Built | [dev/2026-10-18-22c-a-responsive-layout.md](dev/2026-10-18-22c-a-responsive-layout.md) |
 | 21b | Production build and deploy | Not started | |
 | 21c | Remove Expo from `frontend/`, only after layout parity (22a, 22b) and the final test pass | Not started | |
 

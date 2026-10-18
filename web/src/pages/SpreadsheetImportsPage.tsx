@@ -37,7 +37,7 @@ export default function SpreadsheetImportsPage() {
         subtitle="Three separate uploads — merge by product_code"
         onBack={() => navigate(-1)}
       />
-      <div style={{ maxWidth: "none", margin: "0 auto", padding: spacing.lg }}>
+      <div className="admin-page-container" style={{ maxWidth: "none", margin: "0 auto", padding: spacing.lg }}>
         <Card style={{ backgroundColor: colors.primaryLight, marginBottom: spacing.md }}>
           <p style={{ color: colors.textPrimary, lineHeight: 1.5, margin: 0 }}>
             Batch master import lives under Subcategories → Import products (batch sheet). Use Purchases → Bulk CSV when stock arrives from a supplier.

@@ -157,7 +157,7 @@ export default function RacksPage() {
           <span className="web-button-spinner" role="status" aria-label="Loading racks" />
         </div>
       ) : racks.length ? (
-        <div style={listStyle}>
+        <div className="admin-list-scroll admin-page-container" style={listStyle}>
           {racks.map((rack) => (
             <section
               key={rack.id}

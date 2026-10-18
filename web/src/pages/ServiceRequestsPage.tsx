@@ -130,14 +130,14 @@ export default function ServiceRequestsPage() {
   return (
     <main style={pageStyle}>
       <Header title="Service requests" subtitle={`${filteredRequests.length} of ${requests.length} requests`} onBack={() => navigate(-1)} />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input testID="service-request-search" value={search} onChangeText={setSearch} placeholder="Search name, phone, area, or description" style={{ marginBottom: spacing.sm }} />
         <div style={filtersStyle}>{statusOptions.map((option) => <Chip key={option} label={option === "all" ? "All statuses" : statusLabel(option)} selected={statusFilter === option} onPress={() => setStatusFilter(option)} testID={`service-request-status-${option}`} />)}</div>
         <div style={filtersStyle}>{serviceTypeOptions.map((option) => <Chip key={option} label={option === "all" ? "All services" : option} selected={serviceTypeFilter === option} onPress={() => setServiceTypeFilter(option)} testID={`service-request-type-${option}`} />)}</div>
       </div>
       {message ? <p role="status" style={successStyle}>{message}</p> : null}
       {loading ? <div style={centerStyle}><span className="web-button-spinner" role="status" aria-label="Loading service requests" /></div> : (
-        <div style={contentStyle}>
+        <div className="admin-page-container" style={contentStyle}>
           <section style={listPaneStyle} aria-label="Service request list">
             {filteredRequests.length === 0 ? <p style={emptyStyle}>No service requests match the filters.</p> : filteredRequests.map((request) => <button type="button" key={request.id} onClick={() => { setSelectedId(request.id); setFormDraft(null); }} style={{ ...requestCardStyle, ...(selectedRequest?.id === request.id ? selectedCardStyle : {}) }}>
               <div style={cardHeadingStyle}><strong style={customerNameStyle}>{request.customerName}</strong><span style={{ ...badgeStyle, ...(request.status === "pending" ? pendingBadgeStyle : otherBadgeStyle) }}>{statusLabel(request.status)}</span></div>

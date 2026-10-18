@@ -82,6 +82,7 @@ export function AdminShell() {
     showProductType: true,
     showProductClass: true,
   });
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const nav = useMemo(() => buildNav(tabs), [tabs]);
 
   useEffect(() => {
@@ -89,13 +90,44 @@ export function AdminShell() {
     getTaxonomyTabs().then(setTabs);
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setDrawerOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [drawerOpen]);
+
   async function signOut() {
     await fullSignOut();
     navigate("/login", { replace: true });
   }
 
   return (
-    <div className="admin-shell">
+    <div className={`admin-shell${drawerOpen ? " admin-shell-drawer-open" : ""}`}>
+      <div className="admin-mobile-topbar">
+        <button
+          type="button"
+          className="admin-mobile-menu-button"
+          data-testid="mobile-menu-button"
+          aria-label="Open navigation menu"
+          aria-controls="admin-sidebar-nav"
+          aria-expanded={drawerOpen}
+          onClick={() => setDrawerOpen((open) => !open)}
+        >
+          <Icon name="list-outline" size={24} color={colors.textPrimary} />
+        </button>
+      </div>
+      {drawerOpen ? (
+        <button
+          type="button"
+          className="admin-drawer-overlay"
+          data-testid="mobile-drawer-overlay"
+          aria-label="Close navigation menu"
+          onClick={() => setDrawerOpen(false)}
+        />
+      ) : null}
       <aside className="admin-sidebar">
         <div className="admin-brand">
           <div style={{ ...font.h3, color: colors.textPrimary }}>
@@ -103,7 +135,7 @@ export function AdminShell() {
           </div>
           <div className="admin-brand-sub">{company || "Dashboard"}</div>
         </div>
-        <nav className="admin-nav" aria-label="Admin menu">
+        <nav id="admin-sidebar-nav" className="admin-nav" aria-label="Admin menu">
           {nav.map((section) => (
             <section className="admin-nav-section" key={section.title}>
               <div className="admin-nav-section-title">{section.title}</div>
@@ -116,6 +148,7 @@ export function AdminShell() {
                     `admin-nav-item${isActive ? " admin-nav-item-active" : ""}`
                   }
                   end
+                  onClick={() => setDrawerOpen(false)}
                 >
                   {({ isActive }) => (
                     <>
@@ -140,7 +173,10 @@ export function AdminShell() {
           type="button"
           data-testid="sidebar-signout"
           className="admin-signout"
-          onClick={() => void signOut()}
+          onClick={() => {
+            setDrawerOpen(false);
+            void signOut();
+          }}
         >
           <Icon name="log-out-outline" size={18} color={colors.textSecondary} />
           <span className="admin-nav-label">Sign out</span>

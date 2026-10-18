@@ -84,7 +84,7 @@ export default function DashboardPage() {
   return (
     <main style={pageStyle}>
       <Header title="Overview" subtitle={company || "Live ops snapshot"} />
-      <div style={contentStyle}>
+      <div className="admin-page-container" style={contentStyle}>
         <h2 style={sectionTitleStyle}>Operations snapshot</h2>
         <p style={sectionHintStyle}>Stock, RFQs, partners, and dispatch sales from live data — not full monthly analytics.</p>
         {loading ? <div style={loadingStyle}><span className="web-button-spinner" role="status" aria-label="Loading dashboard" /></div> : snapshot ? <>

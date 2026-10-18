@@ -450,7 +450,7 @@ export default function RfqsPage() {
         onBack={() => navigate(-1)}
         right={<div style={headerActionsStyle}><button type="button" data-testid="export-rfqs" aria-label="Export RFQs CSV" title="Export RFQs CSV" onClick={exportCsv} disabled={!filteredRfqs.length} style={exportButtonStyle}><Icon name="download-outline" size={23} color={filteredRfqs.length ? colors.primary : colors.textMuted} /></button><button type="button" data-testid="open-add-rfq" aria-label="Create RFQ" title="Create RFQ" onClick={openCreate} style={exportButtonStyle}><Icon name="add-circle" size={25} color={colors.primary} /></button></div>}
       />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input testID="rfq-search" value={search} onChangeText={setSearch} placeholder="Search partner, phone, product, or code" style={{ marginBottom: spacing.sm }} />
         <div className="admin-chip-scroll" style={filtersStyle}>
           {(["all", "pending", "approved", "rejected", "dispatched"] as RfqStatus[]).map((key) => (
@@ -505,7 +505,7 @@ export default function RfqsPage() {
         {dateFilterError ? <p role="alert" style={validationStyle}>{dateFilterError}</p> : null}
       </div>
       {successMessage ? <p role="status" style={successStyle}>{successMessage}</p> : null}
-      <div style={listStyle}>
+      <div className="admin-list-scroll admin-page-container" style={listStyle}>
         <section style={summaryBlockStyle}>
           <h2 style={summaryTitleStyle}>Report summary</h2>
           <div style={summaryGridStyle}>

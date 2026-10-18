@@ -352,7 +352,7 @@ export default function PurchasesPage() {
         onBack={() => navigate(-1)}
         right={headerActions}
       />
-      <div style={contentStyle}>
+      <div className="admin-page-container admin-list-scroll" style={contentStyle}>
         <section style={reportStyle}>
           <div style={dateFiltersStyle}>
             <Input testID="purchase-date-from" label="From date" value={dateFrom} onChangeText={setDateFrom} placeholder="YYYY-MM-DD" style={{ flex: 1 }} />

@@ -47,7 +47,7 @@ export default function SettingsPage() {
   return (
     <main style={pageStyle}>
       <Header title="Settings" subtitle="Catalog tabs and temporary maintenance" onBack={() => navigate(-1)} />
-      <div style={bodyStyle}>
+      <div className="admin-page-container" style={bodyStyle}>
         <p style={hintStyle}>These tabs group products from the Excel Type and Class columns. The sheet names stay Type and Class. Turn a tab off when you do not need it in the admin menu.</p>
         <ToggleRow
           testID="toggle-product-type-tab"

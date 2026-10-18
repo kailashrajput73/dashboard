@@ -20,6 +20,16 @@ Rule: when 3 or 4 rows are waiting, run their tests in one go. Use `ZZ` names fo
 
 ## Tests waiting
 
+### Rows 22c-1 and 22c-2: responsive shell and page containers (Built)
+
+The MODE B browser pass used local Playwright fixtures, not the backend. For a visual owner check, run the React app at every route and width:
+
+1. At 1920px and 1366px, compare against `~/uicheck/baseline.json`; geometry must remain within 1px. The implementation verification reported zero differences.
+2. At 1024px, confirm the sidebar remains fixed at 240px. At 768px and 390px, confirm the top-bar menu opens the drawer and it closes on an item, overlay, and Escape.
+3. At all five widths, confirm the document has no horizontal scroll, visible interactive controls remain clickable, and wide content scrolls inside its own container.
+4. Confirm Login and Register remain centered; check the Subcategories and Partners header actions do not overlap at 390px.
+5. Open a modal at 390px and confirm it fits within the viewport and scrolls internally when its content is taller than the screen.
+
 ### Row 3b: subcategory CSV import (Built)
 
 Run first, in `web/`: `npm run build` and `npm run lint`. The agent could not run them. Both must end with no errors.

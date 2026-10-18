@@ -323,6 +323,7 @@ export function Header(props: {
 }) {
   return (
     <header
+      className="admin-page-header"
       style={{
         padding: `${spacing.md}px ${spacing.xl}px`,
         backgroundColor: colors.bg,
@@ -330,6 +331,7 @@ export function Header(props: {
       }}
     >
       <div
+        className="admin-header-row"
         style={{
           display: "flex",
           alignItems: "center",
@@ -381,7 +383,7 @@ export function Header(props: {
           ) : null}
         </div>
         {props.right ? (
-          <div style={{ minWidth: 40, display: "flex", justifyContent: "end" }}>
+          <div className="admin-header-actions" style={{ minWidth: 40, display: "flex", justifyContent: "end" }}>
             {props.right}
           </div>
         ) : null}
@@ -482,6 +484,7 @@ export function AppModal(props: {
 
   return (
     <div
+      className="admin-modal-backdrop"
       data-testid={props.testID ? `${props.testID}-backdrop` : undefined}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) props.onClose();
@@ -498,6 +501,7 @@ export function AppModal(props: {
       }}
     >
       <section
+        className="admin-modal-panel"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
