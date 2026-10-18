@@ -206,7 +206,7 @@ export default function ProductGroupsPage() {
           </button>
         }
       />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input
           testID="product-group-search"
           value={query}
@@ -220,7 +220,7 @@ export default function ProductGroupsPage() {
           <span className="web-button-spinner" role="status" aria-label="Loading product groups" />
         </div>
       ) : filteredGroups.length ? (
-        <div style={listStyle}>
+        <div className="admin-list-scroll admin-page-container" style={listStyle}>
           {filteredGroups.map((group) => {
             const open = openId === group.id;
             const listed = productsFor(group);
@@ -285,7 +285,7 @@ export default function ProductGroupsPage() {
         </div>
       )}
 
-      <div style={footerStyle}>
+      <div className="admin-pane-footer" style={footerStyle}>
         <Button
           testID="bulk-product-group-action"
           title="New product group"
@@ -428,11 +428,7 @@ const emptyStyle: React.CSSProperties = {
 };
 
 const footerStyle: React.CSSProperties = {
-  position: "fixed",
   bottom: 16,
-  left: "max(24px, calc((100vw - 760px) / 2))",
-  right: "max(24px, calc((100vw - 760px) / 2))",
-  zIndex: 2,
 };
 
 const selectionStyle: React.CSSProperties = {

@@ -141,9 +141,9 @@ export function CatalogSpreadsheetImport(props: Props) {
   return (
     <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
       <Header title={props.title} subtitle={props.subtitle} onBack={() => navigate(-1)} />
-      <div style={{ maxWidth: 820, margin: "0 auto", padding: spacing.lg }}>
+      <div className="admin-page-container" style={{ maxWidth: "none", margin: "0 auto", padding: spacing.lg }}>
         <div style={{ backgroundColor: `${accent}18`, borderRadius: 8, padding: spacing.md, marginBottom: spacing.md }}>
-          <span style={{ ...font.caption, color: accent, fontWeight: 700 }}>
+          <span style={{ ...font.caption, color: accent, fontWeight: 700, display: "block", lineHeight: "14px" }}>
             {props.kind === "master"
               ? "Product master - client sheet format; existing rows keep stock & prices"
               : props.kind === "pricing"
@@ -153,7 +153,7 @@ export function CatalogSpreadsheetImport(props: Props) {
         </div>
         <Card>
           <h2 style={{ ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` }}>Columns</h2>
-          <p style={{ color: colors.textSecondary, lineHeight: 1.45, margin: 0 }}>{props.columnHelp}</p>
+          <p style={{ color: colors.textSecondary, lineHeight: "20px", margin: 0 }}>{props.columnHelp}</p>
           <input
             ref={fileInput}
             type="file"
@@ -162,7 +162,7 @@ export function CatalogSpreadsheetImport(props: Props) {
             data-testid={`${props.kind}-import-file`}
             style={{ display: "none" }}
           />
-          <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.md }}>
+          <div style={{ display: "grid", gap: spacing.md, marginTop: spacing.sm }}>
             <Button
               testID={`download-${props.kind}-template`}
               title="Download empty template (CSV)"
@@ -170,6 +170,7 @@ export function CatalogSpreadsheetImport(props: Props) {
               variant="ghost"
               size="sm"
               onPress={() => downloadImportTemplate(props.kind as ImportTemplateKind)}
+              style={{ width: "100%" }}
             />
             <Button
               testID={`pick-${props.kind}-import`}
@@ -177,6 +178,7 @@ export function CatalogSpreadsheetImport(props: Props) {
               icon="document-outline"
               loading={picking}
               onPress={() => fileInput.current?.click()}
+              style={{ width: "100%" }}
             />
           </div>
           {previewCount ? (

@@ -249,7 +249,7 @@ export default function ProductTypesPage() {
         subtitle="Tap Add photo — file or URL (not Excel)"
         onBack={() => navigate(-1)}
       />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input
           testID="product-type-search"
           value={query}
@@ -288,7 +288,7 @@ export default function ProductTypesPage() {
           />
         </div>
       ) : filtered.length ? (
-        <div style={listStyle}>
+        <div className="admin-list-scroll admin-page-container" style={listStyle}>
           {filtered.map((item) => {
             const open = openId === item.id;
             const listed = productsFor(item);

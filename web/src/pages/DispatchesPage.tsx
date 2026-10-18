@@ -254,7 +254,7 @@ export default function DispatchesPage() {
   return (
     <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
       <Header title="Dispatch & Billing" subtitle={`${filteredDispatches.length} of ${dispatches.length} dispatch${dispatches.length === 1 ? "" : "es"}`} onBack={() => navigate(-1)} right={<div style={headerActionsStyle}><button type="button" data-testid="export-dispatches" aria-label="Export dispatches CSV" title="Export dispatches CSV" onClick={exportCsv} disabled={!filteredDispatches.length} style={iconButtonStyle}><Icon name="download-outline" size={23} color={filteredDispatches.length ? colors.primary : colors.textMuted} /></button><button type="button" data-testid="open-retail-dispatch" aria-label="Retail billing" title="Retail billing" onClick={openRetail} style={iconButtonStyle}><Icon name="add-circle" size={25} color={colors.primary} /></button></div>} />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input testID="dispatch-search" value={search} onChangeText={setSearch} placeholder="Search product, customer, or RFQ" style={{ marginBottom: spacing.sm }} />
         <div style={filtersStyle}>
           {(["all", "retail", "rfq"] as DispatchViewFilter[]).map((filter) => <Chip key={filter} label={filter === "all" ? "All" : filter === "retail" ? "Retail" : "RFQ-linked"} selected={dispatchType === filter} onPress={() => setDispatchType(filter)} testID={`dispatch-filter-${filter}`} />)}
@@ -266,7 +266,7 @@ export default function DispatchesPage() {
         {dateFilterError ? <p role="alert" style={validationStyle}>{dateFilterError}</p> : null}
       </div>
       {successMessage ? <p role="status" style={successStyle}>{successMessage}</p> : null}
-      <div style={listStyle}>
+      <div className="admin-list-scroll admin-page-container" style={listStyle}>
         <section style={summaryBlockStyle}>
           <h2 style={summaryTitleStyle}>Report summary</h2>
           <div style={summaryGridStyle}><SummaryCell label="Dispatches" value={String(summary.dispatchCount)} /><SummaryCell label="Lines" value={String(summary.lineCount)} /><SummaryCell label="Qty" value={String(summary.quantity)} /><SummaryCell label="Total" value={`₹${formatMoney(summary.value)}`} highlight /></div>
@@ -295,7 +295,7 @@ export default function DispatchesPage() {
           </div>
         )}
       </div>
-      <div style={footerStyle}>
+      <div className="admin-pane-footer" style={footerStyle}>
         <Button testID="convert-rfq-dispatch" title={`Dispatch approved RFQ (${approvedRfqs.length})`} icon="swap-horizontal-outline" onPress={() => setRfqOpen(true)} fullWidth />
         <Button testID="retail-billing" title="Retail customer billing" icon="receipt-outline" onPress={openRetail} fullWidth style={{ marginTop: spacing.sm }} />
       </div>
@@ -331,7 +331,7 @@ const filtersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", g
 const dateFiltersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
 const validationStyle: React.CSSProperties = { color: colors.error, fontSize: 12, margin: `0 0 ${spacing.sm}px` };
 const successStyle: React.CSSProperties = { color: colors.success, padding: `0 ${spacing.lg}px ${spacing.sm}px`, fontWeight: 600 };
-const listStyle: React.CSSProperties = { maxWidth: 1100, margin: "0 auto", padding: `${spacing.md}px ${spacing.lg}px 180px` };
+const listStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px 180px` };
 const summaryBlockStyle: React.CSSProperties = { marginBottom: spacing.md };
 const summaryTitleStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` };
 const summaryGridStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: spacing.sm };
@@ -348,7 +348,7 @@ const rowRightStyle: React.CSSProperties = { display: "flex", flexDirection: "co
 const typeBadgeStyle: React.CSSProperties = { color: colors.primary, fontWeight: 700, fontSize: 11 };
 const detailBoxStyle: React.CSSProperties = { marginTop: spacing.sm, paddingTop: spacing.sm, borderTop: `1px solid ${colors.border}` };
 const detailLineStyle: React.CSSProperties = { color: colors.textSecondary, fontSize: 12, marginTop: 4, overflowWrap: "anywhere" };
-const footerStyle: React.CSSProperties = { position: "fixed", bottom: 12, left: spacing.lg, right: spacing.lg, maxWidth: 700, margin: "0 auto", zIndex: 2 };
+const footerStyle: React.CSSProperties = { bottom: 12 };
 const headerActionsStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: spacing.sm };
 const iconButtonStyle: React.CSSProperties = { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, padding: 4, border: 0, borderRadius: radii.sm, background: "transparent", cursor: "pointer", flexShrink: 0 };
 const emptyStyle: React.CSSProperties = { textAlign: "center", color: colors.textSecondary, padding: spacing.xl };

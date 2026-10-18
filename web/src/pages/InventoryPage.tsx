@@ -235,7 +235,7 @@ export default function InventoryPage() {
         )}
       />
 
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input
           testID="inventory-search"
           value={search}
@@ -262,7 +262,7 @@ export default function InventoryPage() {
       {loading ? (
         <div style={centerStyle}><span className="web-button-spinner" role="status" aria-label="Loading inventory" /></div>
       ) : (
-        <div style={listStyle}>
+        <div className="admin-list-scroll admin-page-container" style={listStyle}>
           <section style={summaryBlockStyle}>
             <h2 style={summaryTitleStyle}>Report summary</h2>
             <div style={summaryGridStyle}>{summary}</div>
@@ -328,7 +328,7 @@ const dateFiltersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap
 const validationStyle: React.CSSProperties = { color: colors.error, fontSize: 12, margin: `0 0 ${spacing.sm}px` };
 const successStyle: React.CSSProperties = { color: colors.success, background: colors.successBg, padding: `${spacing.sm}px ${spacing.lg}px`, margin: `0 ${spacing.lg}px ${spacing.sm}px`, borderRadius: radii.sm, fontWeight: 600 };
 const centerStyle: React.CSSProperties = { minHeight: 180, display: "grid", placeItems: "center" };
-const listStyle: React.CSSProperties = { maxWidth: 1100, margin: "0 auto", padding: `${spacing.md}px ${spacing.lg}px ${spacing.xl}px` };
+const listStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px ${spacing.xl}px` };
 const summaryBlockStyle: React.CSSProperties = { marginBottom: spacing.md };
 const summaryTitleStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` };
 const summaryGridStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: spacing.sm };

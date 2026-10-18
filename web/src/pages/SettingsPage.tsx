@@ -47,7 +47,7 @@ export default function SettingsPage() {
   return (
     <main style={pageStyle}>
       <Header title="Settings" subtitle="Catalog tabs and temporary maintenance" onBack={() => navigate(-1)} />
-      <div style={bodyStyle}>
+      <div className="admin-page-container" style={bodyStyle}>
         <p style={hintStyle}>These tabs group products from the Excel Type and Class columns. The sheet names stay Type and Class. Turn a tab off when you do not need it in the admin menu.</p>
         <ToggleRow
           testID="toggle-product-type-tab"
@@ -109,7 +109,11 @@ function ToggleRow(props: { title: string; subtitle: string; value: boolean; onC
 }
 
 const pageStyle: React.CSSProperties = { minHeight: "100vh", background: colors.bg };
+<<<<<<< HEAD
 const bodyStyle: React.CSSProperties = { maxWidth: 1000, padding: spacing.lg };
+=======
+const bodyStyle: React.CSSProperties = { padding: spacing.lg };
+>>>>>>> origin/web-migration-reactnative-to-react
 const hintStyle: React.CSSProperties = { color: colors.textSecondary, lineHeight: "20px", margin: `0 0 ${spacing.lg}px` };
 const sectionStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, margin: `${spacing.lg}px 0 ${spacing.sm}px` };
 const dangerCardStyle: React.CSSProperties = { borderColor: colors.error, background: colors.errorBg };

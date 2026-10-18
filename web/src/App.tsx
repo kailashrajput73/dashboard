@@ -1,6 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AdminShell } from "./components/AdminShell";
-import { EmptyPage } from "./components/EmptyPage";
 import { StartupRedirect } from "./components/StartupRedirect";
 import CategoriesPage from "./pages/CategoriesPage";
 import BrandsPage from "./pages/BrandsPage";
@@ -52,7 +51,6 @@ export default function App() {
           <Route path="/partners" element={<PartnersPage />} />
           <Route path="/dispatches" element={<DispatchesPage />} />
           <Route path="/service-requests" element={<ServiceRequestsPage />} />
-          <Route path="/money-config" element={<EmptyPage title="Money config" />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/team" element={<TeamPage />} />
         </Route>

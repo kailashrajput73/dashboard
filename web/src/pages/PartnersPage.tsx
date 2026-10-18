@@ -41,6 +41,15 @@ const PARTNER_EXPORT_HEADERS = [
   "loginCount",
   "createdAt",
 ];
+const PARTNER_KYC_HISTORY_HEADERS = [
+  "partnerId",
+  "partnerName",
+  "status",
+  "reviewedBy",
+  "reviewedAt",
+  "rejectionReason",
+  "locationVerified",
+];
 
 function emptyPartnerForm(): PartnerAdminCreate {
   return {
@@ -288,6 +297,27 @@ export default function PartnersPage() {
     }
   }
 
+  function exportKycHistoryCsv() {
+    const rows = partners.flatMap((partner) =>
+      (partner.kycHistory || []).map((entry) => [
+        partner.id,
+        partner.name,
+        entry.status,
+        entry.reviewedBy,
+        entry.reviewedAt,
+        entry.rejectionReason,
+        entry.locationVerified,
+      ].map(csvCell).join(",")),
+    );
+    const csv = `\uFEFF${[PARTNER_KYC_HISTORY_HEADERS.join(","), ...rows].join("\n")}`;
+    try {
+      downloadCsv(csv, "partners-kyc-history.csv");
+      setSuccessMessage(`Exported ${rows.length} KYC history entr${rows.length === 1 ? "y" : "ies"}.`);
+    } catch {
+      setError("Could not export KYC history.");
+    }
+  }
+
   const updateCreateFieldFromInput = (key: keyof PartnerAdminCreate, value: string) => {
     updateCreateField(key, value);
   };
@@ -300,6 +330,9 @@ export default function PartnersPage() {
         onBack={() => navigate(-1)}
         right={(
           <div style={headerActionsStyle}>
+            <button type="button" data-testid="export-partner-kyc-history" aria-label="Export KYC history" title="Export KYC history" onClick={exportKycHistoryCsv} style={iconButtonStyle}>
+              <Icon name="download-outline" size={23} color={colors.primary} />
+            </button>
             <button type="button" data-testid="export-partners" aria-label="Export filtered partners" onClick={() => void exportPartnersCsv()} style={iconButtonStyle}>
               <Icon name="download-outline" size={23} color={colors.primary} />
             </button>
@@ -309,12 +342,12 @@ export default function PartnersPage() {
           </div>
         )}
       />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input testID="partner-search" value={search} onChangeText={setSearch} placeholder="Search name, phone, pincode, city, or area" style={{ marginBottom: spacing.sm }} />
-        <div style={chipRowStyle}>
+        <div className="admin-chip-scroll" style={chipRowStyle}>
           {tabs.map((item) => <Chip key={item} label={item[0].toUpperCase() + item.slice(1)} selected={filter === item} onPress={() => setFilter(item)} testID={`partner-filter-${item}`} />)}
         </div>
-        <div style={chipRowStyle}>
+        <div className="admin-chip-scroll" style={chipRowStyle}>
           <Chip label="All managers" selected={!managerFilter} onPress={() => setManagerFilter("")} testID="partner-manager-all" />
           {managerOptions.map((manager) => <Chip key={manager} label={manager} selected={managerFilter === manager} onPress={() => setManagerFilter(manager)} testID={`partner-manager-${manager}`} />)}
         </div>
@@ -325,7 +358,7 @@ export default function PartnersPage() {
       ) : partners.length === 0 ? (
         <p style={emptyStyle}>No partners found.</p>
       ) : (
-        <div style={listStyle}>
+        <div className="admin-list-scroll admin-page-container" style={listStyle}>
           {partners.map((partner) => (
             <button key={partner.id} type="button" data-testid={`partner-row-${partner.id}`} onClick={() => void openPartner(partner)} style={partnerRowStyle}>
               <span style={partnerMainStyle}>
@@ -364,7 +397,7 @@ export default function PartnersPage() {
             <h2 style={sectionTitleStyle}>Documents</h2>
             {selected.documents?.length ? selected.documents.map((document, index) => (
               /^https?:\/\//i.test(document)
-                ? <p key={`${document}-${index}`} style={detailStyle}><a href={document} target="_blank" rel="noreferrer" data-testid={`partner-document-${index}`} style={{ color: colors.primary, overflowWrap: "anywhere" }}>{document}</a></p>
+                ? <p key={`${document}-${index}`} style={detailStyle}><a href={document} target="_blank" rel="noreferrer" data-testid={`partner-document-${index}`} style={{ color: colors.primary, overflowWrap: "anywhere", display: "inline-flex", alignItems: "center", gap: spacing.xs }}><Icon name="open-outline" size={16} color={colors.primary} />{document}</a></p>
                 : detailLine("Document", document)
             )) : <p style={detailStyle}>No documents provided.</p>}
 
@@ -430,9 +463,9 @@ export default function PartnersPage() {
 
 const headerActionsStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: spacing.md };
 const iconButtonStyle: React.CSSProperties = { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, padding: 4, border: 0, borderRadius: radii.sm, background: "transparent", cursor: "pointer" };
-const controlsStyle: React.CSSProperties = { maxWidth: 1100, margin: "0 auto", padding: `${spacing.md}px ${spacing.lg}px 0` };
-const chipRowStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
-const listStyle: React.CSSProperties = { display: "grid", gap: spacing.sm, maxWidth: 1100, margin: "0 auto", padding: `${spacing.md}px ${spacing.lg}px` };
+const controlsStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px 0` };
+const chipRowStyle: React.CSSProperties = { gap: spacing.sm, marginBottom: spacing.sm };
+const listStyle: React.CSSProperties = { display: "grid", gap: spacing.sm, padding: `${spacing.md}px ${spacing.lg}px` };
 const partnerRowStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: spacing.md, width: "100%", padding: spacing.md, border: `1px solid ${colors.border}`, borderRadius: radii.md, background: colors.surface, color: colors.textPrimary, textAlign: "left", cursor: "pointer" };
 const partnerMainStyle: React.CSSProperties = { display: "grid", gap: 4, minWidth: 0, flex: 1 };
 const partnerNameStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, overflowWrap: "anywhere" };

@@ -6,8 +6,8 @@ Use RFQs to review quotation requests from partners and export the currently fil
 
 - Search by partner name, phone, business name, RFQ ID, product name, or product code.
 - Select a status tab: All, Pending, Approved, Rejected, or Dispatched. Counts show the number in each status.
-- Filter by partner or sales manager when those options are available.
-- Enter From and To dates in `YYYY-MM-DD` format to limit requests by creation date. The start date must not be after the end date.
+- Filter by partner, category, product, or sales manager when those options are available. Category choices come from catalog products on RFQ lines; selecting a category narrows the product choices. Category and product selections combine with the other filters.
+- Enter From and To dates in `YYYY-MM-DD` format to limit requests by creation date. Each valid bound applies independently; if both valid dates are reversed, both bounds apply and no request can match. The screen reports invalid date input and reversed ranges.
 - The summary shows RFQ count, line count, total quantity, and total value for the current filters.
 
 ## Export

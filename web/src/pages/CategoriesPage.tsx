@@ -200,7 +200,7 @@ export default function CategoriesPage() {
         }
       />
 
-      <div style={{ padding: `${spacing.md}px ${spacing.lg}px 0` }}>
+      <div className="admin-page-container" style={{ padding: `${spacing.md}px ${spacing.lg}px 0` }}>
         <Input
           testID="category-search"
           value={query}
@@ -235,7 +235,7 @@ export default function CategoriesPage() {
           <span className="web-button-spinner" role="status" aria-label="Loading categories" />
         </div>
       ) : filtered.length ? (
-        <div style={{ padding: `${spacing.sm}px ${spacing.lg}px 40px` }}>
+        <div className="admin-page-container admin-list-scroll" style={{ padding: `${spacing.sm}px ${spacing.lg}px 40px` }}>
           {filtered.map((category) => {
             const open = openId === category.id;
             const listed = productsFor(category);

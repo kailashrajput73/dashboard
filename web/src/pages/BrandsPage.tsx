@@ -204,7 +204,7 @@ export default function BrandsPage() {
         }
       />
 
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input
           testID="brand-search"
           value={query}
@@ -243,7 +243,7 @@ export default function BrandsPage() {
           />
         </div>
       ) : filtered.length ? (
-        <div style={listStyle}>
+        <div className="admin-list-scroll" style={listStyle}>
           {filtered.map((brand) => {
             const open = openId === brand.id;
             const linked = productsFor(brand);

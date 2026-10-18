@@ -84,7 +84,7 @@ export default function DashboardPage() {
   return (
     <main style={pageStyle}>
       <Header title="Overview" subtitle={company || "Live ops snapshot"} />
-      <div style={contentStyle}>
+      <div className="admin-page-container" style={contentStyle}>
         <h2 style={sectionTitleStyle}>Operations snapshot</h2>
         <p style={sectionHintStyle}>Stock, RFQs, partners, and dispatch sales from live data — not full monthly analytics.</p>
         {loading ? <div style={loadingStyle}><span className="web-button-spinner" role="status" aria-label="Loading dashboard" /></div> : snapshot ? <>
@@ -160,7 +160,7 @@ function ModuleLink(props: { title: string; subtitle: string; icon: IconName; on
 }
 
 const pageStyle: React.CSSProperties = { minHeight: "100vh", background: colors.bg };
-const contentStyle: React.CSSProperties = { maxWidth: 1240, margin: "0 auto", padding: `${spacing.xl}px ${spacing.lg}px ${spacing.xl}px` };
+const contentStyle: React.CSSProperties = { padding: `${spacing.xl}px ${spacing.lg}px ${spacing.xl}px` };
 const sectionTitleStyle: React.CSSProperties = { ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` };
 const sectionHintStyle: React.CSSProperties = { color: colors.textSecondary, fontSize: 12, margin: "-4px 0 12px" };
 const loadingStyle: React.CSSProperties = { minHeight: 120, display: "grid", placeItems: "center" };

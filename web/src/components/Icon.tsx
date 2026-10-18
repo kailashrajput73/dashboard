@@ -32,6 +32,7 @@ import listOutline from "ionicons/dist/collection/components/icon/svg/list-outli
 import logInOutline from "ionicons/dist/collection/components/icon/svg/log-in-outline.svg?raw";
 import logOutOutline from "ionicons/dist/collection/components/icon/svg/log-out-outline.svg?raw";
 import optionsOutline from "ionicons/dist/collection/components/icon/svg/options-outline.svg?raw";
+import openOutline from "ionicons/dist/collection/components/icon/svg/open-outline.svg?raw";
 import pauseCircleOutline from "ionicons/dist/collection/components/icon/svg/pause-circle-outline.svg?raw";
 import peopleOutline from "ionicons/dist/collection/components/icon/svg/people-outline.svg?raw";
 import playCircleOutline from "ionicons/dist/collection/components/icon/svg/play-circle-outline.svg?raw";
@@ -81,6 +82,7 @@ const icons = {
   "list-outline": listOutline,
   "log-in-outline": logInOutline,
   "log-out-outline": logOutOutline,
+  "open-outline": openOutline,
   "options-outline": optionsOutline,
   "pause-circle-outline": pauseCircleOutline,
   "people-outline": peopleOutline,

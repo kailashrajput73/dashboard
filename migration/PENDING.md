@@ -20,6 +20,16 @@ Rule: when 3 or 4 rows are waiting, run their tests in one go. Use `ZZ` names fo
 
 ## Tests waiting
 
+### Rows 22c-1 and 22c-2: responsive shell and page containers (Built)
+
+The MODE B browser pass used local Playwright fixtures, not the backend. For a visual owner check, run the React app at every route and width:
+
+1. At 1920px and 1366px, compare against `~/uicheck/baseline.json`; geometry must remain within 1px. The implementation verification reported zero differences.
+2. At 1024px, confirm the sidebar remains fixed at 240px. At 768px and 390px, confirm the top-bar menu opens the drawer and it closes on an item, overlay, and Escape.
+3. At all five widths, confirm the document has no horizontal scroll, visible interactive controls remain clickable, and wide content scrolls inside its own container.
+4. Confirm Login and Register remain centered; check the Subcategories and Partners header actions do not overlap at 390px.
+5. Open a modal at 390px and confirm it fits within the viewport and scrolls internally when its content is taller than the screen.
+
 ### Row 3b: subcategory CSV import (Built)
 
 Run first, in `web/`: `npm run build` and `npm run lint`. The agent could not run them. Both must end with no errors.
@@ -233,6 +243,50 @@ Use disposable partners whose names start with `ZZ`. Do not change real partner 
 5. On a disposable pending partner, toggle Location verified and approve. Confirm the returned status and KYC history update. On another disposable pending partner, try Reject without a reason, then with a reason; confirm rejection is blocked without one and the reason is recorded after rejection.
 6. Export after applying search/status/manager filters. Confirm `partners.csv`, UTF-8 BOM, every cell quoted with embedded quotes doubled, exact 20 columns `id,name,phone,businessName,address,pincode,city,area,salesManager,kycStatus,appActive,locationVerified,rewardBalance,rfqCount,approvedRfqCount,approvedRfqValue,registeredVia,lastAppLoginAt,loginCount,createdAt`, and only filtered rows.
 7. Confirm list requests send `search`, `kyc_status`, and `sales_manager` as Expo does; detail, create, KYC review, and rewards calls succeed against the current API.
+
+### Row 20b: RFQ date bounds (Built)
+
+1. With RFQs on dates spanning a known range, enter a valid From date and an invalid To value. Confirm the From bound still filters the list and the end-date validation message appears.
+2. Enter an invalid From value and a valid To date. Confirm the To bound still filters the list and the start-date validation message appears.
+3. Enter valid but reversed dates. Confirm both bounds apply (the list has no matching RFQs) and the reversed-range validation message appears.
+4. Clear both dates and confirm the complete list returns. Confirm the summary and CSV export use the filtered rows.
+
+### Row 20c: team users no-store request (Built)
+
+1. Open or refresh Team Management and confirm the `GET /team/users` request is sent with the browser fetch cache mode `no-store`.
+2. Confirm team list, search, role filters, and existing create/edit/active-toggle workflows continue to work.
+
+### Row 20d: RFQ category and product filters (Built)
+
+1. Select a category and confirm only RFQs with at least one line whose catalog product belongs to that category remain. Confirm Product choices narrow to that category.
+2. Select a product and confirm only RFQs containing its product code remain. Confirm selecting both category and product returns only matching RFQs.
+3. Combine the new filters with status, partner, manager, search, and date filters. Confirm filters narrow together, the report summary updates, and CSV export contains only matching RFQs.
+4. Change category after selecting a product and confirm the product selection resets. Clear both selectors and confirm the unfiltered RFQs return.
+
+### Row 20e: partner KYC-history CSV export (Built)
+
+1. With disposable partners having multiple KYC history entries, select the KYC-history export. Confirm `partners-kyc-history.csv` contains one row per entry and no rows for partners without history.
+2. Confirm the exact column order is `partnerId,partnerName,status,reviewedBy,reviewedAt,rejectionReason,locationVerified`; each data cell is quoted and embedded quotes are doubled, with a UTF-8 BOM.
+3. Apply partner search/status/manager filters and export again. Confirm only history belonging to the currently listed partners is included.
+4. Confirm export uses the already loaded partner list and does not issue one detail request per partner.
+
+### Row 21a-1: remove stale Money config route (Built)
+
+1. Open `/money-config` directly. Confirm the app does not render the Money config placeholder and the route is not registered in `web/src/App.tsx`.
+2. Open `/dashboard`, `/partners`, and `/settings` directly to confirm adjacent routes still load.
+
+### Row 21a-2: partner document external-link icon (Built)
+
+1. Open a partner with an HTTP(S) document URL. Confirm the `open-outline` icon appears immediately beside the document link and the link opens in a new tab.
+2. Confirm non-URL document text has no external-link icon and remains non-clickable.
+
+### Row 22a: app shell layout (Built)
+
+1. At 1366x768, visit every route in `web/src/App.tsx`. Confirm the document stays at 768px high and 1366px wide; page scrolling occurs inside the content pane, not on the document.
+2. Confirm the sidebar is 240px wide and 768px high. Scroll its menu and verify the menu moves inside the sidebar while Sign out remains visible.
+3. On Dashboard with enough content to overflow, scroll the main pane independently while the sidebar remains stationary.
+4. Open Login and Register. Confirm both remain centered without the sidebar and their forms remain reachable.
+5. Check horizontal overflow and clipped controls. Compare the Subcategories batch-import footer against the recorded 22b leftover; do not treat it as fixed by 22a.
 
 ## Decisions open
 

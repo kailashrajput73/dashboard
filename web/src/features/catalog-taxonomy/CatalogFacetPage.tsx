@@ -123,7 +123,7 @@ export function CatalogFacetPage(props: {
         subtitle={`${filtered.length} of ${facets.length}`}
         onBack={() => navigate(-1)}
       />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input
           testID={`${props.testID}-search`}
           value={query}
@@ -141,7 +141,7 @@ export function CatalogFacetPage(props: {
           />
         </div>
       ) : (
-        <div style={listStyle}>
+        <div className="admin-list-scroll admin-page-container" style={listStyle}>
           {filtered.length ? (
             filtered.map((item) => {
               const open = openId === item.id;

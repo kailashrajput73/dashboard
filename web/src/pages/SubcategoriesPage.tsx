@@ -309,7 +309,7 @@ export default function SubcategoriesPage() {
         data-testid="subcategory-csv-input"
       />
 
-      <div style={{ padding: `${spacing.md}px ${spacing.lg}px 0` }}>
+      <div className="admin-page-container" style={{ padding: `${spacing.md}px ${spacing.lg}px 0` }}>
         <Input
           testID="subcategory-search"
           value={query}
@@ -318,6 +318,7 @@ export default function SubcategoriesPage() {
           style={{ marginBottom: spacing.sm }}
         />
         <div
+          className="admin-chip-scroll admin-page-container"
           style={{
             display: "flex",
             gap: spacing.sm,
@@ -346,7 +347,7 @@ export default function SubcategoriesPage() {
           />
         </div>
       ) : filtered.length ? (
-        <div style={{ padding: `${spacing.sm}px ${spacing.lg}px 88px` }}>
+        <div className="admin-list-scroll admin-page-container" style={{ padding: `${spacing.sm}px ${spacing.lg}px 88px` }}>
           {filtered.map((item) => {
             const open = openId === item.id;
             const listed = productsFor(item);
@@ -417,7 +418,7 @@ export default function SubcategoriesPage() {
         <div style={emptyStyle}>No subcategories match your search.</div>
       )}
 
-      <div style={importBarStyle}>
+      <div className="admin-pane-footer" style={importBarStyle}>
         <Button
           testID="nav-batch-product-import"
           title="Import products (batch sheet)"
@@ -521,11 +522,7 @@ const headerActionsStyle: React.CSSProperties = {
 };
 
 const importBarStyle: React.CSSProperties = {
-  position: "fixed",
-  zIndex: 2,
   bottom: 12,
-  left: spacing.lg,
-  right: spacing.lg,
 };
 
 const iconActionStyle: React.CSSProperties = {

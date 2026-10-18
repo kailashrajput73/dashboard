@@ -130,14 +130,14 @@ export default function ServiceRequestsPage() {
   return (
     <main style={pageStyle}>
       <Header title="Service requests" subtitle={`${filteredRequests.length} of ${requests.length} requests`} onBack={() => navigate(-1)} />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input testID="service-request-search" value={search} onChangeText={setSearch} placeholder="Search name, phone, area, or description" style={{ marginBottom: spacing.sm }} />
         <div style={filtersStyle}>{statusOptions.map((option) => <Chip key={option} label={option === "all" ? "All statuses" : statusLabel(option)} selected={statusFilter === option} onPress={() => setStatusFilter(option)} testID={`service-request-status-${option}`} />)}</div>
         <div style={filtersStyle}>{serviceTypeOptions.map((option) => <Chip key={option} label={option === "all" ? "All services" : option} selected={serviceTypeFilter === option} onPress={() => setServiceTypeFilter(option)} testID={`service-request-type-${option}`} />)}</div>
       </div>
       {message ? <p role="status" style={successStyle}>{message}</p> : null}
       {loading ? <div style={centerStyle}><span className="web-button-spinner" role="status" aria-label="Loading service requests" /></div> : (
-        <div style={contentStyle}>
+        <div className="admin-page-container" style={contentStyle}>
           <section style={listPaneStyle} aria-label="Service request list">
             {filteredRequests.length === 0 ? <p style={emptyStyle}>No service requests match the filters.</p> : filteredRequests.map((request) => <button type="button" key={request.id} onClick={() => { setSelectedId(request.id); setFormDraft(null); }} style={{ ...requestCardStyle, ...(selectedRequest?.id === request.id ? selectedCardStyle : {}) }}>
               <div style={cardHeadingStyle}><strong style={customerNameStyle}>{request.customerName}</strong><span style={{ ...badgeStyle, ...(request.status === "pending" ? pendingBadgeStyle : otherBadgeStyle) }}>{statusLabel(request.status)}</span></div>
@@ -183,7 +183,7 @@ export default function ServiceRequestsPage() {
 const pageStyle: React.CSSProperties = { minHeight: "100vh", background: colors.bg };
 const controlsStyle: React.CSSProperties = { padding: `${spacing.md}px ${spacing.lg}px 0` };
 const filtersStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm };
-const contentStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 330px), 1fr))", gap: spacing.md, maxWidth: 1240, margin: "0 auto", padding: `${spacing.sm}px ${spacing.lg}px ${spacing.xl}px`, alignItems: "start" };
+const contentStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 330px), 1fr))", gap: spacing.md, padding: `${spacing.sm}px ${spacing.lg}px ${spacing.xl}px`, alignItems: "start" };
 const listPaneStyle: React.CSSProperties = { display: "grid", gap: spacing.sm, minWidth: 0 };
 const detailPaneStyle: React.CSSProperties = { minWidth: 0, background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: radii.md, padding: spacing.md };
 const requestCardStyle: React.CSSProperties = { width: "100%", boxSizing: "border-box", background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: radii.md, padding: spacing.md, color: colors.textPrimary, font: "inherit", textAlign: "left", cursor: "pointer" };

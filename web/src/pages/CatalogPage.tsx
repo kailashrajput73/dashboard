@@ -309,7 +309,7 @@ export default function CatalogPage() {
           </div>
         }
       />
-      <div style={controlsStyle}>
+      <div className="admin-page-container" style={controlsStyle}>
         <Input
           testID="product-search"
           value={search}
@@ -371,7 +371,7 @@ export default function CatalogPage() {
           <div style={emptySubtitleStyle}>Add your first item or import a CSV file.</div>
         </div>
       ) : (
-        <div style={tableScrollStyle}>
+        <div className="admin-horizontal-scroll admin-page-container" style={tableScrollStyle}>
           <div style={tableHintStyle}>
             Day-to-day work: change MRP, discount %, or stock on a row, then Save.
             Selling price updates from MRP and discount.
