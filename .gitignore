@@ -92,4 +92,5 @@ credentials.json
 
 # Local refactor copy — do not push
 
-frontend
+frontend/
+backend_refactor/
