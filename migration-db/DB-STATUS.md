@@ -2,8 +2,8 @@
 
 Every migration chat starts here. Do the first row that is not Done. One row, then stop.
 
-MongoDB stays live and untouched in `backend_refactor/` until a module is
-verified Done on Postgres. Nothing is cut over early.
+**Row 22 Built:** `backend_refactor/` removed from the repo. Production API is
+`backend/` + PostgreSQL. See `migration-db/ACTIVE-STACK.md`.
 
 Scope: move the 19 MongoDB collections documented in the baseline
 `docs/BACKEND_INVENTORY.md` and `migration-db/BACKEND-FACTS-SUPPLEMENT.md`
@@ -60,7 +60,7 @@ Statuses: Not started → Built → Done.
 | 19 | Implement catalog + pricing API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. | — | Built | See `migration-db/dev/2026-10-12-19-catalog-pricing-api.md` |
 | 20 | Implement purchases, RFQ, dispatch, and reward-ledger API routes with PostgreSQL reads/writes in `backend/`; run alongside `backend_refactor/` until verified. | — | Built | See `migration-db/dev/2026-10-12-20-operational-api.md` |
 | 21 | Full side-by-side check of every route against PostgreSQL; list anything missed before cutover. | — | Built | Audit: `migration-db/dev/2026-10-13-21-route-parity-audit.md`. Fixes: `migration-db/POST-ROW21-FIX-PLAN.md` (not part of row 21). |
-| 22 | After row 21 is Done, decommission `backend_refactor/`, remove its Motor/PyMongo dependency and old-folder usage; optionally rename/swap at deploy. | RSK-04 (avoids repeating it) | Not started | |
+| 22 | After row 21 is Done, decommission `backend_refactor/`, remove its Motor/PyMongo dependency and old-folder usage; optionally rename/swap at deploy. | RSK-04 (avoids repeating it) | Built | See `migration-db/dev/2026-10-20-22-decommission-mongo-backend.md` |
 
 ## Deferred on purpose (not part of this migration)
 Reward point redemption path (RSK-08), generic audit log, soft deletes,

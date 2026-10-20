@@ -1,5 +1,8 @@
 # Post–row 21 fix plan (layers + agent prompts)
 
+> **Historical (2026-10-20):** Layer 1 complete; row **22 Built** (`backend_refactor/` removed).
+> Active stack: `migration-db/ACTIVE-STACK.md`. Use this file for layer history only.
+
 **Audience:** Priyanshi and any DB-migration agent chat after row 21.
 
 **Row 21 is only the audit.** Mark row 21 **Done** and commit  

@@ -178,7 +178,7 @@ export default function ProductTypesPage() {
     if (!editor) return;
     if (!apiReady) {
       setError(
-        `Cannot save photos until the VPS has /api/product-types. Redeploy ${API_BASE_URL} with the latest server.py.`,
+        `Cannot save photos until the API has /api/product-types. Check ${API_BASE_URL} is running the latest backend/ deploy.`,
       );
       return;
     }

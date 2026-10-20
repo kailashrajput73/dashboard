@@ -1,17 +1,18 @@
 # AGENTS.md
 
-Project: migrating the admin app from React Native (Expo, on web) to React web (Vite, in `web/`).
-Branch: `web-migration-reactnative-to-react` only.
+Project: admin app is **React web** in `web/` (Vite). Expo `frontend/` was removed (row 21c).
+API: **`backend/`** (PostgreSQL). See `migration-db/ACTIVE-STACK.md`.
+Branch: `web-migration-reactnative-to-react` for web tracker rows; DB work uses `migration-mongodb-to-postgresql`.
 
 ## Start of every chat
-1. Read `migration/STATUS.md`, then `migration/SOW-STATUS.md`.
+1. Read `migration/STATUS.md`, `migration/NOW.md`, then `migration/SOW-STATUS.md` if present.
 2. Do ONLY the row(s) the user names. If none is named, ask. Do not start migrating on your own.
 
 ## Rules
 - Do only the row(s) the user names. If the user names several rows, do them in the order given, then STOP after the last one. Never go beyond the named rows.
-- Move what the Expo app already does. No new features, no rule changes, no API changes.
-- Do not touch the backend. Keep Expo in `frontend/` working.
-- Find the old code through `migration/INVENTORY.md`.
+- Match behavior described in `migration/INVENTORY.md` (Expo paths are **historical**; implement in `web/`).
+- Do not touch `backend/` unless the user names a backend/DB task.
+- Do not recreate `frontend/` or `backend_refactor/`.
 - Do not guess. Write "unknown" and ask.
 - NEVER run `git commit`, `git push`, or `git merge`. The user does that.
 

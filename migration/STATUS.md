@@ -4,7 +4,7 @@ Every migration chat starts here. Do only the row(s) the user names. If the user
 
 Branch: `web-migration-reactnative-to-react` only.
 
-Expo admin stays in `frontend/` until a screen is checked in `web/`. The FastAPI backend stays. Do not rewrite APIs.
+Expo `frontend/` was removed (row **21c Built**). Admin is **`web/`** only. API is **`backend/`** (PostgreSQL). See `migration-db/ACTIVE-STACK.md`.
 
 Scope: move what the Expo app already does, nothing more. No new features. What Expo is missing is listed in [SOW-STATUS.md](SOW-STATUS.md) and is not part of this migration.
 
@@ -85,7 +85,7 @@ Statuses: Not started → Built → Done.
 | 22c-1 | Responsive shell and mobile navigation drawer below 1024px; preserve the existing desktop sidebar. | Built | [dev/2026-10-18-22c-a-responsive-layout.md](dev/2026-10-18-22c-a-responsive-layout.md) |
 | 22c-2 | Responsive page containers, mobile spacing, and internal horizontal scrolling for wide content. | Built | [dev/2026-10-18-22c-a-responsive-layout.md](dev/2026-10-18-22c-a-responsive-layout.md) |
 | 21b | Production build and deploy | Not started | |
-| 21c | Remove Expo from `frontend/`, only after layout parity (22a, 22b) and the final test pass | Not started | |
+| 21c | Remove Expo from `frontend/`, only after layout parity (22a, 22b) and the final test pass | Built | [dev/2026-10-20-21c-remove-expo-frontend.md](dev/2026-10-20-21c-remove-expo-frontend.md) |
 
 ---
 

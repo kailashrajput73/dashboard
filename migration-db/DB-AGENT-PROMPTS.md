@@ -54,4 +54,5 @@ Wait for my approval before changing DB-STATUS.md.
 ## E. After row 21 audit — fix layers (one layer at a time)
 
 Row 21 is **audit only** (Built/Done + `dbmigrate(21): …`).  
-Implementation prompts and Layer 1–4 order: **`migration-db/POST-ROW21-FIX-PLAN.md`**.
+Layer 1 + row **22 Built** — legacy folders removed.  
+**Active stack:** `migration-db/ACTIVE-STACK.md`.

@@ -1,21 +1,16 @@
 # DB-AGENTS.md
 
-Project: migrating backend storage from MongoDB to PostgreSQL.
-Backend: FastAPI in `backend_refactor/`.
-Reference facts: `docs/BACKEND_INVENTORY.md` (collections = COL-*, endpoints = RTE-*,
-multi-step writes = TXN-*, relationships = REL-*, risks = RSK-*).
+Project: PostgreSQL API in `backend/` (Mongo mirror removed — row 22).
+Read **`migration-db/ACTIVE-STACK.md`** first.
+Reference facts: `docs/BACKEND_INVENTORY.md` (historical Mongo COL-*/RTE-*),
+`migration-db/BACKEND-FACTS-SUPPLEMENT.md` where listed.
 
 ## Start of every chat
-1. Read `migration-db/DB-STATUS.md` AND `DB-STANDARDS.md` first.
-2. **Drift check, always, before doing anything else:** compare
-   `docs/BACKEND_INVENTORY.md` against the current code in
-   `backend_refactor/`. Specifically check for: new or renamed Mongo
-   collections, new or changed fields on existing collections, new API
-   routes, and new multi-step write operations that aren't listed as a
-   TXN-* entry yet. If you find anything not reflected in
-   BACKEND_INVENTORY.md, STOP and tell the user exactly what's new or
-   different before touching any row. Do not silently build against stale
-   facts.
+1. Read `migration-db/DB-STATUS.md`, `migration-db/ACTIVE-STACK.md`, AND
+   `DB-STANDARDS.md` first.
+2. **Drift check:** compare `backend/app/` routes and models to
+   `docs/BACKEND_INVENTORY.md` + supplement. The Mongo tree
+   `backend_refactor/` is **gone**; do not search for it.
 3. Do ONLY the row the user names. If none is named, ask. Do not start on
    your own.
 4. `DB-STANDARDS.md` applies to every row and to every future database
@@ -24,9 +19,7 @@ multi-step writes = TXN-*, relationships = REL-*, risks = RSK-*).
 
 ## Rules
 - One row, then STOP. Never continue to the next row.
-- Do not remove, disable, or rewrite any MongoDB code until the user says so.
-  PostgreSQL is built alongside Mongo, row by row, and only cut over after
-  the user verifies each row.
+- Row 22 removed `backend_refactor/`. All API work is in `backend/` only.
 - Every multi-step write listed as TXN-* in BACKEND_INVENTORY.md must become
   ONE Postgres transaction (all steps succeed, or none do). This is the main
   point of this migration — do not simplify it away to save time.
@@ -36,16 +29,11 @@ multi-step writes = TXN-*, relationships = REL-*, risks = RSK-*).
 - Do not guess a field name, type, or default. Check BACKEND_INVENTORY.md.
   If still unclear, write "unknown" and ask.
 - NEVER run `git commit`, `git push`, or `git merge`. The user does that.
-- Do not edit frontend/, web/, backend_refactor/, or any existing doc/md
-  file. They stay exactly as they are. (Exception: you may append new
-  entries to docs/BACKEND_INVENTORY.md when the drift check finds changes.)
-- All new PostgreSQL code goes in a NEW folder named backend/ (clean, built
-  from scratch). backend_refactor/ (Mongo) keeps running untouched until
-  the final cutover rows.
-- Do not change any API route path, request body, or response JSON shape.
-  web/ and frontend/ depend on them exactly as they are. Only the storage
-  underneath changes. Copy route behavior from backend_refactor/ into
-  backend/, do not redesign it.
+- Do not edit `web/` or `customerapp/` unless the user names a web/customer row.
+  (Exception: append to `docs/BACKEND_INVENTORY.md` when drift check requires.)
+- All API code lives in `backend/`. Admin UI is `web/`.
+- Do not change any API route path, request body, or response JSON shape
+  without user approval. `web/` depends on the existing `/api` contract.
 
 ## When a row is built
 1. Write a dev note in `migration-db/dev/YYYY-MM-DD-NN-name.md`: what this

@@ -371,7 +371,7 @@ No uses found of `Alert`, `Dimensions`, `Animated` / Reanimated, camera, barcode
 | BLD-02 | Bundler | `frontend/metro.config.js`. `maxWorkers = 2`. Web output in `app.json`: Metro, `output: "single"` | M |
 | BLD-03 | Expo config | `frontend/app.json`. Name Shivani Admin. Scheme `shivaniadmin`. New architecture enabled. iOS bundle `com.shivaniconstructions.admin`. Android package the same | S |
 | BLD-04 | Env | `EXPO_PUBLIC_BACKEND_URL` in `frontend/src/config/env.ts`. Default `http://127.0.0.1:8000`. `.env` files are gitignored | S |
-| BLD-05 | Hosting file | `frontend/vercel.json` rewrites every path to `/` (SPA). Whether production is Vercel or a VPS: the code comments in `env.ts` mention both. Live API string in root `README.md`: `https://python-api-6aft.onrender.com`. Current VPS process: unknown | M |
+| BLD-05 | Hosting | Admin: `web/`; `VITE_BACKEND_URL` → API origin. API: `backend/` on user VPS (PostgreSQL). Render URL retired — see `migration-db/BACKEND-FACTS-SUPPLEMENT.md` BLD-05. | M |
 | BLD-06 | Docker / nginx | No Dockerfile and no nginx file found in the repo | S |
 | BLD-07 | Guards | `frontend/scripts/cmd-guard.js` runs on `preinstall`. `install-guard.sh`, `reset-project.js`, `sync-shims.sh` also exist. What the guard blocks: unknown (not opened) | S |
 | BLD-08 | Package manager | `package.json` says Yarn 1.22.22. A `package-lock.json` is also present | S |

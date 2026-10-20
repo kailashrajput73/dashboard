@@ -1,9 +1,8 @@
 # PostgreSQL backend scaffold
 
-This folder is the clean home for the PostgreSQL-backed API. Row 0b only
-proves that this machine can connect to PostgreSQL; it creates no application
-tables and does not initialize Alembic. The MongoDB API under
-`backend_refactor/` remains unchanged and continues to run independently.
+This folder is the **only** API implementation in the repo (PostgreSQL).
+The legacy Mongo mirror `backend_refactor/` was removed in DB migration row 22.
+See `migration-db/ACTIVE-STACK.md`.
 
 ## Windows PowerShell
 

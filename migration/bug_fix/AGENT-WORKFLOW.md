@@ -13,7 +13,7 @@ All **spreadsheet / upload** behavior is **accepted as-is**:
 - FIX-03, FIX-04, FIX-11 — **deferred** (no code unless owner reopens)
 - Import policy / “one sheet does everything” — **deferred**
 
-Backend: **`backend_refactor/`** only. Do not restore `backend/server.py`.
+Backend: **`backend/`** (PostgreSQL) only. See `migration-db/ACTIVE-STACK.md`.
 
 ---
 

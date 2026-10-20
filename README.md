@@ -4,11 +4,21 @@ This repo has three parts:
 
 | Folder | What it is |
 | --- | --- |
-| `backend/` | FastAPI + MongoDB API (`backend/server.py`) — **source of truth for endpoints** |
-| `frontend/` | Expo / React Native **admin dashboard** (web is the main UI) |
-| `customerapp/` | Flutter customer app (reads catalog later; wire it to this API) |
+| `backend/` | FastAPI + **PostgreSQL** API (`app.main:app`) — **source of truth for endpoints** |
+| `web/` | Vite + React **admin dashboard** |
+| `customerapp/` | Flutter customer app (wire to the same `/api` contract) |
 
-Live API (Render): `https://python-api-6aft.onrender.com`  
+Agents: read `migration-db/ACTIVE-STACK.md`.
+
+**API base URL** is not hard-coded. Set it per environment:
+
+| Where | Setting |
+| --- | --- |
+| Local dev | `web/.env` → `VITE_BACKEND_URL=http://127.0.0.1:8001` (Postgres API on `backend/`) |
+| Production | Your **VPS** HTTPS origin (nginx → `uvicorn app.main:app`). Same variable at **build time** for hosted admin static files. |
+
+Legacy **Render** (`python-api-6aft.onrender.com`) is **not used** — ignore old notes that mention it.
+
 All JSON routes are under **`/api`**.
 
 **Partner / mobile API:** [docs/PARTNER-API.md](docs/PARTNER-API.md) — catalog, auth, RFQ, and rewards for the partner app.
@@ -31,21 +41,22 @@ Admin login returns a token. The dashboard sends `Authorization: Bearer <token>`
 
 ## Where to look in code
 
-- **Routes + request bodies:** `backend/server.py` (`APIRouter` prefix `/api`)
-- **Dashboard API calls:** `frontend/src/api/endpoints.ts`
-- **HTTP client:** `frontend/src/api/client.ts`
-- **Backend URL for the dashboard:** `frontend/src/config/env.ts` (`EXPO_PUBLIC_BACKEND_URL` or Render URL)
+- **Routes:** `backend/app/routers/` (mounted from `backend/app/main.py`, prefix `/api`)
+- **Dashboard API calls:** `web/src/api/endpoints.ts`
+- **HTTP client:** `web/src/api/client.ts`
+- **Backend URL for the dashboard:** `web/.env` → `VITE_BACKEND_URL` (origin only, no `/api` suffix)
 
 Run API locally:
 
 ```bash
 cd backend
-uvicorn server:app --host 0.0.0.0 --port 8000
+alembic upgrade head
+uvicorn app.main:app --host 127.0.0.1 --port 8001
 ```
 
-Mongo: `MONGO_URI` (default `mongodb://127.0.0.1:27017`), database `DB_NAME` (default `quotation_db`).
+PostgreSQL: `DATABASE_URL` in `backend/.env` (see `backend/README.md`).
 
-Health check: `GET /api/` → `{ "ok": true }`.
+Health check: `GET /api/health` → `{ "status": "ok" }`.
 
 ---
 
@@ -288,19 +299,19 @@ Documents use string field `id`. API responses never send Mongo `_id`.
 
 ---
 
-## Dashboard (frontend) map
+## Admin UI map (`web/`)
 
 ```
-frontend/app/(admin)/     login, dashboard, catalog, csv-import, brands, …
-frontend/src/api/         client.ts, endpoints.ts
-frontend/src/utils/csv.ts spreadsheet.ts   CSV + xlsx import
-frontend/src/components/AdminShell.tsx     web sidebar
+web/src/pages/            login, dashboard, catalog, imports, partners, …
+web/src/api/              client.ts, endpoints.ts
+web/src/utils/csv.ts      CSV + xlsx import
+web/src/components/       AdminShell.tsx (sidebar)
 ```
 
-CSV import is web-friendly (file picker). Excel `.xlsx` with the same headers is accepted.
+CSV import uses a file picker. Excel `.xlsx` with the same headers is accepted.
 
 ---
 
 ## Deploy note
 
-Pushing to GitHub only updates the live API/site if Render (backend) and the web host (frontend) deploy the **same branch** they watch — usually `main`. Feature work on another branch will not show on the live URL until it is on that branch and those services redeploy.
+Production: run **`backend/`** on the VPS with PostgreSQL (`alembic upgrade head`, process manager + nginx SSL). Build or host **`web/`** with `VITE_BACKEND_URL` pointing at that API origin. Pushing git alone does not change production until you deploy those services on the server.

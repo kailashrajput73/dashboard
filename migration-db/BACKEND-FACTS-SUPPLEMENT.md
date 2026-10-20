@@ -57,3 +57,9 @@ Routes are mounted under `/api` by the router.
 - `service_requests_createdAt` on `createdAt`.
 
 No new TXN-* entry is needed for service requests: their create and update writes affect only the single `service_requests` collection; history is embedded in that document.
+
+## BLD-05 — hosting (supersedes baseline README / inventory strings)
+
+- **Authoritative for agents:** production API is the user’s **VPS** running `backend/` (PostgreSQL), not Render.
+- The URL `https://python-api-6aft.onrender.com` in older `README.md` / `BACKEND_INVENTORY.md` (BLD-05) is **obsolete**; do not configure clients to use it.
+- Admin UI: `web/` with `VITE_BACKEND_URL` = API origin (no `/api` suffix). Local default: `http://127.0.0.1:8001`.
