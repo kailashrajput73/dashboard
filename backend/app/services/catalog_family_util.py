@@ -80,6 +80,15 @@ def normalize_discount(value: Any) -> float | None:
     return number
 
 
+def format_size_and_length(size: str | None, length: str | None) -> str:
+    """Match Excel: IF(AND(size<>"", length<>""), size & " (" & length & ")", size & length)."""
+    size_text = canonical_label(size) if size else ""
+    length_text = canonical_label(length) if length else ""
+    if size_text and length_text:
+        return f"{size_text} ({length_text})"
+    return f"{size_text}{length_text}"
+
+
 def generate_sku_display_name(
     *,
     type_name: str | None,
@@ -89,8 +98,13 @@ def generate_sku_display_name(
     brand: str | None,
     length: str | None = None,
 ) -> str:
+    """
+    Same order as the client Excel TEXTJOIN:
+    Type, product_family, class, size(+length), Brand — comma-separated.
+    """
+    size_part = format_size_and_length(size, length)
     parts: list[str] = []
-    for piece in (type_name, product_family, product_class, size or length, brand):
+    for piece in (type_name, product_family, product_class, size_part, brand):
         text = canonical_label(piece) if piece else ""
         if text:
             parts.append(text)

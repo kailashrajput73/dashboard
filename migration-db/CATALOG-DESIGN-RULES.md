@@ -104,12 +104,16 @@ If a sellable line truly needs a **different HSN than its siblings**, that line 
 
 Generate for API/export (exact template to implement in code, stable forever unless sign-off):
 
-Example pattern (pipes & fittings):
+Client Excel (reference — same logic in `generate_sku_display_name`):
 
-`{Type}, {product_family}, {class}, {size}, {brand}`
+```excel
+=TEXTJOIN(", ", TRUE, Type, product_family, class,
+  IF(AND(Size<>"", Length<>""), Size & " (" & Length & ")", Size & Length), Brand)
+```
 
-(with sensible omission of empty parts and consistent comma/spacing).  
-Sheet **Product Name** column, if present, is ignored for persistence; optional cross-check warning if generated name diverges strongly from sheet (future).
+Comma-separated parts (skip blanks): **Type**, **product_family**, **class**, **size/length** (both → `size (length)`; one → that value only), **Brand**.
+
+Sheet **Product Name** / formula column is optional for humans; import **does not persist** it.
 
 ---
 
