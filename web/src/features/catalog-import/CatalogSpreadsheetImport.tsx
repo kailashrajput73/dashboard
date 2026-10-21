@@ -23,6 +23,21 @@ import {
 } from "../../utils/csv";
 import { parseSpreadsheetBytes } from "../../utils/spreadsheet";
 import { downloadImportTemplate, type ImportTemplateKind } from "../../utils/import-templates";
+import { SheetValidationPanel } from "./SheetValidationPanel";
+
+type SheetCheckState = {
+  checking: boolean;
+  valid: boolean;
+  errors: SheetValidationError[];
+  rowCount: number;
+};
+
+function errorsFromApi(cause: unknown): SheetValidationError[] | null {
+  if (!(cause instanceof ApiError)) return null;
+  const data = cause.body?.data;
+  if (data && Array.isArray(data.errors)) return data.errors as SheetValidationError[];
+  return null;
+}
 
 type Mode = "fromCsv" | "overrideExisting" | "overrideNew";
 export type CatalogImportKind =
@@ -57,10 +72,39 @@ export function CatalogSpreadsheetImport(props: Props) {
   const [modeOpen, setModeOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("fromCsv");
   const [override, setOverride] = useState("");
+  const [sheetCheck, setSheetCheck] = useState<SheetCheckState | null>(null);
+
+  async function runPipesSheetValidation(rows: Record<string, string>[]) {
+    setSheetCheck({ checking: true, valid: false, errors: [], rowCount: rows.length });
+    try {
+      const check = await validatePipesFittingsImport({ rows });
+      setSheetCheck({
+        checking: false,
+        valid: check.valid,
+        errors: check.errors ?? [],
+        rowCount: check.rowCount ?? rows.length,
+      });
+    } catch (cause: unknown) {
+      const apiErrors = errorsFromApi(cause);
+      if (apiErrors?.length) {
+        setSheetCheck({
+          checking: false,
+          valid: false,
+          errors: apiErrors,
+          rowCount: rows.length,
+        });
+      } else {
+        setSheetCheck(null);
+        setError(cause instanceof ApiError ? cause.message : "Could not validate the sheet.");
+      }
+    }
+  }
 
   async function readFile(file: File) {
     setPicking(true);
     setResult(null);
+    setSheetCheck(null);
+    setError(null);
     setFileName(file.name || "file.csv");
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
@@ -95,11 +139,14 @@ export function CatalogSpreadsheetImport(props: Props) {
           setError("No valid rows. Need product_code and qty (or stock_qty).");
         }
       } else if (props.kind === "pipes-fittings") {
-        setPayload(parsed.rows);
-        setPreviewCount(parsed.rows.length);
+        const rows = parsed.rows as Record<string, string>[];
+        setPayload(rows);
+        setPreviewCount(rows.length);
         setInvalidCount(0);
-        if (!parsed.rows.length) {
+        if (!rows.length) {
           setError("No data rows found.");
+        } else {
+          await runPipesSheetValidation(rows);
         }
       } else {
         setPayload(parsed.rows);
@@ -147,16 +194,30 @@ export function CatalogSpreadsheetImport(props: Props) {
         setResult(`Set stock on ${response.updated} product(s), skipped ${response.skipped}.`);
       } else if (props.kind === "pipes-fittings") {
         const rows = payload as Record<string, string>[];
+        if (sheetCheck && !sheetCheck.valid) {
+          return;
+        }
         const check = await validatePipesFittingsImport({ rows });
         if (!check.valid) {
-          setError(formatSheetErrors(check.errors));
+          setSheetCheck({
+            checking: false,
+            valid: false,
+            errors: check.errors ?? [],
+            rowCount: check.rowCount ?? rows.length,
+          });
           return;
         }
         const response = await importPipesFittings({ rows });
         if (response.errors?.length) {
-          setError(formatSheetErrors(response.errors));
+          setSheetCheck({
+            checking: false,
+            valid: false,
+            errors: response.errors,
+            rowCount: rows.length,
+          });
           return;
         }
+        setSheetCheck(null);
         setResult(`Pipes & fittings: ${response.inserted} new, ${response.updated} updated.`);
       } else {
         const rows = payload as Record<string, string>[];
@@ -176,7 +237,15 @@ export function CatalogSpreadsheetImport(props: Props) {
       setPreviewCount(0);
       setFileName("");
     } catch (cause: unknown) {
-      if (cause instanceof ApiError && cause.status === 404) {
+      const apiErrors = errorsFromApi(cause);
+      if (apiErrors?.length && props.kind === "pipes-fittings") {
+        setSheetCheck({
+          checking: false,
+          valid: false,
+          errors: apiErrors,
+          rowCount: (payload as unknown[]).length,
+        });
+      } else if (cause instanceof ApiError && cause.status === 404) {
         setError(
           "Import API not found (404). Restart the backend on this machine (port 8001) and set env.ts USE_CLOUD_PREVIEW = false. Deploy the latest server.py before using cloud hosting.",
         );
@@ -200,14 +269,20 @@ export function CatalogSpreadsheetImport(props: Props) {
             : "#0D9488";
 
   function formatSheetErrors(errors: SheetValidationError[]): string {
-    const lines = errors.slice(0, 12).map((entry) => {
-      const where = entry.row ? `Row ${entry.row}` : "Sheet";
-      const col = entry.column ? `, ${entry.column}` : "";
-      return `${where}${col}: ${entry.message}`;
-    });
-    if (errors.length > 12) lines.push(`…and ${errors.length - 12} more`);
-    return lines.join("\n");
+    return errors
+      .slice(0, 12)
+      .map((entry) => {
+        const where = entry.row ? `Row ${entry.row}` : "Sheet";
+        const col = entry.column ? `, ${entry.column}` : "";
+        return `${where}${col}: ${entry.message}`;
+      })
+      .join("\n");
   }
+
+  const pipesImportBlocked =
+    props.kind === "pipes-fittings" &&
+    sheetCheck !== null &&
+    (sheetCheck.checking || !sheetCheck.valid);
 
   return (
     <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
@@ -309,10 +384,16 @@ export function CatalogSpreadsheetImport(props: Props) {
           ) : null}
           <Button
             testID={`run-${props.kind}-import`}
-            title="Import now"
+            title={
+              props.kind === "pipes-fittings" && sheetCheck?.checking
+                ? "Validating…"
+                : props.kind === "pipes-fittings" && sheetCheck && !sheetCheck.valid
+                  ? "Fix sheet errors to import"
+                  : "Import now"
+            }
             onPress={() => void submitImport()}
             loading={importing}
-            disabled={!previewCount}
+            disabled={!previewCount || pipesImportBlocked}
             fullWidth
             style={{ marginTop: spacing.md }}
           />
@@ -327,6 +408,15 @@ export function CatalogSpreadsheetImport(props: Props) {
             />
           ) : null}
         </Card>
+        {props.kind === "pipes-fittings" && sheetCheck ? (
+          <SheetValidationPanel
+            checking={sheetCheck.checking}
+            valid={sheetCheck.valid}
+            errors={sheetCheck.errors}
+            rowCount={sheetCheck.rowCount}
+            sourceFileName={fileName}
+          />
+        ) : null}
         {result ? (
           <Card style={{ backgroundColor: colors.successBg, borderColor: colors.success, marginTop: spacing.md }}>
             <p style={{ color: colors.textPrimary, lineHeight: 1.45, margin: 0 }}>{result}</p>

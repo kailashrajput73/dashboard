@@ -143,7 +143,11 @@ def parse_rows(
                 _err(
                     excel_row,
                     "product code",
-                    f"Duplicate product code '{product_code}' (also on row {codes[product_code]})",
+                    (
+                        f"Duplicate product code '{product_code}' (first used on row {codes[product_code]}). "
+                        f"This row: product_family='{product_family}', size='{size or length}'. "
+                        "Each size/SKU needs its own unique code."
+                    ),
                 )
             )
         else:
@@ -245,7 +249,12 @@ def _check_code_family_consistency(parsed: list[ParsedRow], result: ValidationRe
                 _err(
                     row.excel_row,
                     "product code",
-                    f"Product code '{row.product_code}' used with different family on row {existing.excel_row}",
+                    (
+                        f"Product code '{row.product_code}' already on row {existing.excel_row} "
+                        f"(family '{existing.product_family}', size '{existing.size or existing.length}'). "
+                        f"This row is family '{row.product_family}', size '{row.size or row.length}'. "
+                        "Use one code per SKU or fix the family/size so they match."
+                    ),
                 )
             )
         by_code[row.product_code] = row
