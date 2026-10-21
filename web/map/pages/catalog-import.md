@@ -3,33 +3,30 @@
 | | |
 |---|---|
 | **Map ID** | `catalog-import` |
-| **Route** | `/import-products, /import-products-batch, /import-prices, /import-stock` |
-| **Source file** | `web/src/pages/CatalogImportPage.tsx` (63 lines) |
+| **Route** | `/import-products`, `/import-products-batch`, `/import-prices`, `/import-stock`, `/import-pipes-fittings` (redirect: `/import-pipes-fittings-images` → `#family-images`) |
+| **Source file** | `web/src/pages/CatalogImportPage.tsx` |
+| **Feature** | `web/src/features/catalog-import/CatalogSpreadsheetImport.tsx` |
 | **SOW** | Product import |
 | **Operator guide** | `migration/admin/spreadsheet-imports.md` |
+| **Import index** | `migration/SHEET-IMPORTS-INDEX.md` |
 
-## Load / refresh
+## Routes by kind
 
-- No `useEffect` in this file (may delegate to a feature component).
+| kind prop | Page |
+|-----------|------|
+| `master` | Full legacy master; link to pipes v1 |
+| `master` + `batch` | Batch master (subcategories entry) |
+| `pricing` | Prices import |
+| `stock` | Stock import |
+| `pipes-fittings` | Combined pipes v1: master + images (`PipesFittingsCombinedImportPage`) |
 
-## API calls in this file
+Pipes images are not a separate top-level route anymore; they are embedded as step 2 on `/import-pipes-fittings`.
 
-| Line | Function | HTTP | Code line (trimmed) |
-|------|----------|------|---------------------|
-| L19 | `getPageConfig` | (see endpoints.ts) | `function getPageConfig(kind: CatalogImportKind, batch: boolean): PageConfig {` |
-| L51 | `getPageConfig` | (see endpoints.ts) | `const config = getPageConfig(kind, batch);` |
+## API (via `web/src/api/endpoints.ts`)
 
-## Functions in this file (jump by line)
+Legacy: `importCatalogMaster`, `importCatalogPricing`, `importCatalogStock`.
 
-| Line | Function | What to do here |
-|------|----------|-----------------|
-| L19 | `getPageConfig` | Open `web/src/pages/CatalogImportPage.tsx` at this line |
-| L50 | `CatalogImportPage` | Open `web/src/pages/CatalogImportPage.tsx` at this line |
-
-## Controls: testID → handler line
-
-| Line | testID | Handler |
-|------|--------|--------|
+Pipes: `validatePipesFittingsImport`, `importPipesFittings`, `fetchPipesFittingsImagesTemplate`, `validatePipesFittingsImagesImport`, `importPipesFittingsImages`.
 
 ## Your tags (you fill in)
 
@@ -37,4 +34,4 @@
 |----------------|-----------------------------------|-------|
 | | | |
 
-_Regenerate: `node web/map/tools/generate-page-maps.mjs`. Line numbers drift when code changes._
+_Regenerate line-level map: `node web/map/tools/generate-page-maps.mjs` (optional; this file is manually updated for pipes routes)._

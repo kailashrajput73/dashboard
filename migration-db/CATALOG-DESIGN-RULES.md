@@ -160,14 +160,15 @@ Architecture is signed off. These are **build tasks**, not open design debates:
 
 | Item | Notes |
 | --- | --- |
-| Alembic: `product_families` (+ FKs) and `catalog.family_id` | Keep existing `catalog` columns during transition; join for API |
-| Backfill script | Group existing PG catalog rows into families; one-time |
-| `pipes_fittings_v1` validator + importer | Header gate + row errors with Excel row numbers |
-| Category picker on upload page | Pipes & fitting first |
-| Image sidecar upload | Same category scope |
-| Display name generator | Single function used by list/get/import preview |
+| Alembic: `product_families` (+ FKs) and `catalog.family_id` | Done — `0019_product_families`; see `migration-db/dev/2026-10-21-19-product-families-pipes-import.md` |
+| Backfill script | Group existing PG catalog rows into families; one-time — **not done** |
+| `pipes_fittings_v1` validator + importer | Done — header gate + row errors with Excel row numbers |
+| Category picker on upload page | Pipes & fitting first — **deferred** (v1 sheet assumes category in file) |
+| Image sidecar upload | Done — step 2 on `/import-pipes-fittings`; template GET from catalog |
+| Display name generator | Done — `generate_sku_display_name` in `catalog_family_util.py` (matches client TEXTJOIN) |
 | Prices / stock imports | Unchanged: keyed by **product code** |
-| Tests | Golden file from KING fitting sample + error cases (KING vs KINGS, bad header) |
+| Tests | Done — `test_pipes_fittings_validation.py`, `test_catalog_family_util.py`; extend with KING golden file optional |
+| Documentation | `migration/SHEET-IMPORTS-INDEX.md`, `migration/dev/2026-10-21-10d-pipes-fittings-import.md` |
 
 ---
 
