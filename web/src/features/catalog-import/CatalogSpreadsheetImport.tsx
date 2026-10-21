@@ -10,6 +10,7 @@ import {
   type SheetValidationError,
 } from "../../api/endpoints";
 import { ApiError } from "../../api/client";
+import { Icon } from "../../components/Icon";
 import { AppModal, Button, Card, ErrorModal, Header, Input } from "../../components/UI";
 import { colors, font, spacing } from "../../theme";
 import {
@@ -37,6 +38,8 @@ type Props = {
   subtitle: string;
   columnHelp: string;
   showCategoryMode?: boolean;
+  /** Full product master only: links to pipes v1 imports (not on spreadsheet hub). */
+  showPipesFittingsEntry?: boolean;
 };
 
 export function CatalogSpreadsheetImport(props: Props) {
@@ -223,6 +226,43 @@ export function CatalogSpreadsheetImport(props: Props) {
                     : "Stock count - sets on-hand qty by Product Code"}
           </span>
         </div>
+        {props.showPipesFittingsEntry ? (
+          <Card style={{ marginBottom: spacing.md, backgroundColor: colors.primaryLight }}>
+            <p style={{ ...font.caption, color: colors.textSecondary, margin: `0 0 ${spacing.sm}px`, lineHeight: 1.45 }}>
+              Pipes &amp; fitting (new format) — use while testing; legacy master below will be retired.
+            </p>
+            <nav aria-label="Pipes and fittings imports" style={{ display: "grid", gap: spacing.sm }}>
+              <button
+                type="button"
+                data-testid="nav-import-pipes-fittings"
+                onClick={() => navigate("/import-pipes-fittings")}
+                style={pipesEntryButtonStyle}
+              >
+                <Icon name="git-branch-outline" size={20} color={colors.primary} />
+                <span style={{ flex: 1, textAlign: "left" }}>
+                  <span style={{ ...font.title, display: "block", fontSize: 14 }}>Pipes &amp; fittings (v1)</span>
+                  <span style={{ color: colors.textSecondary, fontSize: 12 }}>
+                    Families + SKU rows — validate before import
+                  </span>
+                </span>
+                <Icon name="chevron-forward" size={16} color={colors.textMuted} />
+              </button>
+              <button
+                type="button"
+                data-testid="nav-import-pipes-fittings-images"
+                onClick={() => navigate("/import-pipes-fittings-images")}
+                style={pipesEntryButtonStyle}
+              >
+                <Icon name="image-outline" size={20} color={colors.primary} />
+                <span style={{ flex: 1, textAlign: "left" }}>
+                  <span style={{ ...font.title, display: "block", fontSize: 14 }}>Pipes &amp; fittings images</span>
+                  <span style={{ color: colors.textSecondary, fontSize: 12 }}>brand + product_family + image_url</span>
+                </span>
+                <Icon name="chevron-forward" size={16} color={colors.textMuted} />
+              </button>
+            </nav>
+          </Card>
+        ) : null}
         <Card>
           <h2 style={{ ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` }}>Columns</h2>
           <p style={{ color: colors.textSecondary, lineHeight: "20px", margin: 0 }}>{props.columnHelp}</p>
@@ -310,3 +350,15 @@ export function CatalogSpreadsheetImport(props: Props) {
     </main>
   );
 }
+
+const pipesEntryButtonStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: spacing.sm,
+  padding: spacing.sm,
+  border: `1px solid ${colors.border}`,
+  borderRadius: 8,
+  background: colors.surface,
+  color: colors.textPrimary,
+  cursor: "pointer",
+};

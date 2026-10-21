@@ -75,6 +75,7 @@ export default function CatalogImportPage({ kind, batch = false }: Props) {
       subtitle={config.subtitle}
       columnHelp={config.columnHelp}
       showCategoryMode={kind === "master" && !batch}
+      showPipesFittingsEntry={kind === "master" && !batch}
     />
   );
 }

@@ -25,20 +25,6 @@ const imports = [
     icon: "bar-chart-outline" as const,
     testID: "nav-import-stock",
   },
-  {
-    path: "/import-pipes-fittings",
-    title: "Pipes & fittings (v1)",
-    description: "Family-level HSN/GST/UoM + SKU rows — validate before import",
-    icon: "git-branch-outline" as const,
-    testID: "nav-import-pipes-fittings",
-  },
-  {
-    path: "/import-pipes-fittings-images",
-    title: "Pipes & fittings images",
-    description: "brand + product_family + image_url sidecar",
-    icon: "image-outline" as const,
-    testID: "nav-import-pipes-fittings-images",
-  },
 ];
 
 export default function SpreadsheetImportsPage() {
