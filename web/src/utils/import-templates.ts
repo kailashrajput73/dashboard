@@ -1,6 +1,31 @@
 import { downloadCsv } from "./download-csv";
 
 /** Final client master sheet (2026-09-30) — keep in sync with csv mappers + demo-notes/SHEET-FORMAT.md */
+/** Pipes & fittings v1 — see migration-db/CATALOG-DESIGN-RULES.md */
+export const PIPES_FITTINGS_TEMPLATE_HEADERS = [
+  "Category",
+  "Type",
+  "Sub-Category",
+  "class",
+  "Brand",
+  "HSN Code",
+  "GST",
+  "UoM",
+  "product_family",
+  "Product Name",
+  "Size (mm,cm,in)",
+  "Length",
+  "product code",
+  "MRP (Rs) per nos",
+  "discount",
+  "Selling Price",
+  "Pack Size",
+  "MRP Pkg",
+  "ROL",
+];
+
+export const PIPES_FITTINGS_IMAGE_HEADERS = ["brand", "product_family", "image_url"];
+
 export const MASTER_TEMPLATE_HEADERS = [
   "Category",
   "Type",
@@ -43,7 +68,14 @@ export const PURCHASE_TEMPLATE_HEADERS = [
 
 export const SUBCATEGORY_TEMPLATE_HEADERS = ["name", "category"];
 
-export type ImportTemplateKind = "master" | "pricing" | "stock" | "purchase" | "subcategory";
+export type ImportTemplateKind =
+  | "master"
+  | "pricing"
+  | "stock"
+  | "purchase"
+  | "subcategory"
+  | "pipes_fittings"
+  | "pipes_fittings_images";
 
 const FILE_NAMES: Record<ImportTemplateKind, string> = {
   master: "product-master-template.csv",
@@ -51,6 +83,8 @@ const FILE_NAMES: Record<ImportTemplateKind, string> = {
   stock: "stock-qty-template.csv",
   purchase: "purchase-lines-template.csv",
   subcategory: "subcategories-template.csv",
+  pipes_fittings: "pipes-fittings-v1-template.csv",
+  pipes_fittings_images: "pipes-fittings-images-template.csv",
 };
 
 const HEADERS: Record<ImportTemplateKind, string[]> = {
@@ -59,6 +93,8 @@ const HEADERS: Record<ImportTemplateKind, string[]> = {
   stock: STOCK_TEMPLATE_HEADERS,
   purchase: PURCHASE_TEMPLATE_HEADERS,
   subcategory: SUBCATEGORY_TEMPLATE_HEADERS,
+  pipes_fittings: PIPES_FITTINGS_TEMPLATE_HEADERS,
+  pipes_fittings_images: PIPES_FITTINGS_IMAGE_HEADERS,
 };
 
 function escapeCsvCell(value: string): string {

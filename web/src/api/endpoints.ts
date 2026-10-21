@@ -670,6 +670,37 @@ export function importCatalogStock(body: { items: { productCode: string; stock: 
   });
 }
 
+export type SheetValidationError = { row: number | null; column: string | null; message: string };
+
+export function validatePipesFittingsImport(body: { rows: Record<string, string>[] }) {
+  return apiRequest<{
+    templateId: string;
+    valid: boolean;
+    errors: SheetValidationError[];
+    rowCount: number;
+  }>("/catalog/import/pipes-fittings/validate", { method: "POST", body });
+}
+
+export function importPipesFittings(body: { rows: Record<string, string>[] }) {
+  return apiRequest<{
+    templateId: string;
+    valid: boolean;
+    inserted: number;
+    updated: number;
+    skipped: number;
+    errors?: SheetValidationError[];
+  }>("/catalog/import/pipes-fittings", { method: "POST", body });
+}
+
+export function importPipesFittingsImages(body: {
+  items: { brand?: string; product_family?: string; image_url?: string }[];
+}) {
+  return apiRequest<{ updated: number; errors: SheetValidationError[] }>(
+    "/catalog/import/pipes-fittings/images",
+    { method: "POST", body },
+  );
+}
+
 // ---------- Money Config ----------
 
 // NOTE (DB): reads `money_config` by adminId. Auto-creates defaults if missing.

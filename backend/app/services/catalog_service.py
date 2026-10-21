@@ -18,6 +18,7 @@ from app.models import (
     Category,
     Pricing,
     PricingHistory,
+    ProductFamily,
     ProductGroup,
     ProductGroupItem,
     ProductType,
@@ -25,6 +26,7 @@ from app.models import (
     Subcategory,
     User,
 )
+from app.services.catalog_family_util import generate_sku_display_name
 from app.schemas.catalog import (
     CatalogBulkPricingIn,
     CatalogFieldPurgeIn,
@@ -427,12 +429,39 @@ def _catalog_json(
     product: Catalog,
     pricing: Pricing | None = None,
 ) -> dict[str, Any]:
+    family: ProductFamily | None = None
+    if product.family_id:
+        family = session.get(ProductFamily, product.family_id)
+
+    display_name = product.name
+    display_product_name = product.product_name
+    if family is not None and family.deleted_at is None:
+        display_name = generate_sku_display_name(
+            type_name=product.type_name,
+            product_family=family.name,
+            product_class=product.product_class,
+            size=product.size,
+            brand=product.brand,
+            length=product.length,
+        )
+        display_product_name = display_name
+
+    unit = product.unit
+    hsn_code = product.hsn_code
+    gst_rate = product.gst_rate
+    image_url = product.image_url
+    if family is not None and family.deleted_at is None:
+        unit = family.unit or unit
+        hsn_code = family.hsn_code or hsn_code
+        gst_rate = family.gst_rate if family.gst_rate is not None else gst_rate
+        image_url = family.image_url or image_url
+
     item: dict[str, Any] = {
         "id": product.id,
-        "name": product.name,
-        "productName": product.product_name,
+        "name": display_name,
+        "productName": display_product_name,
         "category": product.category,
-        "unit": product.unit,
+        "unit": unit,
         "standardRate": product.standard_rate,
         "mrp": product.mrp,
         "sellingPrice": product.selling_price,
@@ -469,12 +498,14 @@ def _catalog_json(
         "displaySequence": product.display_sequence,
         "reorderLevel": product.reorder_level,
         "regularDiscount": product.regular_discount,
-        "imageUrl": product.image_url,
+        "imageUrl": image_url,
         "imageName": product.image_name,
         "stdPkg": product.std_pkg,
         "mrpPkg": product.mrp_pkg,
-        "hsnCode": product.hsn_code,
-        "gstRate": product.gst_rate,
+        "hsnCode": hsn_code,
+        "gstRate": gst_rate,
+        "productFamily": family.name if family and family.deleted_at is None else None,
+        "familyId": product.family_id,
         "rackId": product.rack_id,
         "rackName": product.rack_name,
         "rackSlot": product.rack_slot,

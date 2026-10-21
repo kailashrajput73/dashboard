@@ -1,6 +1,8 @@
 import { CatalogSpreadsheetImport, type CatalogImportKind } from "../features/catalog-import/CatalogSpreadsheetImport";
 import {
   MASTER_TEMPLATE_HEADERS,
+  PIPES_FITTINGS_IMAGE_HEADERS,
+  PIPES_FITTINGS_TEMPLATE_HEADERS,
   PRICING_TEMPLATE_HEADERS,
   STOCK_TEMPLATE_HEADERS,
 } from "../utils/import-templates";
@@ -37,6 +39,22 @@ function getPageConfig(kind: CatalogImportKind, batch: boolean): PageConfig {
       title: "Import prices & discount",
       subtitle: "Fortnightly rate updates — Product Code required",
       columnHelp: `${PRICING_TEMPLATE_HEADERS.join(", ")}. You can also upload the full client master sheet — only price columns are used. Discount may be decimal (0.49 = 49%). Empty Selling Price is calculated from MRP + discount.`,
+    };
+  }
+
+  if (kind === "pipes-fittings") {
+    return {
+      title: "Import pipes & fittings (catalog)",
+      subtitle: "Category: Pipes & fitting — product families + SKU codes",
+      columnHelp: `${PIPES_FITTINGS_TEMPLATE_HEADERS.join(", ")}. Product Name is optional (display names are generated). Images: use the separate family image import.`,
+    };
+  }
+
+  if (kind === "pipes-fittings-images") {
+    return {
+      title: "Import pipes & fittings images",
+      subtitle: "One row per product family (not per size)",
+      columnHelp: `${PIPES_FITTINGS_IMAGE_HEADERS.join(", ")}. Match brand + product_family from the master sheet.`,
     };
   }
 

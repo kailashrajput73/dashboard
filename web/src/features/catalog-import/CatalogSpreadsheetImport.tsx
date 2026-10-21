@@ -4,6 +4,10 @@ import {
   importCatalogMaster,
   importCatalogPricing,
   importCatalogStock,
+  importPipesFittings,
+  importPipesFittingsImages,
+  validatePipesFittingsImport,
+  type SheetValidationError,
 } from "../../api/endpoints";
 import { ApiError } from "../../api/client";
 import { AppModal, Button, Card, ErrorModal, Header, Input } from "../../components/UI";
@@ -20,7 +24,12 @@ import { parseSpreadsheetBytes } from "../../utils/spreadsheet";
 import { downloadImportTemplate, type ImportTemplateKind } from "../../utils/import-templates";
 
 type Mode = "fromCsv" | "overrideExisting" | "overrideNew";
-export type CatalogImportKind = "master" | "pricing" | "stock";
+export type CatalogImportKind =
+  | "master"
+  | "pricing"
+  | "stock"
+  | "pipes-fittings"
+  | "pipes-fittings-images";
 
 type Props = {
   kind: CatalogImportKind;
@@ -74,13 +83,27 @@ export function CatalogSpreadsheetImport(props: Props) {
         if (!mapped.items.length) {
           setError("No valid rows. Need product_code plus MRP, discount, or selling price.");
         }
-      } else {
+      } else if (props.kind === "stock") {
         const mapped = rowsToStockItems(parsed.rows);
         setPayload(mapped.items);
         setPreviewCount(mapped.items.length);
         setInvalidCount(mapped.invalid);
         if (!mapped.items.length) {
           setError("No valid rows. Need product_code and qty (or stock_qty).");
+        }
+      } else if (props.kind === "pipes-fittings") {
+        setPayload(parsed.rows);
+        setPreviewCount(parsed.rows.length);
+        setInvalidCount(0);
+        if (!parsed.rows.length) {
+          setError("No data rows found.");
+        }
+      } else {
+        setPayload(parsed.rows);
+        setPreviewCount(parsed.rows.length);
+        setInvalidCount(0);
+        if (!parsed.rows.length) {
+          setError("No data rows. Need brand, product_family, and image_url.");
         }
       }
     } catch (cause: unknown) {
@@ -116,9 +139,35 @@ export function CatalogSpreadsheetImport(props: Props) {
           ? ` Warnings: ${response.warnings.slice(0, 3).join("; ")}`
           : "";
         setResult(`Updated prices on ${response.updated} product(s), skipped ${response.skipped}.${warning}`);
-      } else {
+      } else if (props.kind === "stock") {
         const response = await importCatalogStock({ items: payload as StockImportItem[] });
         setResult(`Set stock on ${response.updated} product(s), skipped ${response.skipped}.`);
+      } else if (props.kind === "pipes-fittings") {
+        const rows = payload as Record<string, string>[];
+        const check = await validatePipesFittingsImport({ rows });
+        if (!check.valid) {
+          setError(formatSheetErrors(check.errors));
+          return;
+        }
+        const response = await importPipesFittings({ rows });
+        if (response.errors?.length) {
+          setError(formatSheetErrors(response.errors));
+          return;
+        }
+        setResult(`Pipes & fittings: ${response.inserted} new, ${response.updated} updated.`);
+      } else {
+        const rows = payload as Record<string, string>[];
+        const items = rows.map((row) => ({
+          brand: row.brand ?? row.Brand ?? "",
+          product_family: row.product_family ?? row.product ?? row.Product ?? "",
+          image_url: row.image_url ?? row.imageUrl ?? "",
+        }));
+        const response = await importPipesFittingsImages({ items });
+        if (response.errors?.length) {
+          setError(formatSheetErrors(response.errors));
+          return;
+        }
+        setResult(`Updated images on ${response.updated} product family row(s).`);
       }
       setPayload([]);
       setPreviewCount(0);
@@ -136,7 +185,26 @@ export function CatalogSpreadsheetImport(props: Props) {
     }
   }
 
-  const accent = props.kind === "master" ? colors.primary : props.kind === "pricing" ? colors.secondary : "#0D9488";
+  const accent =
+    props.kind === "master"
+      ? colors.primary
+      : props.kind === "pricing"
+        ? colors.secondary
+        : props.kind === "pipes-fittings"
+          ? "#7C3AED"
+          : props.kind === "pipes-fittings-images"
+            ? "#9333EA"
+            : "#0D9488";
+
+  function formatSheetErrors(errors: SheetValidationError[]): string {
+    const lines = errors.slice(0, 12).map((entry) => {
+      const where = entry.row ? `Row ${entry.row}` : "Sheet";
+      const col = entry.column ? `, ${entry.column}` : "";
+      return `${where}${col}: ${entry.message}`;
+    });
+    if (errors.length > 12) lines.push(`…and ${errors.length - 12} more`);
+    return lines.join("\n");
+  }
 
   return (
     <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
@@ -148,7 +216,11 @@ export function CatalogSpreadsheetImport(props: Props) {
               ? "Product master - client sheet format; existing rows keep stock & prices"
               : props.kind === "pricing"
                 ? "Prices only - matched by Product Code"
-                : "Stock count - sets on-hand qty by Product Code"}
+                : props.kind === "pipes-fittings"
+                  ? "Pipes & fittings v1 — families + SKUs; validates entire sheet before upload"
+                  : props.kind === "pipes-fittings-images"
+                    ? "Family images — brand, product_family, image_url"
+                    : "Stock count - sets on-hand qty by Product Code"}
           </span>
         </div>
         <Card>
@@ -169,7 +241,15 @@ export function CatalogSpreadsheetImport(props: Props) {
               icon="download-outline"
               variant="ghost"
               size="sm"
-              onPress={() => downloadImportTemplate(props.kind as ImportTemplateKind)}
+              onPress={() =>
+                downloadImportTemplate(
+                  props.kind === "pipes-fittings"
+                    ? "pipes_fittings"
+                    : props.kind === "pipes-fittings-images"
+                      ? "pipes_fittings_images"
+                      : (props.kind as ImportTemplateKind),
+                )
+              }
               style={{ width: "100%" }}
             />
             <Button

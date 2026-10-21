@@ -311,6 +311,68 @@ class Brand(TimestampMixin, Base):
     logo_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class ProductFamily(TimestampMixin, Base):
+    __tablename__ = "product_families"
+    __table_args__ = (
+        UniqueConstraint("family_key", name="product_families_family_key_uq"),
+        Index("product_families_category_id", "category_id"),
+        Index("product_families_brand_id", "brand_id"),
+        Index("product_families_deleted_at", "deleted_at"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=_new_id,
+        server_default=text("gen_random_uuid()::text"),
+    )
+    category_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey(
+            "categories.id",
+            ondelete="RESTRICT",
+            name="fk_product_families_category_id_categories",
+        ),
+        nullable=False,
+    )
+    subcategory_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "subcategories.id",
+            ondelete="RESTRICT",
+            name="fk_product_families_subcategory_id_subcategories",
+        ),
+        nullable=True,
+    )
+    brand_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "brands.id",
+            ondelete="RESTRICT",
+            name="fk_product_families_brand_id_brands",
+        ),
+        nullable=True,
+    )
+    product_type_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "product_types.id",
+            ondelete="RESTRICT",
+            name="fk_product_families_product_type_id_product_types",
+        ),
+        nullable=True,
+    )
+    product_class: Mapped[str | None] = mapped_column(Text, nullable=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    family_key: Mapped[str] = mapped_column(Text, nullable=False)
+    hsn_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    gst_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
+    unit: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'pcs'")
+    )
+    image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
 class ProductType(TimestampMixin, Base):
     __tablename__ = "product_types"
     __table_args__ = (
@@ -389,6 +451,7 @@ class Catalog(TimestampMixin, Base):
             postgresql_using="gin",
         ),
         Index("catalog_stock_reorder", "stock", "reorder_level"),
+        Index("catalog_family_id", "family_id"),
     )
 
     id: Mapped[str] = mapped_column(
@@ -396,6 +459,15 @@ class Catalog(TimestampMixin, Base):
         primary_key=True,
         default=_new_id,
         server_default=text("gen_random_uuid()::text"),
+    )
+    family_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "product_families.id",
+            ondelete="RESTRICT",
+            name="fk_catalog_family_id_product_families",
+        ),
+        nullable=True,
     )
     name: Mapped[str] = mapped_column(Text, nullable=False)
     product_name: Mapped[str] = mapped_column(Text, nullable=False)

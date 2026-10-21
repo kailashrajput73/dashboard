@@ -18,8 +18,17 @@ from app.schemas.catalog import (
     CatalogPricingImportIn,
     CatalogPricingIn,
     CatalogStockImportIn,
+    PipesFittingsImagesImportIn,
+    PipesFittingsImportIn,
 )
 from app.services import catalog_service as service
+from app.services._common import envelope, error_response
+from app.services.pipes_fittings_import import (
+    import_pipes_fittings_images,
+    import_pipes_fittings_rows,
+    validate_pipes_fittings_rows,
+)
+from app.services.pipes_fittings_template import TEMPLATE_ID
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
@@ -192,3 +201,50 @@ def import_catalog_stock(
 ):
     _require_catalog_write(_admin)
     return service.import_catalog_stock(session, body)
+
+
+@router.post("/catalog/import/pipes-fittings/validate")
+def validate_pipes_fittings_import(
+    body: PipesFittingsImportIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    result = validate_pipes_fittings_rows(session, body.rows)
+    return envelope(
+        {
+            "templateId": TEMPLATE_ID,
+            "valid": result.ok,
+            "errors": result.errors,
+            "rowCount": len(result.rows),
+        },
+        success=result.ok,
+        error="Sheet validation failed" if not result.ok else None,
+    )
+
+
+@router.post("/catalog/import/pipes-fittings")
+def import_pipes_fittings(
+    body: PipesFittingsImportIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    result = import_pipes_fittings_rows(session, body.rows)
+    if isinstance(result, dict) and not result.get("success", True):
+        return error_response(400, result.get("error") or "Import failed", result.get("data"))
+    return result
+
+
+@router.post("/catalog/import/pipes-fittings/images")
+def import_pipes_fittings_images_route(
+    body: PipesFittingsImagesImportIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    items = [item.model_dump() for item in body.items]
+    result = import_pipes_fittings_images(session, items)
+    if isinstance(result, dict) and not result.get("success", True):
+        return error_response(400, result.get("error") or "Import failed", result.get("data"))
+    return result
