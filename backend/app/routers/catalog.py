@@ -211,6 +211,7 @@ def validate_pipes_fittings_import(
 ):
     _require_catalog_write(_admin)
     result = validate_pipes_fittings_rows(session, body.rows)
+    # success=True so the client receives `errors[]`; `valid` carries pass/fail.
     return envelope(
         {
             "templateId": TEMPLATE_ID,
@@ -218,8 +219,6 @@ def validate_pipes_fittings_import(
             "errors": result.errors,
             "rowCount": len(result.rows),
         },
-        success=result.ok,
-        error="Sheet validation failed" if not result.ok else None,
     )
 
 
