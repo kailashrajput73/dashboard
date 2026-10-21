@@ -26,6 +26,7 @@ from app.services._common import envelope, error_response
 from app.services.pipes_fittings_import import (
     import_pipes_fittings_images,
     import_pipes_fittings_rows,
+    validate_pipes_fittings_image_items,
     validate_pipes_fittings_rows,
 )
 from app.services.pipes_fittings_template import TEMPLATE_ID
@@ -233,6 +234,25 @@ def import_pipes_fittings(
     if isinstance(result, dict) and not result.get("success", True):
         return error_response(400, result.get("error") or "Import failed", result.get("data"))
     return result
+
+
+@router.post("/catalog/import/pipes-fittings/images/validate")
+def validate_pipes_fittings_images_import(
+    body: PipesFittingsImagesImportIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    items = [item.model_dump() for item in body.items]
+    errors, match_count = validate_pipes_fittings_image_items(session, items)
+    return envelope(
+        {
+            "valid": not errors,
+            "errors": errors,
+            "rowCount": len(items),
+            "familyMatches": match_count,
+        },
+    )
 
 
 @router.post("/catalog/import/pipes-fittings/images")

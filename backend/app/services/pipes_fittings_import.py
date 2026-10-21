@@ -440,23 +440,82 @@ def import_pipes_fittings_rows(
     return _run_transaction(session, operation)
 
 
+def validate_pipes_fittings_image_items(
+    session: Session,
+    items: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], int]:
+    """Returns (errors, match_count). Excel data rows start at row 2."""
+    errors: list[dict[str, Any]] = []
+    match_count = 0
+    for excel_row, item in enumerate(items, start=2):
+        brand = canonical_label(str(item.get("brand") or ""))
+        family_name = canonical_label(
+            str(item.get("product_family") or item.get("product") or "")
+        )
+        url = canonical_label(str(item.get("image_url") or item.get("imageUrl") or ""))
+        if not family_name:
+            errors.append(
+                _err(excel_row, "product_family", "product_family is required")
+            )
+            continue
+        if not url:
+            errors.append(_err(excel_row, "image_url", "image_url is required"))
+            continue
+        families = session.scalars(
+            select(ProductFamily).where(
+                ProductFamily.deleted_at.is_(None),
+                ProductFamily.name.ilike(family_name),
+            )
+        ).all()
+        if brand:
+            matched: list[ProductFamily] = []
+            for family in families:
+                if not family.brand_id:
+                    continue
+                brand_name = session.scalar(
+                    select(Brand.name).where(Brand.id == family.brand_id)
+                )
+                if brand_name and normalize_label(brand_name) == normalize_label(brand):
+                    matched.append(family)
+            families = matched
+        if not families:
+            errors.append(
+                _err(
+                    excel_row,
+                    "product_family",
+                    (
+                        f"No family in database for brand='{brand or '(any)'}' "
+                        f"product_family='{family_name}'. "
+                        "Import the pipes master sheet first (same spelling), then upload images."
+                    ),
+                )
+            )
+            continue
+        match_count += len(families)
+    return errors, match_count
+
+
 def import_pipes_fittings_images(
     session: Session,
     items: list[dict[str, Any]],
 ) -> dict[str, Any] | JSONResponse:
     def operation() -> dict[str, Any]:
-        errors: list[dict[str, Any]] = []
+        errors, _match_count = validate_pipes_fittings_image_items(session, items)
+        if errors:
+            return envelope(
+                {"updated": 0, "valid": False, "errors": errors},
+                success=False,
+                error="Image sheet validation failed",
+            )
+
         updated = 0
-        for index, item in enumerate(items, start=1):
+        for excel_row, item in enumerate(items, start=2):
             brand = canonical_label(str(item.get("brand") or ""))
             family_name = canonical_label(
                 str(item.get("product_family") or item.get("product") or "")
             )
             url = canonical_label(str(item.get("image_url") or item.get("imageUrl") or ""))
             if not family_name or not url:
-                errors.append(
-                    _err(index + 1, "image_url", "product_family and image_url required")
-                )
                 continue
             families = session.scalars(
                 select(ProductFamily).where(
@@ -475,25 +534,10 @@ def import_pipes_fittings_images(
                     if brand_name and normalize_label(brand_name) == normalize_label(brand):
                         matched.append(family)
                 families = matched
-            if not families:
-                errors.append(
-                    _err(
-                        index + 1,
-                        "product_family",
-                        f"No family found for brand='{brand}' product_family='{family_name}'",
-                    )
-                )
-                continue
             for family in families:
                 family.image_url = url
                 family.updated_at = _now()
                 updated += 1
-        if errors:
-            return envelope(
-                {"updated": updated, "errors": errors},
-                success=False,
-                error="Image sheet validation failed",
-            )
-        return envelope({"updated": updated, "errors": []})
+        return envelope({"updated": updated, "valid": True, "errors": []})
 
     return _run_transaction(session, operation)

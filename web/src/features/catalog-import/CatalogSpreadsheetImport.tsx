@@ -6,6 +6,7 @@ import {
   importCatalogStock,
   importPipesFittings,
   importPipesFittingsImages,
+  validatePipesFittingsImagesImport,
   validatePipesFittingsImport,
   type SheetValidationError,
 } from "../../api/endpoints";
@@ -31,6 +32,14 @@ type SheetCheckState = {
   errors: SheetValidationError[];
   rowCount: number;
 };
+
+function mapPipesImageRows(rows: Record<string, string>[]) {
+  return rows.map((row) => ({
+    brand: row.brand ?? "",
+    product_family: row.product_family ?? row.product ?? "",
+    image_url: row.image_url ?? row.imageurl ?? "",
+  }));
+}
 
 function errorsFromApi(cause: unknown): SheetValidationError[] | null {
   if (!(cause instanceof ApiError)) return null;
@@ -77,7 +86,10 @@ export function CatalogSpreadsheetImport(props: Props) {
   async function runPipesSheetValidation(rows: Record<string, string>[]) {
     setSheetCheck({ checking: true, valid: false, errors: [], rowCount: rows.length });
     try {
-      const check = await validatePipesFittingsImport({ rows });
+      const check =
+        props.kind === "pipes-fittings-images"
+          ? await validatePipesFittingsImagesImport({ items: mapPipesImageRows(rows) })
+          : await validatePipesFittingsImport({ rows });
       setSheetCheck({
         checking: false,
         valid: check.valid,
@@ -148,13 +160,20 @@ export function CatalogSpreadsheetImport(props: Props) {
         } else {
           await runPipesSheetValidation(rows);
         }
+      } else if (props.kind === "pipes-fittings-images") {
+        const rows = parsed.rows as Record<string, string>[];
+        setPayload(rows);
+        setPreviewCount(rows.length);
+        setInvalidCount(0);
+        if (!rows.length) {
+          setError("No data rows. Need brand, product_family, and image_url.");
+        } else {
+          await runPipesSheetValidation(rows);
+        }
       } else {
         setPayload(parsed.rows);
         setPreviewCount(parsed.rows.length);
         setInvalidCount(0);
-        if (!parsed.rows.length) {
-          setError("No data rows. Need brand, product_family, and image_url.");
-        }
       }
     } catch (cause: unknown) {
       setError(cause instanceof Error ? cause.message : "Could not read the file.");
@@ -219,18 +238,33 @@ export function CatalogSpreadsheetImport(props: Props) {
         }
         setSheetCheck(null);
         setResult(`Pipes & fittings: ${response.inserted} new, ${response.updated} updated.`);
-      } else {
+      } else if (props.kind === "pipes-fittings-images") {
         const rows = payload as Record<string, string>[];
-        const items = rows.map((row) => ({
-          brand: row.brand ?? row.Brand ?? "",
-          product_family: row.product_family ?? row.product ?? row.Product ?? "",
-          image_url: row.image_url ?? row.imageUrl ?? "",
-        }));
-        const response = await importPipesFittingsImages({ items });
-        if (response.errors?.length) {
-          setError(formatSheetErrors(response.errors));
+        if (sheetCheck && !sheetCheck.valid) {
           return;
         }
+        const items = mapPipesImageRows(rows);
+        const check = await validatePipesFittingsImagesImport({ items });
+        if (!check.valid) {
+          setSheetCheck({
+            checking: false,
+            valid: false,
+            errors: check.errors ?? [],
+            rowCount: check.rowCount ?? rows.length,
+          });
+          return;
+        }
+        const response = await importPipesFittingsImages({ items });
+        if (response.errors?.length) {
+          setSheetCheck({
+            checking: false,
+            valid: false,
+            errors: response.errors,
+            rowCount: rows.length,
+          });
+          return;
+        }
+        setSheetCheck(null);
         setResult(`Updated images on ${response.updated} product family row(s).`);
       }
       setPayload([]);
@@ -238,7 +272,10 @@ export function CatalogSpreadsheetImport(props: Props) {
       setFileName("");
     } catch (cause: unknown) {
       const apiErrors = errorsFromApi(cause);
-      if (apiErrors?.length && props.kind === "pipes-fittings") {
+      if (
+        apiErrors?.length &&
+        (props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images")
+      ) {
         setSheetCheck({
           checking: false,
           valid: false,
@@ -268,19 +305,8 @@ export function CatalogSpreadsheetImport(props: Props) {
             ? "#9333EA"
             : "#0D9488";
 
-  function formatSheetErrors(errors: SheetValidationError[]): string {
-    return errors
-      .slice(0, 12)
-      .map((entry) => {
-        const where = entry.row ? `Row ${entry.row}` : "Sheet";
-        const col = entry.column ? `, ${entry.column}` : "";
-        return `${where}${col}: ${entry.message}`;
-      })
-      .join("\n");
-  }
-
   const pipesImportBlocked =
-    props.kind === "pipes-fittings" &&
+    (props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images") &&
     sheetCheck !== null &&
     (sheetCheck.checking || !sheetCheck.valid);
 
@@ -385,9 +411,12 @@ export function CatalogSpreadsheetImport(props: Props) {
           <Button
             testID={`run-${props.kind}-import`}
             title={
-              props.kind === "pipes-fittings" && sheetCheck?.checking
+              (props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images") &&
+              sheetCheck?.checking
                 ? "Validating…"
-                : props.kind === "pipes-fittings" && sheetCheck && !sheetCheck.valid
+                : (props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images") &&
+                    sheetCheck &&
+                    !sheetCheck.valid
                   ? "Fix sheet errors to import"
                   : "Import now"
             }
@@ -408,7 +437,8 @@ export function CatalogSpreadsheetImport(props: Props) {
             />
           ) : null}
         </Card>
-        {props.kind === "pipes-fittings" && sheetCheck ? (
+        {(props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images") &&
+        sheetCheck ? (
           <SheetValidationPanel
             checking={sheetCheck.checking}
             valid={sheetCheck.valid}
