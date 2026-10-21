@@ -4,30 +4,20 @@
 |---|---|
 | **Map ID** | `spreadsheet-imports` |
 | **Route** | `/csv-import` |
-| **Source file** | `web/src/pages/SpreadsheetImportsPage.tsx` (91 lines) |
+| **Source file** | `web/src/pages/SpreadsheetImportsPage.tsx` |
 | **SOW** | Bulk import hub |
 | **Operator guide** | `migration/admin/spreadsheet-imports.md` |
+| **Import index** | `migration/SHEET-IMPORTS-INDEX.md` |
 
-## Load / refresh
+## Hub tiles (3 only)
 
-- No `useEffect` in this file (may delegate to a feature component).
+| testID | Path |
+|--------|------|
+| `nav-import-products` | `/import-products` |
+| `nav-import-prices` | `/import-prices` |
+| `nav-import-stock` | `/import-stock` |
 
-## API calls in this file
-
-| Line | Function | HTTP | Code line (trimmed) |
-|------|----------|------|---------------------|
-| — | — | — | none |
-
-## Functions in this file (jump by line)
-
-| Line | Function | What to do here |
-|------|----------|-----------------|
-| L30 | `SpreadsheetImportsPage` | Open `web/src/pages/SpreadsheetImportsPage.tsx` at this line |
-
-## Controls: testID → handler line
-
-| Line | testID | Handler |
-|------|--------|--------|
+Pipes & fittings v1 is reached from **Product master (full)**, not this hub.
 
 ## Your tags (you fill in)
 

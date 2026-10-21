@@ -26,3 +26,7 @@ Use the disposable-product cases under Row 10c in `migration/PENDING.md`. Open t
 ## Left
 
 Manual imports and backend effects remain pending. No decision-needed items identified.
+
+## Related (2026-10-21)
+
+Pipes & fittings v1 is **not** part of row 10c; it adds separate templates and APIs. See `migration/dev/2026-10-21-10d-pipes-fittings-import.md` and `migration/SHEET-IMPORTS-INDEX.md`. Hub `/csv-import` still exposes only master, prices, and stock.

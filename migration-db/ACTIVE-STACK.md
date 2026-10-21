@@ -19,7 +19,9 @@
 - `migration/INVENTORY.md` — screen map (Expo paths are historical)
 
 **DB migration tracker:** `migration-db/DB-STATUS.md`  
-**Web migration tracker:** `migration/STATUS.md`
+**Web migration tracker:** `migration/STATUS.md`  
+**Catalog rules (locked):** `migration-db/CATALOG-DESIGN-RULES.md`  
+**Spreadsheet / import map:** `migration/SHEET-IMPORTS-INDEX.md` · operator guide `migration/admin/spreadsheet-imports.md`
 
 Branch for Postgres work: `migration-mongodb-to-postgresql`.
 

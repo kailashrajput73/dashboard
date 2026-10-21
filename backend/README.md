@@ -101,12 +101,11 @@ psql -U quotation_app -h 127.0.0.1 -p 5432 -d quotation_db_pg -c \
   "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name;"
 ```
 
-Set the local PostgreSQL credentials in `backend/.env` before upgrading. The
-current schema revision is `0013_catalog_api_indexes`; it includes
-the application tables from earlier migration rows, row-18 auth/taxonomy
-constraints, and catalog API filter/search indexes. These `psql` examples use the role and
-database created in the local setup above; substitute your own connection
-settings if they differ.
+Set the local PostgreSQL credentials in `backend/.env` before upgrading. Run
+`alembic current` after `upgrade head` to see your revision (includes
+`0019_product_families` when pipes import code is present). These `psql`
+examples use the role and database created in the local setup above;
+substitute your own connection settings if they differ.
 
 ## Local API server and CORS
 
@@ -188,6 +187,21 @@ The spreadsheet header rows remain the read-only templates in
 `Sub-Category`, `class`, `Brand`, `Product Name`, `Product Code`, and the
 price/stock attributes; pricing uses `Product Code`, `MRP (Rs) per nos`,
 `discount`, and `Selling Price`; stock uses `Product Code` and `qty`.
+**Pipes & fittings v1** uses separate templates (`pipes_fittings`,
+`pipes_fittings_images` kinds) — see `migration/SHEET-IMPORTS-INDEX.md` and
+`migration-db/CATALOG-DESIGN-RULES.md`.
+
+Additional catalog import routes:
+
+- `POST /api/catalog/import/pipes-fittings/validate` — body `{ "rows": [ … ] }` (parsed sheet rows)
+- `POST /api/catalog/import/pipes-fittings`
+- `GET /api/catalog/import/pipes-fittings/images/template` — families from `product_families`
+- `POST /api/catalog/import/pipes-fittings/images/validate`
+- `POST /api/catalog/import/pipes-fittings/images`
+
+Schema: `product_families` table and `catalog.family_id` (Alembic revision
+`0019_product_families`). Run `alembic upgrade head` before using pipes imports.
+
 Pricing imports skip codes not present in catalog and report them in
 `skipped`, rather than creating orphan pricing rows. Catalog create/update,
 pricing/history writes, imports, and full-tree reset each run in one

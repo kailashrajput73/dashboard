@@ -18,8 +18,19 @@ from app.schemas.catalog import (
     CatalogPricingImportIn,
     CatalogPricingIn,
     CatalogStockImportIn,
+    PipesFittingsImagesImportIn,
+    PipesFittingsImportIn,
 )
 from app.services import catalog_service as service
+from app.services._common import envelope, error_response
+from app.services.pipes_fittings_import import (
+    import_pipes_fittings_images,
+    import_pipes_fittings_rows,
+    pipes_fittings_image_template_rows,
+    validate_pipes_fittings_image_items,
+    validate_pipes_fittings_rows,
+)
+from app.services.pipes_fittings_template import TEMPLATE_ID
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
@@ -192,3 +203,78 @@ def import_catalog_stock(
 ):
     _require_catalog_write(_admin)
     return service.import_catalog_stock(session, body)
+
+
+@router.post("/catalog/import/pipes-fittings/validate")
+def validate_pipes_fittings_import(
+    body: PipesFittingsImportIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    result = validate_pipes_fittings_rows(session, body.rows)
+    # success=True so the client receives `errors[]`; `valid` carries pass/fail.
+    return envelope(
+        {
+            "templateId": TEMPLATE_ID,
+            "valid": result.ok,
+            "errors": result.errors,
+            "rowCount": len(result.rows),
+        },
+    )
+
+
+@router.post("/catalog/import/pipes-fittings")
+def import_pipes_fittings(
+    body: PipesFittingsImportIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    result = import_pipes_fittings_rows(session, body.rows)
+    if isinstance(result, dict) and not result.get("success", True):
+        return error_response(400, result.get("error") or "Import failed", result.get("data"))
+    return result
+
+
+@router.get("/catalog/import/pipes-fittings/images/template")
+def pipes_fittings_images_template(
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    items = pipes_fittings_image_template_rows(session)
+    return envelope({"items": items, "rowCount": len(items)})
+
+
+@router.post("/catalog/import/pipes-fittings/images/validate")
+def validate_pipes_fittings_images_import(
+    body: PipesFittingsImagesImportIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    items = [item.model_dump() for item in body.items]
+    errors, match_count = validate_pipes_fittings_image_items(session, items)
+    return envelope(
+        {
+            "valid": not errors,
+            "errors": errors,
+            "rowCount": len(items),
+            "familyMatches": match_count,
+        },
+    )
+
+
+@router.post("/catalog/import/pipes-fittings/images")
+def import_pipes_fittings_images_route(
+    body: PipesFittingsImagesImportIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    items = [item.model_dump() for item in body.items]
+    result = import_pipes_fittings_images(session, items)
+    if isinstance(result, dict) and not result.get("success", True):
+        return error_response(400, result.get("error") or "Import failed", result.get("data"))
+    return result

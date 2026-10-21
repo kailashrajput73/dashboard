@@ -214,6 +214,22 @@ class CatalogStockImportIn(BaseModel):
     items: list[CatalogStockImportRow]
 
 
+class PipesFittingsImportIn(BaseModel):
+    rows: list[dict[str, Any]]
+
+
+class PipesFittingsImageRow(BaseModel):
+    brand: str | None = None
+    product_family: str | None = None
+    product: str | None = None
+    image_url: str | None = None
+    imageUrl: str | None = None
+
+
+class PipesFittingsImagesImportIn(BaseModel):
+    items: list[PipesFittingsImageRow]
+
+
 __all__ = [
     "AdminPasscodeIn",
     "CatalogBulkPricingIn",
@@ -224,4 +240,6 @@ __all__ = [
     "CatalogPricingIn",
     "CatalogPricingImportIn",
     "CatalogStockImportIn",
+    "PipesFittingsImportIn",
+    "PipesFittingsImagesImportIn",
 ]

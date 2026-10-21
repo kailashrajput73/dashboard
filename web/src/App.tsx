@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AdminShell } from "./components/AdminShell";
 import { StartupRedirect } from "./components/StartupRedirect";
 import CategoriesPage from "./pages/CategoriesPage";
@@ -44,6 +44,11 @@ export default function App() {
           <Route path="/import-products-batch" element={<CatalogImportPage kind="master" batch />} />
           <Route path="/import-prices" element={<CatalogImportPage kind="pricing" />} />
           <Route path="/import-stock" element={<CatalogImportPage kind="stock" />} />
+          <Route path="/import-pipes-fittings" element={<CatalogImportPage kind="pipes-fittings" />} />
+          <Route
+            path="/import-pipes-fittings-images"
+            element={<Navigate to="/import-pipes-fittings#family-images" replace />}
+          />
           <Route path="/racks" element={<RacksPage />} />
           <Route path="/purchases" element={<PurchasesPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
