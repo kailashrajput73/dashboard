@@ -68,8 +68,12 @@ type Props = {
   subtitle: string;
   columnHelp: string;
   showCategoryMode?: boolean;
-  /** Full product master only: links to pipes v1 imports (not on spreadsheet hub). */
+  /** Full product master only: link to pipes v1 (not on spreadsheet hub). */
   showPipesFittingsEntry?: boolean;
+  /** Step section inside combined pipes v1 page (no page header). */
+  embedded?: boolean;
+  sectionTitle?: string;
+  sectionId?: string;
 };
 
 export function CatalogSpreadsheetImport(props: Props) {
@@ -340,10 +344,8 @@ export function CatalogSpreadsheetImport(props: Props) {
     sheetCheck !== null &&
     (sheetCheck.checking || !sheetCheck.valid);
 
-  return (
-    <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
-      <Header title={props.title} subtitle={props.subtitle} onBack={() => navigate(-1)} />
-      <div className="admin-page-container" style={{ maxWidth: "none", margin: "0 auto", padding: spacing.lg }}>
+  const sheetBody = (
+    <>
         <div style={{ backgroundColor: `${accent}18`, borderRadius: 8, padding: spacing.md, marginBottom: spacing.md }}>
           <span style={{ ...font.caption, color: accent, fontWeight: 700, display: "block", lineHeight: "14px" }}>
             {props.kind === "master"
@@ -362,36 +364,21 @@ export function CatalogSpreadsheetImport(props: Props) {
             <p style={{ ...font.caption, color: colors.textSecondary, margin: `0 0 ${spacing.sm}px`, lineHeight: 1.45 }}>
               Pipes &amp; fitting (new format) — use while testing; legacy master below will be retired.
             </p>
-            <nav aria-label="Pipes and fittings imports" style={{ display: "grid", gap: spacing.sm }}>
-              <button
-                type="button"
-                data-testid="nav-import-pipes-fittings"
-                onClick={() => navigate("/import-pipes-fittings")}
-                style={pipesEntryButtonStyle}
-              >
-                <Icon name="git-branch-outline" size={20} color={colors.primary} />
-                <span style={{ flex: 1, textAlign: "left" }}>
-                  <span style={{ ...font.title, display: "block", fontSize: 14 }}>Pipes &amp; fittings (v1)</span>
-                  <span style={{ color: colors.textSecondary, fontSize: 12 }}>
-                    Families + SKU rows — validate before import
-                  </span>
+            <button
+              type="button"
+              data-testid="nav-import-pipes-fittings"
+              onClick={() => navigate("/import-pipes-fittings")}
+              style={{ ...pipesEntryButtonStyle, width: "100%" }}
+            >
+              <Icon name="git-branch-outline" size={20} color={colors.primary} />
+              <span style={{ flex: 1, textAlign: "left" }}>
+                <span style={{ ...font.title, display: "block", fontSize: 14 }}>Pipes &amp; fittings (v1)</span>
+                <span style={{ color: colors.textSecondary, fontSize: 12 }}>
+                  Master sheet + family images on one page
                 </span>
-                <Icon name="chevron-forward" size={16} color={colors.textMuted} />
-              </button>
-              <button
-                type="button"
-                data-testid="nav-import-pipes-fittings-images"
-                onClick={() => navigate("/import-pipes-fittings-images")}
-                style={pipesEntryButtonStyle}
-              >
-                <Icon name="image-outline" size={20} color={colors.primary} />
-                <span style={{ flex: 1, textAlign: "left" }}>
-                  <span style={{ ...font.title, display: "block", fontSize: 14 }}>Pipes &amp; fittings images</span>
-                  <span style={{ color: colors.textSecondary, fontSize: 12 }}>brand + product_family + image_url</span>
-                </span>
-                <Icon name="chevron-forward" size={16} color={colors.textMuted} />
-              </button>
-            </nav>
+              </span>
+              <Icon name="chevron-forward" size={16} color={colors.textMuted} />
+            </button>
           </Card>
         ) : null}
         <Card>
@@ -502,7 +489,11 @@ export function CatalogSpreadsheetImport(props: Props) {
             <p style={{ color: colors.textPrimary, lineHeight: 1.45, margin: 0 }}>{result}</p>
           </Card>
         ) : null}
-      </div>
+    </>
+  );
+
+  const modals = (
+    <>
       <AppModal visible={modeOpen} onClose={() => setModeOpen(false)} title="Category routing">
         <p style={{ color: colors.textSecondary, lineHeight: 1.45, marginTop: 0 }}>
           Use sheet categories (recommended) or override for empty rows.
@@ -517,6 +508,41 @@ export function CatalogSpreadsheetImport(props: Props) {
         <Button title="Confirm import" onPress={() => { setModeOpen(false); void submitImport(mode, false); }} loading={importing} fullWidth />
       </AppModal>
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
+    </>
+  );
+
+  if (props.embedded) {
+    return (
+      <section
+        id={props.sectionId}
+        aria-label={props.sectionTitle}
+        style={{ marginTop: spacing.xl }}
+      >
+        {props.sectionTitle ? (
+          <h2
+            style={{
+              ...font.title,
+              color: colors.textPrimary,
+              margin: `0 0 ${spacing.sm}px`,
+              fontSize: 17,
+            }}
+          >
+            {props.sectionTitle}
+          </h2>
+        ) : null}
+        {sheetBody}
+        {modals}
+      </section>
+    );
+  }
+
+  return (
+    <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
+      <Header title={props.title} subtitle={props.subtitle} onBack={() => navigate(-1)} />
+      <div className="admin-page-container" style={{ maxWidth: "none", margin: "0 auto", padding: spacing.lg }}>
+        {sheetBody}
+      </div>
+      {modals}
     </main>
   );
 }
