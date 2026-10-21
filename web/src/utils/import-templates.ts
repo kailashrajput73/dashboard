@@ -113,6 +113,18 @@ export function downloadImportTemplate(kind: ImportTemplateKind): void {
   downloadCsv(csv, fileName);
 }
 
+export function downloadCsvFromObjects(
+  headers: string[],
+  rows: Record<string, string>[],
+  fileName: string,
+): void {
+  const lines = [
+    headers.map(escapeCsvCell).join(","),
+    ...rows.map((row) => headers.map((h) => escapeCsvCell(row[h] ?? "")).join(",")),
+  ];
+  downloadCsv(`\uFEFF${lines.join("\n")}\n`, fileName);
+}
+
 export function templateColumnSummary(kind: ImportTemplateKind): string {
   return HEADERS[kind].join(", ");
 }

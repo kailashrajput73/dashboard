@@ -692,6 +692,13 @@ export function importPipesFittings(body: { rows: Record<string, string>[] }) {
   }>("/catalog/import/pipes-fittings", { method: "POST", body });
 }
 
+export function fetchPipesFittingsImagesTemplate() {
+  return apiRequest<{
+    items: { brand: string; product_family: string; image_url: string }[];
+    rowCount: number;
+  }>("/catalog/import/pipes-fittings/images/template", { method: "GET" });
+}
+
 export function validatePipesFittingsImagesImport(body: {
   items: { brand?: string; product_family?: string; image_url?: string }[];
 }) {

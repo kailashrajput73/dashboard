@@ -440,6 +440,36 @@ def import_pipes_fittings_rows(
     return _run_transaction(session, operation)
 
 
+def pipes_fittings_image_template_rows(session: Session) -> list[dict[str, str]]:
+    """Rows for image sidecar CSV: brand + product_family from DB, empty image_url."""
+    families = session.scalars(
+        select(ProductFamily)
+        .where(ProductFamily.deleted_at.is_(None))
+        .order_by(ProductFamily.name)
+    ).all()
+    rows: list[dict[str, str]] = []
+    for family in families:
+        brand_name = ""
+        if family.brand_id:
+            brand_name = (
+                session.scalar(select(Brand.name).where(Brand.id == family.brand_id)) or ""
+            )
+        rows.append(
+            {
+                "brand": brand_name,
+                "product_family": family.name,
+                "image_url": "",
+            }
+        )
+    rows.sort(
+        key=lambda row: (
+            normalize_label(row["brand"]),
+            normalize_label(row["product_family"]),
+        )
+    )
+    return rows
+
+
 def validate_pipes_fittings_image_items(
     session: Session,
     items: list[dict[str, Any]],

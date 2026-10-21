@@ -6,6 +6,7 @@ import {
   importCatalogStock,
   importPipesFittings,
   importPipesFittingsImages,
+  fetchPipesFittingsImagesTemplate,
   validatePipesFittingsImagesImport,
   validatePipesFittingsImport,
   type SheetValidationError,
@@ -23,7 +24,12 @@ import {
   type StockImportItem,
 } from "../../utils/csv";
 import { parseSpreadsheetBytes } from "../../utils/spreadsheet";
-import { downloadImportTemplate, type ImportTemplateKind } from "../../utils/import-templates";
+import {
+  downloadCsvFromObjects,
+  downloadImportTemplate,
+  PIPES_FITTINGS_IMAGE_HEADERS,
+  type ImportTemplateKind,
+} from "../../utils/import-templates";
 import { SheetValidationPanel } from "./SheetValidationPanel";
 
 type SheetCheckState = {
@@ -82,6 +88,30 @@ export function CatalogSpreadsheetImport(props: Props) {
   const [mode, setMode] = useState<Mode>("fromCsv");
   const [override, setOverride] = useState("");
   const [sheetCheck, setSheetCheck] = useState<SheetCheckState | null>(null);
+  const [downloadingCatalogSheet, setDownloadingCatalogSheet] = useState(false);
+
+  async function downloadPipesImagesSheetFromCatalog() {
+    setDownloadingCatalogSheet(true);
+    setError(null);
+    try {
+      const data = await fetchPipesFittingsImagesTemplate();
+      if (!data.items.length) {
+        setError(
+          "No product families in the database yet. Import the pipes master sheet first, then download this sheet.",
+        );
+        return;
+      }
+      downloadCsvFromObjects(
+        PIPES_FITTINGS_IMAGE_HEADERS,
+        data.items,
+        "pipes-fittings-images-from-catalog.csv",
+      );
+    } catch (cause: unknown) {
+      setError(cause instanceof ApiError ? cause.message : "Could not download catalog sheet.");
+    } finally {
+      setDownloadingCatalogSheet(false);
+    }
+  }
 
   async function runPipesSheetValidation(rows: Record<string, string>[]) {
     setSheetCheck({ checking: true, valid: false, errors: [], rowCount: rows.length });
@@ -376,23 +406,43 @@ export function CatalogSpreadsheetImport(props: Props) {
             style={{ display: "none" }}
           />
           <div style={{ display: "grid", gap: spacing.md, marginTop: spacing.sm }}>
-            <Button
-              testID={`download-${props.kind}-template`}
-              title="Download empty template (CSV)"
-              icon="download-outline"
-              variant="ghost"
-              size="sm"
-              onPress={() =>
-                downloadImportTemplate(
-                  props.kind === "pipes-fittings"
-                    ? "pipes_fittings"
-                    : props.kind === "pipes-fittings-images"
-                      ? "pipes_fittings_images"
+            {props.kind === "pipes-fittings-images" ? (
+              <>
+                <Button
+                  testID="download-pipes-fittings-images-from-catalog"
+                  title="Download sheet from catalog (fill image URLs)"
+                  icon="download-outline"
+                  loading={downloadingCatalogSheet}
+                  onPress={() => void downloadPipesImagesSheetFromCatalog()}
+                  style={{ width: "100%" }}
+                />
+                <Button
+                  testID={`download-${props.kind}-template`}
+                  title="Empty template (headers only)"
+                  icon="download-outline"
+                  variant="ghost"
+                  size="sm"
+                  onPress={() => downloadImportTemplate("pipes_fittings_images")}
+                  style={{ width: "100%" }}
+                />
+              </>
+            ) : (
+              <Button
+                testID={`download-${props.kind}-template`}
+                title="Download empty template (CSV)"
+                icon="download-outline"
+                variant="ghost"
+                size="sm"
+                onPress={() =>
+                  downloadImportTemplate(
+                    props.kind === "pipes-fittings"
+                      ? "pipes_fittings"
                       : (props.kind as ImportTemplateKind),
-                )
-              }
-              style={{ width: "100%" }}
-            />
+                  )
+                }
+                style={{ width: "100%" }}
+              />
+            )}
             <Button
               testID={`pick-${props.kind}-import`}
               title={picking ? "Reading..." : fileName ? `Selected: ${fileName}` : "Choose CSV or Excel"}

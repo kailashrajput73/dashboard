@@ -54,7 +54,7 @@ function getPageConfig(kind: CatalogImportKind, batch: boolean): PageConfig {
     return {
       title: "Import pipes & fittings images",
       subtitle: "One row per product family (not per size)",
-      columnHelp: `${PIPES_FITTINGS_IMAGE_HEADERS.join(", ")}. Match brand + product_family from the master sheet.`,
+      columnHelp: `${PIPES_FITTINGS_IMAGE_HEADERS.join(", ")}. Download the sheet from catalog (brand + product_family pre-filled), add image_url, upload — validation runs automatically like the master import.`,
     };
   }
 
