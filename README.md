@@ -98,6 +98,8 @@ stock_qty, discount, image_url, is_active
 
 `discount` may be `25` or `25%`. `product_code` updates the existing row instead of duplicating.
 
+**Spreadsheet imports (current):** See `migration/SHEET-IMPORTS-INDEX.md` and `migration/admin/spreadsheet-imports.md` for all upload types (legacy master, prices, stock, pipes v1, subcategories, purchases). Pipes v1 rules: `migration-db/CATALOG-DESIGN-RULES.md`.
+
 ---
 
 ## Endpoints
@@ -308,7 +310,7 @@ web/src/utils/csv.ts      CSV + xlsx import
 web/src/components/       AdminShell.tsx (sidebar)
 ```
 
-CSV import uses a file picker. Excel `.xlsx` with the same headers is accepted.
+CSV import uses a file picker. Excel `.xlsx` with the same headers is accepted. Import map: `migration/SHEET-IMPORTS-INDEX.md`.
 
 ---
 
