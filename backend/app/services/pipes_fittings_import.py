@@ -33,6 +33,7 @@ from app.services.catalog_service import (
     _selling_from,
 )
 from app.services.pipes_fittings_template import (
+    parse_product_status,
     TEMPLATE_ID,
     row_get,
     validate_headers,
@@ -62,6 +63,7 @@ class ParsedRow:
     mrp_pkg: float | None
     reorder_level: float
     family_key: str
+    is_active: bool = False
 
 
 @dataclass
@@ -163,6 +165,8 @@ def parse_rows(
         mrp_pkg = _parse_float(row_get(row, column_map, "mrp_pkg"))
         rol_raw = _parse_float(row_get(row, column_map, "rol"))
         reorder = float(rol_raw if rol_raw is not None else 0)
+        status_raw = row_get(row, column_map, "status") if "status" in column_map else ""
+        is_active = parse_product_status(status_raw)
 
         family_key = build_family_key(
             category=category,
@@ -195,6 +199,7 @@ def parse_rows(
                 mrp_pkg=mrp_pkg,
                 reorder_level=reorder,
                 family_key=family_key,
+                is_active=is_active,
             )
         )
 
@@ -397,7 +402,7 @@ def import_pipes_fittings_rows(
                 "hsn_code": None,
                 "gst_rate": None,
                 "image_url": None,
-                "is_active": True,
+                "is_active": row.is_active,
             }
             product = existing or Catalog(created_at=_now(), updated_at=_now())
             _product_payload(

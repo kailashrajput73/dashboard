@@ -1284,6 +1284,27 @@ def update_catalog_pricing(
     return _run_transaction(session, operation)
 
 
+def set_catalog_active(
+    session: Session,
+    item_id: str,
+    is_active: bool,
+) -> dict[str, Any] | JSONResponse:
+    def operation() -> dict[str, Any]:
+        product = session.scalar(
+            select(Catalog)
+            .where(Catalog.id == item_id, Catalog.deleted_at.is_(None))
+            .with_for_update()
+        )
+        if product is None:
+            raise CatalogServiceError(404, "Item not found")
+        product.is_active = is_active
+        product.updated_at = _now()
+        session.flush()
+        return envelope(_catalog_json(session, product, _pricing_for(session, product.product_code)))
+
+    return _run_transaction(session, operation)
+
+
 def update_catalog_pricing_bulk(
     session: Session,
     body: CatalogBulkPricingIn,

@@ -60,6 +60,16 @@ class PipesFittingsValidationTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertTrue(any("Duplicate" in e["message"] for e in result.errors))
 
+    def test_status_blank_is_inactive(self) -> None:
+        result = parse_rows([_row(**{"status": ""})])
+        self.assertTrue(result.ok)
+        self.assertFalse(result.rows[0].is_active)
+
+    def test_status_active_is_live(self) -> None:
+        result = parse_rows([_row(**{"status": "active"})])
+        self.assertTrue(result.ok)
+        self.assertTrue(result.rows[0].is_active)
+
     def test_brand_casefold_same_family_key(self) -> None:
         rows = [
             _row(**{"Brand": "KING", "product code": "A1"}),

@@ -22,6 +22,7 @@ export const PIPES_FITTINGS_TEMPLATE_HEADERS = [
   "Pack Size",
   "MRP Pkg",
   "ROL",
+  "status",
 ];
 
 export const PIPES_FITTINGS_IMAGE_HEADERS = [

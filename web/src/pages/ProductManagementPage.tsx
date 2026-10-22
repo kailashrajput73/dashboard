@@ -10,6 +10,7 @@ import {
   listProductGroups,
   listProductTypes,
   listSubcategories,
+  updateCatalogActive,
   updateCatalogItem,
   type Brand,
   type CatalogItem,
@@ -96,6 +97,7 @@ export default function ProductManagementPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [selectedItems, setSelectedItems] = useState<Map<string, CatalogItem>>(() => new Map());
   const [exportConflictOpen, setExportConflictOpen] = useState(false);
+  const [togglingActiveId, setTogglingActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     const state = location.state as { openImport?: string; scrollFamilyImages?: boolean } | null;
@@ -270,6 +272,18 @@ export default function ProductManagementPage() {
     }
   }
 
+  async function toggleActive(item: CatalogItem) {
+    setTogglingActiveId(item.id);
+    try {
+      await updateCatalogActive(item.id, item.isActive === false);
+      await loadPage();
+    } catch (cause) {
+      setError(cause instanceof ApiError ? cause.message : "Could not update product status");
+    } finally {
+      setTogglingActiveId(null);
+    }
+  }
+
   function toggleSelect(item: CatalogItem) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -339,8 +353,8 @@ export default function ProductManagementPage() {
 
   const selectionEnabled = exportMode === "selected" || exportMode === "filtered";
   const gridCols = selectionEnabled
-    ? "28px minmax(200px, 2fr) 120px 72px 72px 72px 56px 72px"
-    : "minmax(200px, 2fr) 120px 72px 72px 72px 56px 72px";
+    ? "28px minmax(200px, 2fr) 120px 72px 72px 72px 56px 140px"
+    : "minmax(200px, 2fr) 120px 72px 72px 72px 56px 140px";
 
   return (
     <main style={pageStyle}>
@@ -452,6 +466,8 @@ export default function ProductManagementPage() {
                       setEditorOpen(true);
                     }}
                     onDelete={() => setDeleteTarget(item)}
+                    onToggleActive={() => void toggleActive(item)}
+                    togglingActive={togglingActiveId === item.id}
                   />
                 ))
               )}

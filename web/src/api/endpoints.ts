@@ -559,6 +559,13 @@ export async function applyCatalogPricingBulk(
   }
 }
 
+export function updateCatalogActive(id: string, isActive: boolean) {
+  return apiRequest<CatalogItem>(`/catalog/${id}/active`, {
+    method: "PATCH",
+    body: { isActive },
+  });
+}
+
 export async function updateCatalogPricing(
   item: CatalogItem,
   body: { mrp?: number; sellingPrice?: number; discount?: number; stock?: number },

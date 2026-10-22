@@ -12,8 +12,11 @@ export function CatalogProductListRow(props: {
   onToggleSelect?: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleActive?: () => void;
+  togglingActive?: boolean;
 }) {
   const { item } = props;
+  const active = item.isActive !== false;
   const className = inferProductClass(item);
   const subcategory = (item.subcategory || "").trim();
   const typeName = (item.type || "").trim();
@@ -24,7 +27,14 @@ export function CatalogProductListRow(props: {
   const stock = item.stock == null ? "0" : String(item.stock);
 
   return (
-    <div style={rowStyle} data-testid={`admin-item-${item.id}`}>
+    <div
+      style={{
+        ...rowStyle,
+        opacity: active ? 1 : 0.72,
+        backgroundColor: active ? colors.surface : colors.bg,
+      }}
+      data-testid={`admin-item-${item.id}`}
+    >
       {props.selectionEnabled ? (
         <label style={selectCellStyle}>
           <input
@@ -62,6 +72,22 @@ export function CatalogProductListRow(props: {
       <div style={actionsCellStyle}>
         <button
           type="button"
+          onClick={props.onToggleActive}
+          disabled={props.togglingActive || !props.onToggleActive}
+          data-testid={`toggle-active-${item.id}`}
+          title={active ? "Set inactive" : "Set active"}
+          aria-label={active ? "Set product inactive" : "Set product active"}
+          style={{
+            ...statusBtnStyle,
+            borderColor: active ? colors.success : colors.borderStrong,
+            color: active ? colors.success : colors.textMuted,
+            backgroundColor: active ? colors.successBg : colors.surface,
+          }}
+        >
+          {props.togglingActive ? "…" : active ? "Active" : "Inactive"}
+        </button>
+        <button
+          type="button"
           onClick={props.onEdit}
           aria-label={`Edit ${item.name}`}
           data-testid={`edit-item-${item.id}`}
@@ -86,7 +112,7 @@ export function CatalogProductListRow(props: {
 
 const rowStyle: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "var(--pm-row-cols,  minmax(200px, 2fr) 120px 72px 72px 72px 56px 72px)",
+  gridTemplateColumns: "var(--pm-row-cols, minmax(200px, 2fr) 120px 72px 72px 72px 56px 140px)",
   alignItems: "center",
   gap: 8,
   padding: "8px 12px",
@@ -179,12 +205,25 @@ const metricCellStyle: React.CSSProperties = {
 const actionsCellStyle: React.CSSProperties = {
   display: "flex",
   justifyContent: "flex-end",
+  alignItems: "center",
   gap: 4,
   position: "sticky",
   right: 0,
-  backgroundColor: colors.surface,
+  backgroundColor: "inherit",
   paddingLeft: 8,
   boxShadow: "-8px 0 12px -8px rgba(15, 23, 42, 0.12)",
+};
+
+const statusBtnStyle: React.CSSProperties = {
+  height: 28,
+  padding: "0 8px",
+  borderRadius: 999,
+  border: "1px solid",
+  fontSize: 10,
+  fontWeight: 800,
+  textTransform: "uppercase",
+  cursor: "pointer",
+  flexShrink: 0,
 };
 
 const iconButtonStyle: React.CSSProperties = {

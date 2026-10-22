@@ -12,6 +12,11 @@
 - Export menu: full catalog | filter session | pick rows.
 - Modes 2/3: checkboxes + floating **Download**; conflict dialog if filters + selection.
 
+## Product active / inactive
+
+- List row **Active / Inactive** button → `PATCH /catalog/{id}/active`.
+- Pipes v1 sheet column **`status`** after **ROL**: blank → inactive; `active` / `yes` / etc. → live on import.
+
 ## Pipes family images download
 
 - Subcategory required; only families **missing** `image_url`.

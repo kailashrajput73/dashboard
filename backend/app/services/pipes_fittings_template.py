@@ -35,7 +35,20 @@ PRODUCT_FAMILY_ALIASES = ("product_family", "product")
 
 OPTIONAL_HEADERS = {
     "product_name": "Product Name",
+    "status": "status",
 }
+
+ACTIVE_STATUS_TOKENS = frozenset({"active", "yes", "y", "1", "true", "live"})
+
+
+def parse_product_status(value: str | None) -> bool:
+    """Empty status → inactive; explicit active tokens → active."""
+    text = normalize_header(str(value or "")).replace("_", " ").strip().lower()
+    if not text:
+        return False
+    if text in ACTIVE_STATUS_TOKENS:
+        return True
+    return False
 
 
 def validate_headers(raw_headers: list[str]) -> tuple[dict[str, str], list[dict[str, str | int | None]]]:

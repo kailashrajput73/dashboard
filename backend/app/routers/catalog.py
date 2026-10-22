@@ -16,6 +16,7 @@ from app.schemas.catalog import (
     CatalogItemIn,
     CatalogMasterImportIn,
     CatalogPricingImportIn,
+    CatalogActiveIn,
     CatalogPricingIn,
     CatalogStockImportIn,
     PipesFittingsImagesImportIn,
@@ -129,6 +130,17 @@ def update_catalog_pricing(
 ):
     _require_catalog_write(_admin)
     return service.update_catalog_pricing(session, item_id, body)
+
+
+@router.patch("/catalog/{item_id}/active")
+def update_catalog_active(
+    item_id: str,
+    body: CatalogActiveIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    return service.set_catalog_active(session, item_id, body.isActive)
 
 
 @router.post("/catalog/pricing-bulk")
