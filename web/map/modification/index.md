@@ -10,6 +10,7 @@ Ad-hoc UI changes on the React admin (`web/`). Each entry documents what changed
 | 2026-10-21 | [2026-10-21-decommission-classic-catalog-pages.md](2026-10-21-decommission-classic-catalog-pages.md) | Sidebar/dashboard decommission; legacy routes redirect to hub |
 | 2026-10-22 | [2026-10-22-pipes-import-hub-parity.md](2026-10-22-pipes-import-hub-parity.md) | Pipes/families import 100% in Product management import hub |
 | 2026-10-22 | [2026-10-22-decommission-legacy-master-import-hub.md](2026-10-22-decommission-legacy-master-import-hub.md) | Remove legacy full master Columns upload from import hub |
+| 2026-10-22 | [2026-10-22-merge-pipes-pr-with-hub.md](2026-10-22-merge-pipes-pr-with-hub.md) | Git merge: pipes PR + hub design (299393b confusion resolved) |
 
 **Scope:** `web/` only. Never modify `frontend/` or `backend_refactor/`.
 
