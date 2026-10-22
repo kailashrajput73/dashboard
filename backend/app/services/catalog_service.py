@@ -838,6 +838,141 @@ def _add_import_row(
     return existing is None or was_deleted, existing is not None and not was_deleted
 
 
+def _catalog_list_filters(
+    *,
+    category: str | None = None,
+    search: str | None = None,
+    type_name: str | None = None,
+    brand: str | None = None,
+    product_group: str | None = None,
+    subcategory: str | None = None,
+    product_class: str | None = None,
+    size_mm: float | None = None,
+) -> list[Any]:
+    filters: list[Any] = [Catalog.deleted_at.is_(None)]
+    if category and category.lower() != "all":
+        filters.append(Catalog.category == category)
+    if search and search.strip():
+        pattern = f"%{escaped_like(search.strip())}%"
+        filters.append(
+            Catalog.name.ilike(pattern, escape="\\")
+            | Catalog.product_code.ilike(pattern, escape="\\")
+            | Catalog.brand.ilike(pattern, escape="\\")
+            | cast(Catalog.aliases, Text).ilike(pattern, escape="\\")
+        )
+    if type_name and type_name.lower() != "all":
+        filters.append(func.lower(Catalog.type_name) == type_name.strip().lower())
+    if brand and brand.lower() != "all":
+        filters.append(func.lower(Catalog.brand) == brand.strip().lower())
+    if product_group and product_group.lower() != "all":
+        filters.append(Catalog.product_group == product_group)
+    if subcategory and subcategory.lower() != "all":
+        filters.append(func.lower(Catalog.subcategory) == subcategory.strip().lower())
+    if product_class and product_class.lower() != "all":
+        filters.append(func.lower(Catalog.product_class) == product_class.strip().lower())
+    if size_mm is not None:
+        filters.append(Catalog.size_mm == size_mm)
+    return filters
+
+
+def _catalog_list_query(
+    *,
+    group_id: str | None = None,
+    filters: list[Any],
+):
+    query = select(Catalog).where(*filters)
+    if group_id:
+        query = query.join(
+            ProductGroupItem,
+            ProductGroupItem.product_id == Catalog.id,
+        ).join(
+            ProductGroup,
+            ProductGroup.id == ProductGroupItem.product_group_id,
+        ).where(
+            ProductGroupItem.product_group_id == group_id,
+            ProductGroupItem.deleted_at.is_(None),
+            ProductGroup.deleted_at.is_(None),
+        )
+    return query
+
+
+def _catalog_sort_clause(sort: str | None):
+    key = (sort or "updated_desc").strip().lower()
+    if key == "name":
+        return (Catalog.name.asc(), Catalog.id.asc())
+    if key == "category":
+        return (
+            Catalog.category.asc(),
+            Catalog.updated_at.desc(),
+            Catalog.name.asc(),
+        )
+    return (Catalog.updated_at.desc(), Catalog.name.asc())
+
+
+def _sync_catalog_taxonomy_batch(session: Session, products: list[Catalog]) -> None:
+    now = _now()
+    for product in products:
+        resolved_type, resolved_class = _resolve_product_taxonomy(
+            product.type_name,
+            product.subcategory,
+            product.product_class,
+            product.name,
+            product.product_name,
+        )
+        if resolved_type and product.type_name != resolved_type:
+            product.type_name = resolved_type
+            product.updated_at = now
+        if resolved_class and product.product_class != resolved_class:
+            product.product_class = resolved_class
+            product.updated_at = now
+        if resolved_type:
+            product_type = _get_product_type(session, resolved_type)
+            if product_type and product.product_type_id != product_type.id:
+                product.product_type_id = product_type.id
+                product.updated_at = now
+    session.flush()
+
+
+def _catalog_items_json(session: Session, products: list[Catalog]) -> list[dict[str, Any]]:
+    return [
+        _catalog_json(session, product, _pricing_for(session, product.product_code))
+        for product in products
+    ]
+
+
+def catalog_filter_options(
+    session: Session,
+    *,
+    category: str | None = None,
+    subcategory: str | None = None,
+) -> dict[str, Any] | JSONResponse:
+    def operation() -> dict[str, Any]:
+        filters = _catalog_list_filters(category=category, subcategory=subcategory)
+        base = select(Catalog).where(*filters)
+
+        def distinct_text(column) -> list[str]:
+            rows = session.scalars(
+                select(column)
+                .where(*filters)
+                .where(column.is_not(None))
+                .where(column != "")
+                .distinct()
+                .order_by(column)
+            ).all()
+            return [str(value).strip() for value in rows if str(value).strip()]
+
+        return envelope(
+            {
+                "productTypes": distinct_text(Catalog.type_name),
+                "productClasses": distinct_text(Catalog.product_class),
+                "brands": distinct_text(Catalog.brand),
+                "productGroups": distinct_text(Catalog.product_group),
+            }
+        )
+
+    return _run_transaction(session, operation)
+
+
 def list_catalog(
     session: Session,
     *,
@@ -850,72 +985,56 @@ def list_catalog(
     subcategory: str | None = None,
     product_class: str | None = None,
     size_mm: float | None = None,
+    page: int | None = None,
+    limit: int | None = None,
+    sort: str | None = None,
 ) -> dict[str, Any] | JSONResponse:
     def operation() -> dict[str, Any]:
-        now = _now()
-        filters = [Catalog.deleted_at.is_(None)]
-        if category and category.lower() != "all":
-            filters.append(Catalog.category == category)
-        if search and search.strip():
-            pattern = f"%{escaped_like(search.strip())}%"
-            filters.append(
-                Catalog.name.ilike(pattern, escape="\\")
-                | Catalog.product_code.ilike(pattern, escape="\\")
-                | Catalog.brand.ilike(pattern, escape="\\")
-                | cast(Catalog.aliases, Text).ilike(pattern, escape="\\")
-            )
-        if type_name:
-            filters.append(func.lower(Catalog.type_name) == type_name.strip().lower())
-        if brand:
-            filters.append(func.lower(Catalog.brand) == brand.strip().lower())
-        if product_group:
-            filters.append(Catalog.product_group == product_group)
-        if subcategory:
-            filters.append(func.lower(Catalog.subcategory) == subcategory.strip().lower())
-        if product_class:
-            filters.append(func.lower(Catalog.product_class) == product_class.strip().lower())
-        if size_mm is not None:
-            filters.append(Catalog.size_mm == size_mm)
-        query = select(Catalog).where(*filters).order_by(Catalog.name)
-        if group_id:
-            query = query.join(
-                ProductGroupItem,
-                ProductGroupItem.product_id == Catalog.id,
-            ).join(
-                ProductGroup,
-                ProductGroup.id == ProductGroupItem.product_group_id,
-            ).where(
-                ProductGroupItem.product_group_id == group_id,
-                ProductGroupItem.deleted_at.is_(None),
-                ProductGroup.deleted_at.is_(None),
-            )
-        selected = session.scalars(query).unique().all()
-        for product in selected:
-            resolved_type, resolved_class = _resolve_product_taxonomy(
-                product.type_name,
-                product.subcategory,
-                product.product_class,
-                product.name,
-                product.product_name,
-            )
-            if resolved_type and product.type_name != resolved_type:
-                product.type_name = resolved_type
-                product.updated_at = now
-            if resolved_class and product.product_class != resolved_class:
-                product.product_class = resolved_class
-                product.updated_at = now
-            if resolved_type:
-                product_type = _get_product_type(session, resolved_type)
-                if product_type and product.product_type_id != product_type.id:
-                    product.product_type_id = product_type.id
-                    product.updated_at = now
-        session.flush()
-        return envelope(
-            [
-                _catalog_json(session, product, _pricing_for(session, product.product_code))
-                for product in selected
-            ]
+        filters = _catalog_list_filters(
+            category=category,
+            search=search,
+            type_name=type_name,
+            brand=brand,
+            product_group=product_group,
+            subcategory=subcategory,
+            product_class=product_class,
+            size_mm=size_mm,
         )
+        query = _catalog_list_query(group_id=group_id, filters=filters)
+
+        if page is not None:
+            page_num = max(1, int(page))
+            page_size = min(200, max(1, int(limit or 50)))
+            count_stmt = select(func.count(func.distinct(Catalog.id))).select_from(
+                query.with_only_columns(Catalog.id).subquery()
+            )
+            total = int(session.scalar(count_stmt) or 0)
+            total_pages = max(1, (total + page_size - 1) // page_size) if total else 1
+            if page_num > total_pages and total > 0:
+                page_num = total_pages
+            order = _catalog_sort_clause(sort)
+            page_query = (
+                query.order_by(*order)
+                .offset((page_num - 1) * page_size)
+                .limit(page_size)
+            )
+            selected = session.scalars(page_query).unique().all()
+            _sync_catalog_taxonomy_batch(session, selected)
+            return envelope(
+                {
+                    "items": _catalog_items_json(session, selected),
+                    "page": page_num,
+                    "limit": page_size,
+                    "total": total,
+                    "totalPages": total_pages,
+                    "sort": (sort or "updated_desc"),
+                }
+            )
+
+        query = query.order_by(Catalog.name)
+        selected = session.scalars(query).unique().all()
+        _sync_catalog_taxonomy_batch(session, selected)
+        return envelope(_catalog_items_json(session, selected))
 
     return _run_transaction(session, operation)
 

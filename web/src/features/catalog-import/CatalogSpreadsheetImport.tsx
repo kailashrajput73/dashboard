@@ -8,6 +8,7 @@ import {
   importPipesFittings,
   importPipesFittingsImages,
   fetchPipesFittingsImagesTemplate,
+  listSubcategories,
   validatePipesFittingsImagesImport,
   validatePipesFittingsImport,
   type SheetValidationError,
@@ -209,15 +210,31 @@ export function CatalogSpreadsheetImport(props: Props) {
   const [override, setOverride] = useState("");
   const [sheetCheck, setSheetCheck] = useState<SheetCheckState | null>(null);
   const [downloadingCatalogSheet, setDownloadingCatalogSheet] = useState(false);
+  const [pipesImageSubcategory, setPipesImageSubcategory] = useState("");
+  const [pipesImageSubcategoryOptions, setPipesImageSubcategoryOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (props.kind !== "pipes-fittings-images") return;
+    void listSubcategories()
+      .then((rows) => {
+        const names = [...new Set((rows || []).map((row) => row.name.trim()).filter(Boolean))].sort();
+        setPipesImageSubcategoryOptions(names);
+      })
+      .catch(() => setPipesImageSubcategoryOptions([]));
+  }, [props.kind]);
 
   async function downloadPipesImagesSheetFromCatalog() {
     setDownloadingCatalogSheet(true);
     setError(null);
     try {
-      const data = await fetchPipesFittingsImagesTemplate();
+      const data = await fetchPipesFittingsImagesTemplate(
+        pipesImageSubcategory.trim() || undefined,
+      );
       if (!data.items.length) {
         setError(
-          "No product families in the database yet. Import the pipes master sheet first, then download this sheet.",
+          pipesImageSubcategory.trim()
+            ? `No families missing images for subcategory “${pipesImageSubcategory.trim()}”. Try another subcategory or import the pipes master first.`
+            : "No families missing images. Pick a subcategory or import the pipes master sheet first.",
         );
         return;
       }
@@ -522,11 +539,36 @@ export function CatalogSpreadsheetImport(props: Props) {
           <div style={{ display: "grid", gap: spacing.md, marginTop: spacing.sm }}>
             {props.kind === "pipes-fittings-images" ? (
               <>
+                <label style={{ display: "grid", gap: 6 }}>
+                  <span style={{ ...font.caption, color: colors.textSecondary, fontWeight: 600 }}>
+                    Subcategory (families missing image only)
+                  </span>
+                  <select
+                    value={pipesImageSubcategory}
+                    onChange={(event) => setPipesImageSubcategory(event.currentTarget.value)}
+                    data-testid="pipes-images-subcategory-filter"
+                    style={{
+                      height: 40,
+                      borderRadius: 8,
+                      border: `1px solid ${colors.border}`,
+                      padding: "0 10px",
+                      font: "inherit",
+                    }}
+                  >
+                    <option value="">Select subcategory…</option>
+                    {pipesImageSubcategoryOptions.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <Button
                   testID="download-pipes-fittings-images-from-catalog"
                   title="Download sheet from catalog (fill image URLs)"
                   icon="download-outline"
                   loading={downloadingCatalogSheet}
+                  disabled={!pipesImageSubcategory.trim()}
                   onPress={() => void downloadPipesImagesSheetFromCatalog()}
                   style={{ width: "100%" }}
                 />

@@ -440,24 +440,59 @@ def import_pipes_fittings_rows(
     return _run_transaction(session, operation)
 
 
-def pipes_fittings_image_template_rows(session: Session) -> list[dict[str, str]]:
-    """Rows for image sidecar CSV: brand + product_family from DB, empty image_url."""
+def _family_needs_image(family: ProductFamily) -> bool:
+    url = (family.image_url or "").strip()
+    if not url:
+        return True
+    return not url.lower().startswith(("http://", "https://"))
+
+
+def pipes_fittings_image_template_rows(
+    session: Session,
+    *,
+    subcategory: str | None = None,
+    missing_image_only: bool = True,
+) -> list[dict[str, str]]:
+    """Rows for image sidecar CSV; optional subcategory filter and missing-image-only."""
     families = session.scalars(
         select(ProductFamily)
         .where(ProductFamily.deleted_at.is_(None))
         .order_by(ProductFamily.name)
     ).all()
+    subcategory_key = normalize_label(subcategory) if subcategory and subcategory.strip() else ""
     rows: list[dict[str, str]] = []
     for family in families:
+        if missing_image_only and not _family_needs_image(family):
+            continue
+        sub_name = ""
+        if family.subcategory_id:
+            sub_name = (
+                session.scalar(
+                    select(Subcategory.name).where(Subcategory.id == family.subcategory_id)
+                )
+                or ""
+            )
+        if subcategory_key and normalize_label(sub_name) != subcategory_key:
+            continue
         brand_name = ""
         if family.brand_id:
             brand_name = (
                 session.scalar(select(Brand.name).where(Brand.id == family.brand_id)) or ""
             )
+        type_name = ""
+        if family.product_type_id:
+            type_name = (
+                session.scalar(
+                    select(ProductType.name).where(ProductType.id == family.product_type_id)
+                )
+                or ""
+            )
         rows.append(
             {
                 "brand": brand_name,
                 "product_family": family.name,
+                "type": type_name,
+                "class": (family.product_class or "").strip(),
                 "image_url": "",
             }
         )

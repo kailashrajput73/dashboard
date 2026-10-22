@@ -24,7 +24,13 @@ export const PIPES_FITTINGS_TEMPLATE_HEADERS = [
   "ROL",
 ];
 
-export const PIPES_FITTINGS_IMAGE_HEADERS = ["brand", "product_family", "image_url"];
+export const PIPES_FITTINGS_IMAGE_HEADERS = [
+  "brand",
+  "product_family",
+  "type",
+  "class",
+  "image_url",
+];
 
 export const MASTER_TEMPLATE_HEADERS = [
   "Category",

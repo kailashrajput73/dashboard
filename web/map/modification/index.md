@@ -11,6 +11,7 @@ Ad-hoc UI changes on the React admin (`web/`). Each entry documents what changed
 | 2026-10-22 | [2026-10-22-pipes-import-hub-parity.md](2026-10-22-pipes-import-hub-parity.md) | Pipes/families import 100% in Product management import hub |
 | 2026-10-22 | [2026-10-22-decommission-legacy-master-import-hub.md](2026-10-22-decommission-legacy-master-import-hub.md) | Remove legacy full master Columns upload from import hub |
 | 2026-10-22 | [2026-10-22-merge-pipes-pr-with-hub.md](2026-10-22-merge-pipes-pr-with-hub.md) | Git merge: pipes PR + hub design (299393b confusion resolved) |
+| 2026-10-22 | [2026-10-22-product-management-list-export-paging.md](2026-10-22-product-management-list-export-paging.md) | Server paging, read-only list, export modes, pipes image CSV filter |
 
 **Scope:** `web/` only. Never modify `frontend/` or `backend_refactor/`.
 

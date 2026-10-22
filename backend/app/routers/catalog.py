@@ -55,6 +55,9 @@ def list_catalog(
     subcategory: str | None = None,
     product_class: str | None = None,
     size_mm: float | None = None,
+    page: int | None = None,
+    limit: int | None = None,
+    sort: str | None = None,
 ):
     return service.list_catalog(
         session,
@@ -67,6 +70,23 @@ def list_catalog(
         subcategory=subcategory,
         product_class=product_class,
         size_mm=size_mm,
+        page=page,
+        limit=limit,
+        sort=sort,
+    )
+
+
+@router.get("/catalog/filter-options")
+def catalog_filter_options(
+    session: DbSession,
+    _admin: AdminPrincipal,
+    category: str | None = None,
+    subcategory: str | None = None,
+):
+    return service.catalog_filter_options(
+        session,
+        category=category,
+        subcategory=subcategory,
     )
 
 
@@ -241,9 +261,14 @@ def import_pipes_fittings(
 def pipes_fittings_images_template(
     session: DbSession,
     _admin: AdminPrincipal,
+    subcategory: str | None = None,
 ):
     _require_catalog_write(_admin)
-    items = pipes_fittings_image_template_rows(session)
+    items = pipes_fittings_image_template_rows(
+        session,
+        subcategory=subcategory,
+        missing_image_only=True,
+    )
     return envelope({"items": items, "rowCount": len(items)})
 
 
