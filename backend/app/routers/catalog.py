@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db_session
 from app.deps.auth import AuthenticatedPrincipal, get_current_admin
-from app.errors import AuthenticationError
+from app.deps.module_access import module_read, module_write
 from app.schemas.catalog import (
     AdminPasscodeIn,
     CatalogBulkPricingIn,
@@ -34,18 +34,14 @@ from app.services.pipes_fittings_template import TEMPLATE_ID
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
-AdminPrincipal = Annotated[AuthenticatedPrincipal, Depends(get_current_admin)]
-
-
-def _require_catalog_write(principal: AuthenticatedPrincipal) -> None:
-    if principal.role != "admin":
-        raise AuthenticationError(403, "Insufficient permissions")
+CatalogRead = Annotated[AuthenticatedPrincipal, Depends(module_read("product-management"))]
+CatalogWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("product-management"))]
 
 
 @router.get("/catalog")
 def list_catalog(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogRead,
     category: str | None = None,
     search: str | None = None,
     group_id: str | None = None,
@@ -73,7 +69,7 @@ def list_catalog(
 @router.get("/catalog/tree")
 def get_catalog_tree(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogRead,
     active_only: bool = True,
 ):
     return service.catalog_tree(session, active_only=active_only)
@@ -83,9 +79,8 @@ def get_catalog_tree(
 def create_catalog(
     body: CatalogItemIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.create_catalog(session, body)
 
 
@@ -94,9 +89,8 @@ def update_catalog(
     item_id: str,
     body: CatalogItemIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.update_catalog(session, item_id, body)
 
 
@@ -105,9 +99,8 @@ def update_catalog_pricing(
     item_id: str,
     body: CatalogPricingIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.update_catalog_pricing(session, item_id, body)
 
 
@@ -115,9 +108,8 @@ def update_catalog_pricing(
 def update_catalog_pricing_bulk(
     body: CatalogBulkPricingIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.update_catalog_pricing_bulk(session, body)
 
 
@@ -125,9 +117,8 @@ def update_catalog_pricing_bulk(
 def delete_catalog(
     item_id: str,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.delete_catalog(session, item_id)
 
 
@@ -136,6 +127,7 @@ def delete_catalog_secured(
     item_id: str,
     body: AdminPasscodeIn,
     session: DbSession,
+    _admin: CatalogWrite,
 ):
     return service.delete_catalog_secured(session, item_id, body)
 
@@ -144,6 +136,7 @@ def delete_catalog_secured(
 def purge_catalog_by_field(
     body: CatalogFieldPurgeIn,
     session: DbSession,
+    _admin: CatalogWrite,
 ):
     return service.purge_catalog_by_field(session, body)
 
@@ -151,9 +144,8 @@ def purge_catalog_by_field(
 @router.delete("/catalog")
 def clear_catalog(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.clear_catalog(session)
 
 
@@ -161,6 +153,7 @@ def clear_catalog(
 def wipe_catalog_all(
     body: AdminPasscodeIn,
     session: DbSession,
+    _admin: CatalogWrite,
 ):
     return service.wipe_catalog_all(session, body)
 
@@ -169,9 +162,8 @@ def wipe_catalog_all(
 def import_catalog(
     body: CatalogImportIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.import_catalog(session, body)
 
 
@@ -179,9 +171,8 @@ def import_catalog(
 def import_catalog_master(
     body: CatalogMasterImportIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.import_catalog_master(session, body)
 
 
@@ -189,9 +180,8 @@ def import_catalog_master(
 def import_catalog_pricing(
     body: CatalogPricingImportIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.import_catalog_pricing(session, body)
 
 
@@ -199,9 +189,8 @@ def import_catalog_pricing(
 def import_catalog_stock(
     body: CatalogStockImportIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.import_catalog_stock(session, body)
 
 
@@ -209,11 +198,9 @@ def import_catalog_stock(
 def validate_pipes_fittings_import(
     body: PipesFittingsImportIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     result = validate_pipes_fittings_rows(session, body.rows)
-    # success=True so the client receives `errors[]`; `valid` carries pass/fail.
     return envelope(
         {
             "templateId": TEMPLATE_ID,
@@ -228,9 +215,8 @@ def validate_pipes_fittings_import(
 def import_pipes_fittings(
     body: PipesFittingsImportIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     result = import_pipes_fittings_rows(session, body.rows)
     if isinstance(result, dict) and not result.get("success", True):
         return error_response(400, result.get("error") or "Import failed", result.get("data"))
@@ -240,9 +226,8 @@ def import_pipes_fittings(
 @router.get("/catalog/import/pipes-fittings/images/template")
 def pipes_fittings_images_template(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     items = pipes_fittings_image_template_rows(session)
     return envelope({"items": items, "rowCount": len(items)})
 
@@ -251,9 +236,8 @@ def pipes_fittings_images_template(
 def validate_pipes_fittings_images_import(
     body: PipesFittingsImagesImportIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     items = [item.model_dump() for item in body.items]
     errors, match_count = validate_pipes_fittings_image_items(session, items)
     return envelope(
@@ -270,9 +254,8 @@ def validate_pipes_fittings_images_import(
 def import_pipes_fittings_images_route(
     body: PipesFittingsImagesImportIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     items = [item.model_dump() for item in body.items]
     result = import_pipes_fittings_images(session, items)
     if isinstance(result, dict) and not result.get("success", True):

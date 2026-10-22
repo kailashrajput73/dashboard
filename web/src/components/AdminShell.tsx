@@ -4,6 +4,9 @@ import type { IconName } from "./Icon";
 import { Icon } from "./Icon";
 import { getAdmin, fullSignOut } from "../state/session";
 import { colors, font } from "../theme";
+import { navHrefToModule } from "../access/modules";
+import { useResolvedModuleAccess } from "../access/useAccess";
+import { AccessGate } from "./AccessGate";
 
 type NavItem = {
   href: string;
@@ -68,7 +71,21 @@ export function AdminShell() {
   const navigate = useNavigate();
   const [company, setCompany] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const nav = useMemo(() => buildNav(), []);
+  const moduleAccess = useResolvedModuleAccess();
+  const nav = useMemo(
+    () =>
+      buildNav()
+        .map((section) => ({
+          ...section,
+          items: section.items.filter((item) => {
+            const moduleId = navHrefToModule(item.href);
+            const level = moduleAccess[moduleId];
+            return level === "read" || level === "write";
+          }),
+        }))
+        .filter((section) => section.items.length > 0),
+    [moduleAccess],
+  );
 
   useEffect(() => {
     getAdmin().then((admin) => setCompany(admin?.companyName || ""));
@@ -167,7 +184,9 @@ export function AdminShell() {
         </button>
       </aside>
       <main className="admin-main">
-        <Outlet />
+        <AccessGate>
+          <Outlet />
+        </AccessGate>
       </main>
     </div>
   );

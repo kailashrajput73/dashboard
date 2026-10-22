@@ -7,18 +7,21 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
-from app.deps.auth import AuthenticatedPrincipal, get_current_admin
+from app.deps.auth import AuthenticatedPrincipal
+from app.deps.module_access import module_read, module_write
 from app.schemas.operational import DispatchRequest
 from app.services import dispatch_service
 from app.services.dispatch_service import DispatchLineInput, DispatchServiceError
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
-AdminPrincipal = Annotated[AuthenticatedPrincipal, Depends(get_current_admin)]
+DispatchesRead = Annotated[AuthenticatedPrincipal, Depends(module_read("dispatches"))]
+DispatchesWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("dispatches"))]
+InventoryRead = Annotated[AuthenticatedPrincipal, Depends(module_read("inventory"))]
 
 
 @router.get("/dispatches")
-def list_dispatches(session: DbSession, _admin: AdminPrincipal):
+def list_dispatches(session: DbSession, _admin: DispatchesRead):
     return dispatch_service.list_dispatches(session)
 
 
@@ -26,9 +29,8 @@ def list_dispatches(session: DbSession, _admin: AdminPrincipal):
 def create_dispatch(
     body: DispatchRequest,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: DispatchesWrite,
 ):
-    # The service performs quantity checks to return the mirror's 400 envelope.
     lines = [
         DispatchLineInput.model_construct(
             productCode=line.productCode,
@@ -49,15 +51,15 @@ def create_dispatch(
 
 
 @router.get("/inventory")
-def inventory_view(session: DbSession, _admin: AdminPrincipal):
+def inventory_view(session: DbSession, _admin: InventoryRead):
     return dispatch_service.inventory_view(session)
 
 
 @router.get("/inventory/low-stock")
-def low_stock_inventory(session: DbSession, _admin: AdminPrincipal):
+def low_stock_inventory(session: DbSession, _admin: InventoryRead):
     return dispatch_service.low_stock_inventory(session)
 
 
 @router.get("/inventory/transactions")
-def inventory_transactions(session: DbSession, _admin: AdminPrincipal):
+def inventory_transactions(session: DbSession, _admin: InventoryRead):
     return dispatch_service.inventory_transactions(session)

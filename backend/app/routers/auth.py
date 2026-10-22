@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.deps.auth import AuthenticatedPrincipal, get_current_partner
+from app.deps.auth import AuthenticatedPrincipal, get_current_admin, get_current_partner
 from app.db import get_db_session
 from app.schemas.auth import (
     AdminLoginIn,
@@ -33,6 +33,14 @@ def admin_register(body: AdminRegisterIn, session: DbSession):
 @router.post("/auth/admin/login")
 def admin_login(body: AdminLoginIn, session: DbSession):
     return auth_service.admin_login(session, body)
+
+
+@router.get("/auth/admin/me")
+def admin_me(
+    principal: Annotated[AuthenticatedPrincipal, Depends(get_current_admin)],
+    session: DbSession,
+):
+    return auth_service.admin_me(session, user_id=principal.id)
 
 
 @router.post("/auth/partner/register")

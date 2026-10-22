@@ -38,6 +38,8 @@ import {
   CatalogImportHubModal,
   type ImportStep,
 } from "../features/product-management/import-hub-modal";
+import { useCanWriteModule } from "../access/useAccess";
+import { ReadOnlyBanner } from "../components/AccessGate";
 
 const defaultFilters: ProductFilters = {
   category: ALL_FILTER,
@@ -51,6 +53,7 @@ const defaultFilters: ProductFilters = {
 export default function ProductManagementPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const canWrite = useCanWriteModule("product-management");
   const [tabs, setTabs] = useState<TaxonomyTabs>({ showProductType: true, showProductClass: true });
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -302,20 +305,24 @@ export default function ProductManagementPage() {
         subtitle={`${listed.length} of ${items.length} item${items.length === 1 ? "" : "s"}`}
         onBack={() => navigate(-1)}
         right={
-          <button
-            type="button"
-            data-testid="open-add-item"
-            aria-label="Add item"
-            onClick={() => {
-              setEditing(null);
-              setEditorOpen(true);
-            }}
-            style={headerActionStyle}
-          >
-            <Icon name="add-circle" size={26} color={colors.primary} />
-          </button>
+          canWrite ? (
+            <button
+              type="button"
+              data-testid="open-add-item"
+              aria-label="Add item"
+              onClick={() => {
+                setEditing(null);
+                setEditorOpen(true);
+              }}
+              style={headerActionStyle}
+            >
+              <Icon name="add-circle" size={26} color={colors.primary} />
+            </button>
+          ) : null
         }
       />
+
+      {!canWrite ? <ReadOnlyBanner moduleLabel="products" /> : null}
 
       <div className="admin-page-container" style={toolbarStyle}>
         <Input
@@ -336,19 +343,21 @@ export default function ProductManagementPage() {
             <Icon name="download-outline" size={20} color={colors.primary} />
             <span>Export</span>
           </button>
-          <button
-            type="button"
-            data-testid="open-catalog-import-hub"
-            aria-label="Import spreadsheet"
-            onClick={() => {
-              setImportInitialStep("pick");
-              setImportOpen(true);
-            }}
-            style={toolButtonStyle}
-          >
-            <Icon name="cloud-upload-outline" size={20} color={colors.primary} />
-            <span>Import</span>
-          </button>
+          {canWrite ? (
+            <button
+              type="button"
+              data-testid="open-catalog-import-hub"
+              aria-label="Import spreadsheet"
+              onClick={() => {
+                setImportInitialStep("pick");
+                setImportOpen(true);
+              }}
+              style={toolButtonStyle}
+            >
+              <Icon name="cloud-upload-outline" size={20} color={colors.primary} />
+              <span>Import</span>
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -358,10 +367,14 @@ export default function ProductManagementPage() {
         options={filterOptions}
         onChange={setFilters}
         onRefresh={() => void load()}
-        onOpenBatchImport={() => {
-          setImportInitialStep({ kind: "master", batch: true });
-          setImportOpen(true);
-        }}
+        onOpenBatchImport={
+          canWrite
+            ? () => {
+                setImportInitialStep({ kind: "master", batch: true });
+                setImportOpen(true);
+              }
+            : undefined
+        }
       />
 
       {loading ? (
@@ -399,6 +412,7 @@ export default function ProductManagementPage() {
                 onSaved={load}
                 onError={setError}
                 onDelete={() => setDeleteTarget(item)}
+                readOnly={!canWrite}
               />
             ))}
           </div>

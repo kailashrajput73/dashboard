@@ -75,6 +75,7 @@ class User(TimestampMixin, Base):
     contact_number: Mapped[str | None] = mapped_column(Text, nullable=True)
     passcode_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     permissions: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    module_access: Mapped[dict[str, str] | None] = mapped_column(JSONB, nullable=True)
     is_active: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
 

@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
-from app.deps.auth import AuthenticatedPrincipal, get_current_admin
+from app.deps.auth import AuthenticatedPrincipal
+from app.deps.module_access import AdminRolePrincipal, module_read, module_write
 from app.schemas.auth import (
     PartnerIn,
     PartnerReviewIn,
@@ -17,7 +18,8 @@ from app.services import partners_team_service as service
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
-AdminPrincipal = Annotated[AuthenticatedPrincipal, Depends(get_current_admin)]
+PartnersRead = Annotated[AuthenticatedPrincipal, Depends(module_read("partners"))]
+PartnersWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("partners"))]
 
 
 @router.post("/partners/register")
@@ -29,7 +31,7 @@ def register_partner(body: PartnerIn, session: DbSession):
 def create_partner_direct(
     body: PartnerIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: PartnersWrite,
 ):
     return service.create_partner_direct(session, body)
 
@@ -37,7 +39,7 @@ def create_partner_direct(
 @router.get("/partners")
 def list_partners(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: PartnersRead,
     search: str | None = None,
     kyc_status: str | None = None,
     sales_manager: str | None = None,
@@ -54,7 +56,7 @@ def list_partners(
 def get_partner(
     partner_id: str,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: PartnersRead,
 ):
     return service.get_partner(session, partner_id=partner_id)
 
@@ -64,13 +66,13 @@ def review_partner_kyc(
     partner_id: str,
     body: PartnerReviewIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: PartnersWrite,
 ):
     return service.review_partner_kyc(session, partner_id=partner_id, body=body)
 
 
 @router.get("/team/users")
-def list_team_users(session: DbSession, _admin: AdminPrincipal):
+def list_team_users(session: DbSession, _admin: AdminRolePrincipal):
     return service.list_team_users(session)
 
 
@@ -78,7 +80,7 @@ def list_team_users(session: DbSession, _admin: AdminPrincipal):
 def create_team_user(
     body: TeamUserIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: AdminRolePrincipal,
 ):
     return service.create_team_user(session, body)
 
@@ -88,6 +90,6 @@ def update_team_user(
     user_id: str,
     body: TeamUserUpdateIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: AdminRolePrincipal,
 ):
     return service.update_team_user(session, user_id=user_id, body=body)

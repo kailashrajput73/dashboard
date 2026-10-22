@@ -10,7 +10,7 @@ from ..errors import AuthenticationError
 
 ADMIN_TOKEN_SQL = text(
     """
-    SELECT users.id AS user_id, users.role, users.is_active
+    SELECT users.id AS user_id, users.role, users.is_active, users.module_access
     FROM admin_tokens
     JOIN users ON users.id = admin_tokens.admin_id
     WHERE admin_tokens.token = :token
@@ -33,6 +33,7 @@ ADMIN_ROLES = frozenset({"admin", "store_manager", "staff"})
 class AuthenticatedPrincipal:
     id: str
     role: str
+    module_access: dict[str, str] | None = None
 
 
 def _bearer_token(authorization: str | None, missing_message: str) -> str:
@@ -64,7 +65,13 @@ def get_current_admin(
         or role not in ADMIN_ROLES
     ):
         raise AuthenticationError(401, "Invalid or expired admin token")
-    return AuthenticatedPrincipal(id=user_id, role=role)
+    raw_access = user["module_access"]
+    module_access: dict[str, str] | None
+    if isinstance(raw_access, dict):
+        module_access = {str(k): str(v) for k, v in raw_access.items()}
+    else:
+        module_access = None
+    return AuthenticatedPrincipal(id=user_id, role=role, module_access=module_access)
 
 
 def get_current_partner(

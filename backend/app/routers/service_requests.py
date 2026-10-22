@@ -3,27 +3,21 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
-from app.deps.auth import AuthenticatedPrincipal, get_current_admin
+from app.deps.auth import AuthenticatedPrincipal
+from app.deps.module_access import module_read, module_write
 from app.schemas.operational import (
     ServiceRequestCreateRequest,
     ServiceRequestUpdateRequest,
 )
 from app.services import service_requests_service as service
-from app.services._common import error_response
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
-AdminPrincipal = Annotated[AuthenticatedPrincipal, Depends(get_current_admin)]
-
-
-def _require_admin(admin: AuthenticatedPrincipal) -> JSONResponse | None:
-    if admin.role != "admin":
-        return error_response(403, "Insufficient permissions")
-    return None
+ServiceRead = Annotated[AuthenticatedPrincipal, Depends(module_read("service-requests"))]
+ServiceWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("service-requests"))]
 
 
 @router.post("/service-requests")
@@ -37,7 +31,7 @@ def create_service_request(
 @router.get("/service-requests")
 def list_service_requests(
     session: DbSession,
-    _: AdminPrincipal,
+    _: ServiceRead,
     service_type: str | None = None,
     status: str | None = None,
     search: str | None = None,
@@ -58,7 +52,7 @@ def list_service_requests(
 def get_service_request(
     request_id: str,
     session: DbSession,
-    _: AdminPrincipal,
+    _: ServiceRead,
 ):
     return service.get_service_request(session, request_id=request_id)
 
@@ -68,11 +62,8 @@ def update_service_request(
     request_id: str,
     body: ServiceRequestUpdateRequest,
     session: DbSession,
-    admin: AdminPrincipal,
+    _admin: ServiceWrite,
 ):
-    denied = _require_admin(admin)
-    if denied is not None:
-        return denied
     return service.update_service_request(
         session,
         request_id=request_id,
@@ -84,6 +75,6 @@ def update_service_request(
 def list_service_request_history(
     request_id: str,
     session: DbSession,
-    _: AdminPrincipal,
+    _: ServiceRead,
 ):
     return service.list_service_request_history(session, request_id=request_id)

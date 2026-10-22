@@ -3,33 +3,25 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
-from app.deps.auth import AuthenticatedPrincipal, get_current_admin
+from app.deps.auth import AuthenticatedPrincipal
+from app.deps.module_access import module_read, module_write
 from app.schemas.operational import RackAssignmentRequest, RackRequest
 from app.services import rack_service as service
-from app.services._common import error_response
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
-AdminPrincipal = Annotated[AuthenticatedPrincipal, Depends(get_current_admin)]
-
-
-def _require_admin(admin: AuthenticatedPrincipal) -> JSONResponse | None:
-    if admin.role != "admin":
-        return error_response(403, "Insufficient permissions")
-    return None
+RacksRead = Annotated[AuthenticatedPrincipal, Depends(module_read("racks"))]
+RacksWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("racks"))]
 
 
 @router.get("/racks")
 def list_racks(
     session: DbSession,
-    admin: AdminPrincipal,
+    _admin: RacksRead,
 ):
-    if admin.role not in {"admin", "store_manager", "staff"}:
-        return error_response(403, "Insufficient permissions")
     return service.list_racks(session)
 
 
@@ -37,11 +29,8 @@ def list_racks(
 def create_rack(
     body: RackRequest,
     session: DbSession,
-    admin: AdminPrincipal,
+    _admin: RacksWrite,
 ):
-    denied = _require_admin(admin)
-    if denied is not None:
-        return denied
     return service.create_rack(session, body)
 
 
@@ -49,11 +38,8 @@ def create_rack(
 def delete_rack(
     rack_id: str,
     session: DbSession,
-    admin: AdminPrincipal,
+    _admin: RacksWrite,
 ):
-    denied = _require_admin(admin)
-    if denied is not None:
-        return denied
     return service.delete_rack(session, rack_id=rack_id)
 
 
@@ -62,11 +48,8 @@ def assign_rack_slot(
     rack_id: str,
     body: RackAssignmentRequest,
     session: DbSession,
-    admin: AdminPrincipal,
+    _admin: RacksWrite,
 ):
-    denied = _require_admin(admin)
-    if denied is not None:
-        return denied
     return service.assign_rack_slot(session, rack_id=rack_id, body=body)
 
 
@@ -74,8 +57,6 @@ def assign_rack_slot(
 def rack_products(
     rack_id: str,
     session: DbSession,
-    admin: AdminPrincipal,
+    _admin: RacksRead,
 ):
-    if admin.role not in {"admin", "store_manager", "staff"}:
-        return error_response(403, "Insufficient permissions")
     return service.rack_products(session, rack_id=rack_id)

@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
-from app.deps.auth import AuthenticatedPrincipal, get_current_admin
+from app.deps.auth import AuthenticatedPrincipal
+from app.deps.module_access import module_read, module_write
 from app.schemas.taxonomy import (
     AdminPasscodeIn,
     SubcategoryImportIn,
@@ -17,13 +18,14 @@ from app.services import subcategories_service as service
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
-AdminPrincipal = Annotated[AuthenticatedPrincipal, Depends(get_current_admin)]
+CatalogRead = Annotated[AuthenticatedPrincipal, Depends(module_read("product-management"))]
+CatalogWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("product-management"))]
 
 
 @router.get("/subcategories")
 def list_subcategories(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogRead,
     category_id: str | None = None,
 ):
     return service.list_subcategories(session, category_id=category_id)
@@ -33,7 +35,7 @@ def list_subcategories(
 def create_subcategory(
     body: SubcategoryIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.create_subcategory(session, body)
 
@@ -43,7 +45,7 @@ def update_subcategory(
     subcategory_id: str,
     body: SubcategoryUpdateIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.update_subcategory(
         session,
@@ -56,7 +58,7 @@ def update_subcategory(
 def delete_subcategory(
     subcategory_id: str,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.delete_subcategory(session, subcategory_id=subcategory_id)
 
@@ -66,6 +68,7 @@ def delete_subcategory_cascade(
     subcategory_id: str,
     body: AdminPasscodeIn,
     session: DbSession,
+    _admin: CatalogWrite,
 ):
     return service.delete_subcategory_cascade(
         session,
@@ -78,6 +81,6 @@ def delete_subcategory_cascade(
 def import_subcategories(
     body: SubcategoryImportIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.import_subcategories(session, body)

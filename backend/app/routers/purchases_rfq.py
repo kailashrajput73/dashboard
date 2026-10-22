@@ -7,7 +7,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
-from app.deps.auth import AuthenticatedPrincipal, get_current_admin
+from app.deps.auth import AuthenticatedPrincipal
+from app.deps.module_access import module_read, module_write
 from app.schemas.operational import PurchaseRequest, RfqRequest
 from app.services import purchase_service, rfq_service
 from app.services.purchase_service import (
@@ -19,7 +20,11 @@ from app.services.rfq_service import RfqApprovalError, RfqApprovalInput, RfqVali
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
-AdminPrincipal = Annotated[AuthenticatedPrincipal, Depends(get_current_admin)]
+PurchasesRead = Annotated[AuthenticatedPrincipal, Depends(module_read("purchases"))]
+PurchasesWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("purchases"))]
+RfqsRead = Annotated[AuthenticatedPrincipal, Depends(module_read("rfqs"))]
+RfqsWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("rfqs"))]
+PartnersRead = Annotated[AuthenticatedPrincipal, Depends(module_read("partners"))]
 
 
 def _purchase_error(error: PurchaseValidationError) -> JSONResponse:
@@ -34,7 +39,7 @@ def _purchase_error(error: PurchaseValidationError) -> JSONResponse:
 
 
 @router.get("/purchases")
-def list_purchases(session: DbSession, _admin: AdminPrincipal):
+def list_purchases(session: DbSession, _admin: PurchasesRead):
     return purchase_service.list_purchases(session)
 
 
@@ -42,9 +47,8 @@ def list_purchases(session: DbSession, _admin: AdminPrincipal):
 def create_purchase(
     body: PurchaseRequest,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: PurchasesWrite,
 ):
-    # Preserve the mirror's 400 response for range checks performed by the service.
     lines = [
         PurchaseLineInput.model_construct(
             productCode=line.productCode,
@@ -78,15 +82,15 @@ def create_purchase(
 def import_purchases(
     body: PurchaseRequest,
     session: DbSession,
-    _admin: AdminPrincipal,
+    admin: PurchasesWrite,
 ):
-    return create_purchase(body, session, _admin)
+    return create_purchase(body, session, admin)
 
 
 @router.get("/rfqs")
 def list_rfqs(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: RfqsRead,
     partner_id: str | None = None,
     status: str | None = None,
     search: str | None = None,
@@ -103,7 +107,7 @@ def list_rfqs(
 def create_rfq(
     body: RfqRequest,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: RfqsWrite,
 ):
     try:
         return rfq_service.create_rfq(
@@ -122,7 +126,7 @@ def update_rfq(
     rfq_id: str,
     body: RfqRequest,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: RfqsWrite,
 ):
     try:
         return rfq_service.update_rfq(
@@ -142,7 +146,7 @@ def approve_rfq(
     rfq_id: str,
     body: RfqApprovalInput,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: RfqsWrite,
 ):
     try:
         return rfq_service.approve_rfq(session, rfq_id=rfq_id, body=body)
@@ -154,7 +158,7 @@ def approve_rfq(
 def partner_rewards(
     partner_id: str,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: PartnersRead,
 ):
     return rfq_service.partner_rewards(session, partner_id=partner_id)
 
@@ -163,7 +167,7 @@ def partner_rewards(
 def rfq_history(
     rfq_id: str,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: RfqsRead,
 ):
     try:
         return rfq_service.rfq_history(session, rfq_id=rfq_id)

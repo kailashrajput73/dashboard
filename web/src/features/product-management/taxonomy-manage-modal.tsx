@@ -40,7 +40,7 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onChanged: () => void;
-  onOpenBatchImport: () => void;
+  onOpenBatchImport?: () => void;
 };
 
 export function TaxonomyManageModal(props: Props) {
@@ -137,10 +137,14 @@ export function TaxonomyManageModal(props: Props) {
             products={products}
             onChanged={handleChanged}
             onError={setError}
-            onOpenBatchImport={() => {
-              props.onClose();
-              props.onOpenBatchImport();
-            }}
+            onOpenBatchImport={
+              props.onOpenBatchImport
+                ? () => {
+                    props.onClose();
+                    props.onOpenBatchImport?.();
+                  }
+                : undefined
+            }
           />
         ) : null}
         {dimension === "productType" ? (

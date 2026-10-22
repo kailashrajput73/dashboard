@@ -54,6 +54,7 @@ class TeamUserIn(BaseModel):
     role: str = Field(default="staff", pattern="^(admin|store_manager|staff)$")
     passcode: str
     permissions: list[str] = Field(default_factory=list)
+    moduleAccess: dict[str, str] | None = None
 
 
 class TeamUserUpdateIn(BaseModel):
@@ -62,3 +63,4 @@ class TeamUserUpdateIn(BaseModel):
     role: str = Field(pattern="^(admin|store_manager|staff)$")
     isActive: bool
     permissions: list[str] = Field(default_factory=list)
+    moduleAccess: dict[str, str] | None = None

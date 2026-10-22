@@ -30,7 +30,7 @@ type Props = {
   products: CatalogItem[];
   onChanged: () => void;
   onError: (message: string) => void;
-  onOpenBatchImport: () => void;
+  onOpenBatchImport?: () => void;
 };
 
 export function ManageSubcategoriesPanel(props: Props) {
@@ -291,14 +291,16 @@ export function ManageSubcategoriesPanel(props: Props) {
           <p style={emptyStyle}>No subcategories match your search.</p>
         )}
       </div>
-      <Button
-        testID="nav-batch-product-import"
-        title="Import products (batch sheet)"
-        icon="cloud-upload-outline"
-        onPress={props.onOpenBatchImport}
-        size="sm"
-        fullWidth
-      />
+      {props.onOpenBatchImport ? (
+        <Button
+          testID="nav-batch-product-import"
+          title="Import products (batch sheet)"
+          icon="cloud-upload-outline"
+          onPress={props.onOpenBatchImport}
+          size="sm"
+          fullWidth
+        />
+      ) : null}
       <AppModal
         testID="subcategory-editor"
         visible={editor !== undefined}
