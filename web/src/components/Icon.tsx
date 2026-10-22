@@ -27,6 +27,7 @@ import funnelOutline from "ionicons/dist/collection/components/icon/svg/funnel-o
 import gitBranchOutline from "ionicons/dist/collection/components/icon/svg/git-branch-outline.svg?raw";
 import gridOutline from "ionicons/dist/collection/components/icon/svg/grid-outline.svg?raw";
 import imageOutline from "ionicons/dist/collection/components/icon/svg/image-outline.svg?raw";
+import informationCircleOutline from "ionicons/dist/collection/components/icon/svg/information-circle-outline.svg?raw";
 import layersOutline from "ionicons/dist/collection/components/icon/svg/layers-outline.svg?raw";
 import listOutline from "ionicons/dist/collection/components/icon/svg/list-outline.svg?raw";
 import logInOutline from "ionicons/dist/collection/components/icon/svg/log-in-outline.svg?raw";
@@ -78,6 +79,7 @@ const icons = {
   "git-branch-outline": gitBranchOutline,
   "grid-outline": gridOutline,
   "image-outline": imageOutline,
+  "information-circle-outline": informationCircleOutline,
   "layers-outline": layersOutline,
   "list-outline": listOutline,
   "log-in-outline": logInOutline,

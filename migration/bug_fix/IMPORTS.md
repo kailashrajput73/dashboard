@@ -2,6 +2,8 @@
 
 **Owner decision (2026-10-04):** Uploads are **fine**. Agents must **not** implement FIX-03, FIX-04, or FIX-11 unless the owner reopens them. See `AGENT-WORKFLOW.md`.
 
+**2026-10-21 — Pipes v1 (separate from FIX queue):** New family/SKU import and image sidecar are documented in `migration/SHEET-IMPORTS-INDEX.md` and `migration-db/CATALOG-DESIGN-RULES.md`. Legacy master/prices/stock rules below still apply. Code paths below that mention `frontend/` → use **`web/`** (Expo app removed).
+
 ## Split upload rules (expected behavior)
 
 | File | Updates on existing SKU |

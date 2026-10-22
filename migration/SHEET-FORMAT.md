@@ -37,3 +37,17 @@ Old sheets had **Sub-Category = UPVC** and **Type = Sch 40**. Importers still ac
 ## Partner mobile
 
 Dashboard only **uploads + API**. App team builds category/type/class UI from JSON fields on each product.
+
+---
+
+## Other import templates (same repo, different columns)
+
+This file is **only** the legacy **19-column master** used by `/import-products` and `/import-products-batch`.
+
+| Import | Column spec | UI route |
+|--------|-------------|----------|
+| Pipes & fittings v1 master | `migration/sheet-pipes-fittings-v1.md`, rules in `migration-db/CATALOG-DESIGN-RULES.md` | `/import-pipes-fittings` (step 1) |
+| Pipes family images | `migration/sheet-pipes-fittings-images.md` | same page (step 2) |
+| Prices / stock | columns listed in `migration/admin/spreadsheet-imports.md` | `/import-prices`, `/import-stock` |
+
+**Index of all uploads:** `migration/SHEET-IMPORTS-INDEX.md`.

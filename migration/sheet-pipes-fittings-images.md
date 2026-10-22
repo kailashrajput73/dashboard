@@ -1,0 +1,1 @@
+brand,product_family,image_url

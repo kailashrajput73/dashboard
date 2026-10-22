@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { getDashboardSnapshot, type DashboardSnapshot } from "../api/endpoints";
 import { ApiError } from "../api/client";
 import { getAdmin } from "../state/session";
-import { getTaxonomyTabs } from "../features/catalog-taxonomy/settings";
 import { Header } from "../components/UI";
 import { Icon, type IconName } from "../components/Icon";
 import { colors, font, radii, spacing } from "../theme";
@@ -31,9 +30,6 @@ export default function DashboardPage() {
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showProductType, setShowProductType] = useState(true);
-  const [showProductClass, setShowProductClass] = useState(true);
-
   useEffect(() => {
     let active = true;
     void (async () => {
@@ -45,15 +41,6 @@ export default function DashboardPage() {
         const nextSnapshot = await getDashboardSnapshot();
         if (!active) return;
         setSnapshot(nextSnapshot);
-        try {
-          const tabs = await getTaxonomyTabs();
-          if (active) {
-            setShowProductType(tabs.showProductType);
-            setShowProductClass(tabs.showProductClass);
-          }
-        } catch {
-          // Taxonomy settings are local-only; keep their defaults if unavailable.
-        }
       } catch (cause) {
         if (!active) return;
         setSnapshot(null);
@@ -71,7 +58,7 @@ export default function DashboardPage() {
   }, []);
 
   const stats: DashboardStat[] = snapshot ? [
-    { id: "catalog", label: "SKUs", value: String(snapshot.catalogCount), icon: "cube-outline", tint: colors.primary, path: "/catalog" },
+    { id: "catalog", label: "SKUs", value: String(snapshot.catalogCount), icon: "cube-outline", tint: colors.primary, path: "/product-management" },
     { id: "stock-units", label: "Units in stock", value: formatQty(snapshot.totalStockUnits), icon: "layers-outline", tint: colors.secondary, path: "/inventory" },
     { id: "low-stock", label: "Low stock (ROL)", value: String(snapshot.lowStockCount), icon: "warning-outline", tint: colors.warning, path: "/inventory" },
     { id: "rfq-pending", label: "RFQ pending", value: String(snapshot.rfqCounts.pending || 0), icon: "time-outline", tint: colors.warning, path: "/rfqs" },
@@ -129,13 +116,13 @@ export default function DashboardPage() {
 
         <h2 style={{ ...sectionTitleStyle, marginTop: spacing.lg }}>Modules</h2>
         <div style={modulesGridStyle}>
-          <ModuleLink testID="nav-catalog-manage" title="Manage Catalog" subtitle="Add, edit, and remove items" icon="list-outline" onClick={() => navigate("/catalog")} />
-          <ModuleLink testID="nav-category-manage" title="Manage Categories" subtitle="Home photo (file or URL), rename, activate" icon="pricetags-outline" onClick={() => navigate("/categories")} />
-          {showProductType ? <ModuleLink testID="nav-product-type-manage" title="Product type" subtitle="Type photos (PVC / CPVC / UPVC) — file or URL" icon="funnel-outline" onClick={() => navigate("/product-types")} /> : null}
-          <ModuleLink testID="nav-subcategory-manage" title="Manage Subcategories" subtitle="Organize products under categories" icon="git-branch-outline" onClick={() => navigate("/subcategories")} />
-          {showProductClass ? <ModuleLink testID="nav-product-class-manage" title="Product class" subtitle="SDR11, Sch 40 and products in each class" icon="filter-outline" onClick={() => navigate("/product-classes")} /> : null}
-          <ModuleLink testID="nav-brand-manage" title="Manage Brands" subtitle="Brand logo (file or URL), create and link products" icon="ribbon-outline" onClick={() => navigate("/brands")} />
-          <ModuleLink testID="nav-product-group-manage" title="Manage Product Groups" subtitle="Create groups with multiple products" icon="layers-outline" onClick={() => navigate("/product-groups")} />
+          <ModuleLink
+            testID="nav-product-management"
+            title="Product management"
+            subtitle="Catalog, taxonomy filters, imports, and spreadsheet tools in one place"
+            icon="cube-outline"
+            onClick={() => navigate("/product-management")}
+          />
           <ModuleLink testID="nav-rack-manage" title="Rack Locations" subtitle="Configure warehouse storage slots" icon="grid-outline" onClick={() => navigate("/racks")} />
           <ModuleLink testID="nav-purchase-manage" title="Purchase Management" subtitle="Receive stock and view purchase history" icon="cart-outline" onClick={() => navigate("/purchases")} />
           <ModuleLink testID="nav-rfq-manage" title="RFQ Management" subtitle="Review quotations, rewards, and delivery" icon="document-text-outline" onClick={() => navigate("/rfqs")} />
@@ -143,8 +130,7 @@ export default function DashboardPage() {
           <ModuleLink testID="nav-dispatch-manage" title="Dispatch & Billing" subtitle="Scan products, bill retail, and dispatch RFQs" icon="barcode-outline" onClick={() => navigate("/dispatches")} />
           <ModuleLink testID="nav-inventory-manage" title="Stock & Inventory" subtitle="Live stock, valuation, and low-stock reports" icon="bar-chart-outline" onClick={() => navigate("/inventory")} />
           <ModuleLink testID="nav-team-manage" title="Team Management" subtitle="Manage users, roles, and permissions" icon="people-outline" onClick={() => navigate("/team")} />
-          <ModuleLink testID="nav-csv-import" title="Spreadsheet imports" subtitle="Product master, prices, stock — separate files" icon="cloud-upload-outline" onClick={() => navigate("/csv-import")} />
-          <ModuleLink testID="nav-settings" title="Settings" subtitle="Show or hide Product type and Product class tabs" icon="settings-outline" onClick={() => navigate("/settings")} />
+          <ModuleLink testID="nav-settings" title="Settings" subtitle="Show or hide Product type and Product class filters" icon="settings-outline" onClick={() => navigate("/settings")} />
         </div>
       </div>
     </main>

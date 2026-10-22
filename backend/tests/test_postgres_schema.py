@@ -34,7 +34,7 @@ EXPECTED_ROW5_TABLES = EXPECTED_ROW4_TABLES | {
     "rack_slots",
     "racks",
 }
-EXPECTED_ROW6_TABLES = EXPECTED_ROW5_TABLES | {"catalog"}
+EXPECTED_ROW6_TABLES = EXPECTED_ROW5_TABLES | {"catalog", "product_families"}
 EXPECTED_ROW7_TABLES = EXPECTED_ROW6_TABLES | {"pricing", "pricing_history"}
 EXPECTED_ROW8_TABLES = EXPECTED_ROW7_TABLES | {"purchase_lines", "purchases"}
 EXPECTED_ROW9_TABLES = EXPECTED_ROW8_TABLES | {"rfq_lines", "rfqs"}
@@ -110,6 +110,11 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             ("catalog", "brand_id", "brands", "id"),
             ("catalog", "product_type_id", "product_types", "id"),
             ("catalog", "rack_id", "racks", "id"),
+            ("catalog", "family_id", "product_families", "id"),
+            ("product_families", "category_id", "categories", "id"),
+            ("product_families", "subcategory_id", "subcategories", "id"),
+            ("product_families", "brand_id", "brands", "id"),
+            ("product_families", "product_type_id", "product_types", "id"),
             ("pricing", "product_code", "catalog", "product_code"),
             ("pricing_history", "product_code", "catalog", "product_code"),
             ("purchases", "partner_id", "partners", "id"),
@@ -140,6 +145,7 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 "product_group_items",
                 "rack_slots",
                 "catalog",
+                "product_families",
                 "pricing",
                 "pricing_history",
                 "purchases",
@@ -168,6 +174,11 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
             ("catalog", "brand_id"): "RESTRICT",
             ("catalog", "product_type_id"): "RESTRICT",
             ("catalog", "rack_id"): "RESTRICT",
+            ("catalog", "family_id"): "RESTRICT",
+            ("product_families", "category_id"): "RESTRICT",
+            ("product_families", "subcategory_id"): "RESTRICT",
+            ("product_families", "brand_id"): "RESTRICT",
+            ("product_families", "product_type_id"): "RESTRICT",
             ("pricing", "product_code"): "CASCADE",
             ("pricing_history", "product_code"): "CASCADE",
             ("purchases", "partner_id"): "RESTRICT",
@@ -222,6 +233,7 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                     "racks",
                     "rack_slots",
                     "catalog",
+                    "product_families",
                     "pricing",
                 )
                 for constraint in inspector.get_unique_constraints(table)
@@ -234,6 +246,7 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("racks", "racks_name_uq"),
                 ("rack_slots", "rack_slots_rack_code_uq"),
                 ("catalog", "catalog_product_code_uq"),
+                ("product_families", "product_families_family_key_uq"),
                 ("pricing", "pricing_product_code_uq"),
             },
         )
@@ -253,6 +266,7 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 "racks",
                 "rack_slots",
                 "catalog",
+                "product_families",
                 "pricing",
                 "pricing_history",
                 "purchases",
@@ -302,6 +316,7 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("catalog", "catalog_brand_id", False),
                 ("catalog", "catalog_product_type_id", False),
                 ("catalog", "catalog_rack_id", False),
+                ("catalog", "catalog_family_id", False),
                 ("catalog", "catalog_category_name_sort", False),
                 ("catalog", "catalog_brand", False),
                 ("catalog", "catalog_rack_name_sort", False),
@@ -322,6 +337,9 @@ class PostgresSchemaMigrationTests(unittest.TestCase):
                 ("catalog", "catalog_product_code_trgm", False),
                 ("catalog", "catalog_brand_trgm", False),
                 ("catalog", "catalog_aliases_trgm", False),
+                ("product_families", "product_families_category_id", False),
+                ("product_families", "product_families_brand_id", False),
+                ("product_families", "product_families_deleted_at", False),
                 ("pricing_history", "pricing_history_code_updated", False),
                 ("purchases", "purchases_createdAt", False),
                 ("purchases", "purchases_partner_created", False),

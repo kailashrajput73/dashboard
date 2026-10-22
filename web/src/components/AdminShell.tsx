@@ -3,7 +3,6 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { IconName } from "./Icon";
 import { Icon } from "./Icon";
 import { getAdmin, fullSignOut } from "../state/session";
-import { getTaxonomyTabs, type TaxonomyTabs } from "../features/catalog-taxonomy/settings";
 import { colors, font } from "../theme";
 
 type NavItem = {
@@ -18,27 +17,7 @@ type NavSection = {
   items: NavItem[];
 };
 
-function catalogNav(tabs: TaxonomyTabs): NavItem[] {
-  const items: NavItem[] = [
-    { href: "/catalog", label: "Products", icon: "cube-outline", testID: "sidebar-catalog" },
-    { href: "/categories", label: "Categories", icon: "pricetags-outline", testID: "sidebar-categories" },
-  ];
-  if (tabs.showProductType) {
-    items.push({ href: "/product-types", label: "Product type", icon: "funnel-outline", testID: "sidebar-product-types" });
-  }
-  items.push({ href: "/subcategories", label: "Subcategories", icon: "git-branch-outline", testID: "sidebar-subcategories" });
-  if (tabs.showProductClass) {
-    items.push({ href: "/product-classes", label: "Product class", icon: "filter-outline", testID: "sidebar-product-classes" });
-  }
-  items.push(
-    { href: "/brands", label: "Brands", icon: "ribbon-outline", testID: "sidebar-brands" },
-    { href: "/product-groups", label: "Product groups", icon: "layers-outline", testID: "sidebar-product-groups" },
-    { href: "/csv-import", label: "Spreadsheet imports", icon: "cloud-upload-outline", testID: "sidebar-csv-import" },
-  );
-  return items;
-}
-
-function buildNav(tabs: TaxonomyTabs): NavSection[] {
+function buildNav(): NavSection[] {
   return [
     {
       title: "Overview",
@@ -46,7 +25,17 @@ function buildNav(tabs: TaxonomyTabs): NavSection[] {
         { href: "/dashboard", label: "Dashboard", icon: "grid-outline", testID: "sidebar-dashboard" },
       ],
     },
-    { title: "Catalog", items: catalogNav(tabs) },
+    {
+      title: "Catalog",
+      items: [
+        {
+          href: "/product-management",
+          label: "Product management",
+          icon: "cube-outline",
+          testID: "sidebar-product-management",
+        },
+      ],
+    },
     {
       title: "Warehouse",
       items: [
@@ -78,16 +67,11 @@ export function AdminShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const [company, setCompany] = useState("");
-  const [tabs, setTabs] = useState<TaxonomyTabs>({
-    showProductType: true,
-    showProductClass: true,
-  });
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const nav = useMemo(() => buildNav(tabs), [tabs]);
+  const nav = useMemo(() => buildNav(), []);
 
   useEffect(() => {
     getAdmin().then((admin) => setCompany(admin?.companyName || ""));
-    getTaxonomyTabs().then(setTabs);
   }, [location.pathname]);
 
   useEffect(() => {

@@ -15,11 +15,12 @@ Open **`pages/<file>`** for line-level detail. **SOW** = contract module (see `S
 | `/product-classes` | [pages/product-classes.md](pages/product-classes.md) + [features/catalog-facet-page.md](features/catalog-facet-page.md) | `ProductClassesPage.tsx` → **facet UI** | Class list from **full catalog** + expand/peek/purge |
 | `/brands` | [pages/brands.md](pages/brands.md) | `BrandsPage.tsx` | Brand CRUD, logo, cascade delete |
 | `/product-groups` | [pages/product-groups.md](pages/product-groups.md) | `ProductGroupsPage.tsx` | Groups (2+ products), shelf board, cascade delete |
-| `/csv-import` | [pages/spreadsheet-imports.md](pages/spreadsheet-imports.md) | `SpreadsheetImportsPage.tsx` | Hub links to 4 import routes |
+| `/csv-import` | [pages/spreadsheet-imports.md](pages/spreadsheet-imports.md) | `SpreadsheetImportsPage.tsx` | Hub: master, prices, stock (3 routes) |
 | `/import-products` | [pages/catalog-import.md](pages/catalog-import.md) | `CatalogImportPage.tsx` | Full master sheet import |
 | `/import-products-batch` | [pages/catalog-import.md](pages/catalog-import.md) | `CatalogImportPage.tsx` | Batch master import |
 | `/import-prices` | [pages/catalog-import.md](pages/catalog-import.md) | `CatalogImportPage.tsx` | Prices/discount sheet |
 | `/import-stock` | [pages/catalog-import.md](pages/catalog-import.md) | `CatalogImportPage.tsx` | Stock qty sheet |
+| `/import-pipes-fittings` | [pages/catalog-import.md](pages/catalog-import.md) | `CatalogImportPage.tsx` | Pipes v1 master + family images |
 | `/racks` | [pages/racks.md](pages/racks.md) | `RacksPage.tsx` | Rack grid, assign product to slot |
 | `/purchases` | [pages/purchases.md](pages/purchases.md) | `PurchasesPage.tsx` | Stock-in, bulk CSV, filtered export |
 | `/inventory` | [pages/inventory.md](pages/inventory.md) | `InventoryPage.tsx` | Stock cards, low stock, moves, export |
