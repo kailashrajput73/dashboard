@@ -1,4 +1,5 @@
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   importCatalogMaster,
@@ -54,6 +55,112 @@ function errorsFromApi(cause: unknown): SheetValidationError[] | null {
   return null;
 }
 
+const COLUMN_HELP_PANEL_WIDTH = 320;
+const COLUMN_HELP_VIEWPORT_MARGIN = 12;
+
+function ColumnHelpInfo(props: { help: string; testID: string }) {
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelStyle, setPanelStyle] = useState<React.CSSProperties | null>(null);
+
+  useLayoutEffect(() => {
+    if (!open || !buttonRef.current) {
+      setPanelStyle(null);
+      return;
+    }
+    const place = () => {
+      const anchor = buttonRef.current!.getBoundingClientRect();
+      const panelWidth = Math.min(COLUMN_HELP_PANEL_WIDTH, window.innerWidth - COLUMN_HELP_VIEWPORT_MARGIN * 2);
+      let panelLeft = anchor.left + anchor.width / 2 - panelWidth / 2;
+      panelLeft = Math.max(
+        COLUMN_HELP_VIEWPORT_MARGIN,
+        Math.min(panelLeft, window.innerWidth - panelWidth - COLUMN_HELP_VIEWPORT_MARGIN),
+      );
+      let panelTop = anchor.bottom + 8;
+      const panelHeight = panelRef.current?.offsetHeight ?? 0;
+      if (panelHeight > 0 && panelTop + panelHeight > window.innerHeight - COLUMN_HELP_VIEWPORT_MARGIN) {
+        panelTop = Math.max(COLUMN_HELP_VIEWPORT_MARGIN, anchor.top - 8 - panelHeight);
+      }
+      setPanelStyle({
+        position: "fixed",
+        top: panelTop,
+        left: panelLeft,
+        width: panelWidth,
+        zIndex: 10000,
+        padding: spacing.sm,
+        borderRadius: 8,
+        border: `1px solid ${colors.border}`,
+        background: colors.surface,
+        boxShadow: "0 8px 24px rgba(15, 23, 42, 0.15)",
+        color: colors.textSecondary,
+        fontSize: 12,
+        lineHeight: 1.45,
+        overflowWrap: "anywhere",
+        maxHeight: `min(240px, calc(100vh - ${COLUMN_HELP_VIEWPORT_MARGIN * 2}px))`,
+        overflowY: "auto",
+      });
+    };
+    place();
+    requestAnimationFrame(place);
+  }, [open, props.help]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (buttonRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  const panel =
+    open && panelStyle ? (
+      <div ref={panelRef} role="tooltip" data-testid={`${props.testID}-panel`} style={panelStyle}>
+        {props.help}
+      </div>
+    ) : null;
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        data-testid={props.testID}
+        aria-label="Show column list for this sheet"
+        aria-expanded={open}
+        title={props.help}
+        onClick={() => setOpen((value) => !value)}
+        style={{
+          display: "grid",
+          placeItems: "center",
+          width: 28,
+          height: 28,
+          padding: 0,
+          border: `1px solid ${colors.border}`,
+          borderRadius: "50%",
+          background: colors.surface,
+          color: colors.primary,
+          cursor: "pointer",
+          flexShrink: 0,
+        }}
+      >
+        <Icon name="information-circle-outline" size={18} color={colors.primary} />
+      </button>
+      {panel ? createPortal(panel, document.body) : null}
+    </>
+  );
+}
+
 type Mode = "fromCsv" | "overrideExisting" | "overrideNew";
 export type CatalogImportKind =
   | "master"
@@ -67,17 +174,26 @@ type Props = {
   title: string;
   subtitle: string;
   columnHelp: string;
+  /** Hide long column list; show (i) next to section title instead. */
+  columnHelpDisplay?: "inline" | "info";
   showCategoryMode?: boolean;
-  /** Full product master only: link to pipes v1 (not on spreadsheet hub). */
+  /** Full product master only: link to pipes v1 (hub modal or product-management route). */
   showPipesFittingsEntry?: boolean;
+  /** When set (import hub), switch to pipes flow without leaving the modal. */
+  onOpenPipesFittings?: () => void;
   /** Step section inside combined pipes v1 page (no page header). */
   embedded?: boolean;
   sectionTitle?: string;
   sectionId?: string;
+  /** Import hub modal: no page shell. */
+  layout?: "page" | "embedded";
+  onClose?: () => void;
+  onImported?: () => void;
 };
 
 export function CatalogSpreadsheetImport(props: Props) {
   const navigate = useNavigate();
+  const hubEmbedded = props.layout === "embedded";
   const fileInput = useRef<HTMLInputElement>(null);
   const [picking, setPicking] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -301,6 +417,7 @@ export function CatalogSpreadsheetImport(props: Props) {
         setSheetCheck(null);
         setResult(`Updated images on ${response.updated} product family row(s).`);
       }
+      props.onImported?.();
       setPayload([]);
       setPreviewCount(0);
       setFileName("");
@@ -367,7 +484,13 @@ export function CatalogSpreadsheetImport(props: Props) {
             <button
               type="button"
               data-testid="nav-import-pipes-fittings"
-              onClick={() => navigate("/import-pipes-fittings")}
+              onClick={() => {
+                if (props.onOpenPipesFittings) {
+                  props.onOpenPipesFittings();
+                  return;
+                }
+                navigate("/product-management", { state: { openImport: "pipes-fittings" } });
+              }}
               style={{ ...pipesEntryButtonStyle, width: "100%" }}
             >
               <Icon name="git-branch-outline" size={20} color={colors.primary} />
@@ -382,8 +505,12 @@ export function CatalogSpreadsheetImport(props: Props) {
           </Card>
         ) : null}
         <Card>
-          <h2 style={{ ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` }}>Columns</h2>
-          <p style={{ color: colors.textSecondary, lineHeight: "20px", margin: 0 }}>{props.columnHelp}</p>
+          {props.columnHelpDisplay !== "info" ? (
+            <>
+              <h2 style={{ ...font.title, color: colors.textPrimary, margin: `0 0 ${spacing.sm}px` }}>Columns</h2>
+              <p style={{ color: colors.textSecondary, lineHeight: "20px", margin: 0 }}>{props.columnHelp}</p>
+            </>
+          ) : null}
           <input
             ref={fileInput}
             type="file"
@@ -519,16 +646,29 @@ export function CatalogSpreadsheetImport(props: Props) {
         style={{ marginTop: spacing.xl }}
       >
         {props.sectionTitle ? (
-          <h2
+          <div
             style={{
-              ...font.title,
-              color: colors.textPrimary,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: spacing.xs,
               margin: `0 0 ${spacing.sm}px`,
-              fontSize: 17,
             }}
           >
-            {props.sectionTitle}
-          </h2>
+            <h2
+              style={{
+                ...font.title,
+                color: colors.textPrimary,
+                margin: 0,
+                fontSize: 17,
+                flex: 1,
+              }}
+            >
+              {props.sectionTitle}
+            </h2>
+            {props.columnHelpDisplay === "info" && props.columnHelp ? (
+              <ColumnHelpInfo help={props.columnHelp} testID={`${props.kind}-column-help-info`} />
+            ) : null}
+          </div>
         ) : null}
         {sheetBody}
         {modals}
@@ -536,9 +676,27 @@ export function CatalogSpreadsheetImport(props: Props) {
     );
   }
 
+  if (hubEmbedded) {
+    return (
+      <>
+        <div
+          className="admin-page-container"
+          style={{ maxWidth: "none", margin: 0, padding: 0 }}
+        >
+          {sheetBody}
+        </div>
+        {modals}
+      </>
+    );
+  }
+
   return (
     <main style={{ minHeight: "100vh", backgroundColor: colors.bg }}>
-      <Header title={props.title} subtitle={props.subtitle} onBack={() => navigate(-1)} />
+      <Header
+        title={props.title}
+        subtitle={props.subtitle}
+        onBack={() => (props.onClose ? props.onClose() : navigate(-1))}
+      />
       <div className="admin-page-container" style={{ maxWidth: "none", margin: "0 auto", padding: spacing.lg }}>
         {sheetBody}
       </div>
