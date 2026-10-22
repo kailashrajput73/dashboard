@@ -39,6 +39,8 @@ type SheetCheckState = {
   valid: boolean;
   errors: SheetValidationError[];
   rowCount: number;
+  skippedBlankRows?: number;
+  rejectedHeaderRows?: number;
 };
 
 function mapPipesImageRows(rows: Record<string, string>[]) {
@@ -253,16 +255,25 @@ export function CatalogSpreadsheetImport(props: Props) {
   async function runPipesSheetValidation(rows: Record<string, string>[]) {
     setSheetCheck({ checking: true, valid: false, errors: [], rowCount: rows.length });
     try {
-      const check =
-        props.kind === "pipes-fittings-images"
-          ? await validatePipesFittingsImagesImport({ items: mapPipesImageRows(rows) })
-          : await validatePipesFittingsImport({ rows });
-      setSheetCheck({
-        checking: false,
-        valid: check.valid,
-        errors: check.errors ?? [],
-        rowCount: check.rowCount ?? rows.length,
-      });
+      if (props.kind === "pipes-fittings-images") {
+        const check = await validatePipesFittingsImagesImport({ items: mapPipesImageRows(rows) });
+        setSheetCheck({
+          checking: false,
+          valid: check.valid,
+          errors: check.errors ?? [],
+          rowCount: check.rowCount ?? rows.length,
+        });
+      } else {
+        const check = await validatePipesFittingsImport({ rows });
+        setSheetCheck({
+          checking: false,
+          valid: check.valid,
+          errors: check.errors ?? [],
+          rowCount: check.rowCount ?? rows.length,
+          skippedBlankRows: check.skippedBlankRows,
+          rejectedHeaderRows: check.rejectedHeaderRows,
+        });
+      }
     } catch (cause: unknown) {
       const apiErrors = errorsFromApi(cause);
       if (apiErrors?.length) {
@@ -271,6 +282,8 @@ export function CatalogSpreadsheetImport(props: Props) {
           valid: false,
           errors: apiErrors,
           rowCount: rows.length,
+          skippedBlankRows: undefined,
+          rejectedHeaderRows: undefined,
         });
       } else {
         setSheetCheck(null);
@@ -390,6 +403,8 @@ export function CatalogSpreadsheetImport(props: Props) {
             valid: false,
             errors: check.errors ?? [],
             rowCount: check.rowCount ?? rows.length,
+            skippedBlankRows: check.skippedBlankRows,
+            rejectedHeaderRows: check.rejectedHeaderRows,
           });
           return;
         }
@@ -651,6 +666,8 @@ export function CatalogSpreadsheetImport(props: Props) {
             errors={sheetCheck.errors}
             rowCount={sheetCheck.rowCount}
             sourceFileName={fileName}
+            skippedBlankRows={sheetCheck.skippedBlankRows}
+            rejectedHeaderRows={sheetCheck.rejectedHeaderRows}
           />
         ) : null}
         {result ? (

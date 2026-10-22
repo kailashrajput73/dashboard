@@ -70,6 +70,45 @@ class PipesFittingsValidationTests(unittest.TestCase):
         self.assertTrue(result.ok)
         self.assertTrue(result.rows[0].is_active)
 
+    def test_duplicate_header_row_rejected(self) -> None:
+        header_echo = {
+            "Category": "Category",
+            "Type": "Type",
+            "Sub-Category": "Sub-Category",
+            "class": "class",
+            "Brand": "Brand",
+            "product_family": "product_family",
+            "HSN Code": "HSN Code",
+            "GST": "GST",
+            "UoM": "UoM",
+            "Size (mm,cm,in)": "Size (mm,cm,in)",
+            "Length": "Length",
+            "product code": "product code",
+            "MRP (Rs) per nos": "MRP (Rs) per nos",
+            "discount": "discount",
+            "Selling Price": "Selling Price",
+            "Pack Size": "Pack Size",
+            "MRP Pkg": "MRP Pkg",
+            "ROL": "ROL",
+        }
+        result = parse_rows([_row(), header_echo])
+        self.assertFalse(result.ok)
+        self.assertEqual(len(result.rows), 1)
+        self.assertEqual(result.rejected_header_rows, 1)
+        self.assertTrue(any("duplicate header" in e["message"].lower() for e in result.errors))
+
+    def test_product_code_header_text_rejected(self) -> None:
+        result = parse_rows([_row(**{"product code": "product code"})])
+        self.assertFalse(result.ok)
+        self.assertTrue(any("duplicate header" in e["message"].lower() for e in result.errors))
+
+    def test_blank_row_skipped_not_error(self) -> None:
+        blank = {key: "" for key in _row()}
+        result = parse_rows([_row(), blank])
+        self.assertTrue(result.ok)
+        self.assertEqual(len(result.rows), 1)
+        self.assertEqual(result.skipped_blank_rows, 1)
+
     def test_brand_casefold_same_family_key(self) -> None:
         rows = [
             _row(**{"Brand": "KING", "product code": "A1"}),

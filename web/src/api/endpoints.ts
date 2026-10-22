@@ -754,6 +754,8 @@ export function validatePipesFittingsImport(body: { rows: Record<string, string>
     valid: boolean;
     errors: SheetValidationError[];
     rowCount: number;
+    skippedBlankRows?: number;
+    rejectedHeaderRows?: number;
   }>("/catalog/import/pipes-fittings/validate", { method: "POST", body });
 }
 

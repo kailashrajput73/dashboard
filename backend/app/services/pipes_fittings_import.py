@@ -33,8 +33,10 @@ from app.services.catalog_service import (
     _selling_from,
 )
 from app.services.pipes_fittings_template import (
-    parse_product_status,
     TEMPLATE_ID,
+    is_duplicate_header_data_row,
+    parse_product_status,
+    product_code_looks_like_header_label,
     row_get,
     validate_headers,
 )
@@ -70,6 +72,8 @@ class ParsedRow:
 class ValidationResult:
     errors: list[dict[str, Any]] = field(default_factory=list)
     rows: list[ParsedRow] = field(default_factory=list)
+    skipped_blank_rows: int = 0
+    rejected_header_rows: int = 0
 
     @property
     def ok(self) -> bool:
@@ -122,11 +126,53 @@ def parse_rows(
         length = canonical_label(row_get(row, column_map, "length"))
 
         if not any([category, type_name, product_family, product_code]):
+            result.skipped_blank_rows += 1
+            continue
+
+        if is_duplicate_header_data_row(row, column_map):
+            result.rejected_header_rows += 1
+            result.errors.append(
+                _err(
+                    excel_row,
+                    None,
+                    (
+                        "This row looks like a duplicate header row (column titles pasted as data). "
+                        "Keep headers on row 1 only; delete or fix this row."
+                    ),
+                )
+            )
             continue
 
         if not product_code:
             result.errors.append(
                 _err(excel_row, "product code", "Product code is required")
+            )
+            continue
+
+        if product_code_looks_like_header_label(product_code):
+            result.rejected_header_rows += 1
+            result.errors.append(
+                _err(
+                    excel_row,
+                    "product code",
+                    (
+                        f"Product code '{product_code}' looks like a column header, not a real SKU. "
+                        "Remove duplicate header rows from the sheet."
+                    ),
+                )
+            )
+            continue
+
+        if product_code and not category and not type_name:
+            result.errors.append(
+                _err(
+                    excel_row,
+                    "Category",
+                    (
+                        "Row has a product code but is missing Category and Type. "
+                        "Check for incomplete rows or header text mixed into data."
+                    ),
+                )
             )
             continue
         if not size and not length:

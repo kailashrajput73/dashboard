@@ -252,6 +252,8 @@ def validate_pipes_fittings_import(
             "valid": result.ok,
             "errors": result.errors,
             "rowCount": len(result.rows),
+            "skippedBlankRows": result.skipped_blank_rows,
+            "rejectedHeaderRows": result.rejected_header_rows,
         },
     )
 

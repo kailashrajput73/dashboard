@@ -17,6 +17,13 @@
 - List row **Active / Inactive** button → `PATCH /catalog/{id}/active`.
 - Pipes v1 sheet column **`status`** after **ROL**: blank → inactive; `active` / `yes` / etc. → live on import.
 
+## Pipes v1 sheet row quality
+
+- Rejects **duplicate header rows** (column titles pasted in data rows).
+- Rejects **product code** cells that are header text (e.g. `product code`).
+- **Blank** data rows skipped (counted in validation summary).
+- Incomplete rows (code but missing Category + Type) fail validation.
+
 ## Pipes family images download
 
 - Subcategory required; only families **missing** `image_url`.
