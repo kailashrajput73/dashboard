@@ -273,11 +273,11 @@ class CatalogAPITests(unittest.TestCase):
             ).scalar_one_or_none()
         )
 
-    def test_catalog_requires_admin_bearer_token(self) -> None:
+    def test_catalog_allows_unauthenticated_read(self) -> None:
         app.dependency_overrides.pop(get_current_admin, None)
         response = self.client.get("/api/catalog")
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json()["error"], "Missing admin token")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertTrue(response.json()["success"])
 
     def test_read_only_team_roles_cannot_write_catalog(self) -> None:
         app.dependency_overrides[get_current_admin] = (
