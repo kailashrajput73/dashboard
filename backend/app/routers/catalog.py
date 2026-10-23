@@ -42,7 +42,6 @@ CatalogWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("product-m
 @router.get("/catalog")
 def list_catalog(
     session: DbSession,
-    _admin: CatalogRead,
     category: str | None = None,
     search: str | None = None,
     group_id: str | None = None,
@@ -76,7 +75,6 @@ def list_catalog(
 @router.get("/catalog/filter-options")
 def catalog_filter_options(
     session: DbSession,
-    _admin: AdminPrincipal,
     category: str | None = None,
     subcategory: str | None = None,
 ):
@@ -90,7 +88,6 @@ def catalog_filter_options(
 @router.get("/catalog/tree")
 def get_catalog_tree(
     session: DbSession,
-    _admin: CatalogRead,
     active_only: bool = True,
 ):
     return service.catalog_tree(session, active_only=active_only)
@@ -130,9 +127,8 @@ def update_catalog_active(
     item_id: str,
     body: CatalogActiveIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.set_catalog_active(session, item_id, body.isActive)
 
 
@@ -260,10 +256,9 @@ def import_pipes_fittings(
 @router.get("/catalog/import/pipes-fittings/images/template")
 def pipes_fittings_images_template(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
     subcategory: str | None = None,
 ):
-    _require_catalog_write(_admin)
     items = pipes_fittings_image_template_rows(
         session,
         subcategory=subcategory,

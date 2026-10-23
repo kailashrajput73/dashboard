@@ -20,7 +20,6 @@ CatalogWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("product-m
 @router.get("/product-groups")
 def list_product_groups(
     session: DbSession,
-    _admin: CatalogRead,
 ):
     return service.list_product_groups(session)
 
