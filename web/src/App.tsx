@@ -15,6 +15,7 @@ import TeamPage from "./pages/TeamPage";
 import SettingsPage from "./pages/SettingsPage";
 import DashboardPage from "./pages/DashboardPage";
 import RegisterPage from "./pages/RegisterPage";
+import { AdminSessionProvider } from "./access/AdminSessionContext";
 
 const legacyCatalogPaths = [
   "/catalog",
@@ -37,7 +38,13 @@ export default function App() {
         <Route path="/" element={<StartupRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route element={<AdminShell />}>
+        <Route
+          element={
+            <AdminSessionProvider>
+              <AdminShell />
+            </AdminSessionProvider>
+          }
+        >
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/product-management" element={<ProductManagementPage />} />
           {legacyCatalogPaths.map((path) => (

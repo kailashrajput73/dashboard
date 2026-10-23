@@ -18,7 +18,9 @@ export function CatalogPricingRow(props: {
   onDelete: () => void;
   onSaved: () => Promise<void>;
   onError: (message: string) => void;
+  readOnly?: boolean;
 }) {
+  const readOnly = props.readOnly ?? false;
   const { item } = props;
   const [mrp, setMrp] = useState(item.mrp == null ? "" : String(item.mrp));
   const [discount, setDiscount] = useState(
@@ -95,25 +97,29 @@ export function CatalogPricingRow(props: {
       <span style={sizeStyle}>{sizeMmLabel(item) || "—"}</span>
       <span style={sizeStyle}>{sizeInchLabel(item) || "—"}</span>
       <span style={sizeStyle}>{sizeLengthLabel(item) || "—"}</span>
-      <input value={mrp} onChange={(event) => { setMrp(event.currentTarget.value); syncSellingFromMrpDiscount(event.currentTarget.value, discount); }} inputMode="decimal" style={numberInputStyle} data-testid={`mrp-${item.id}`} />
-      <input value={discount} onChange={(event) => { setDiscount(event.currentTarget.value); syncSellingFromMrpDiscount(mrp, event.currentTarget.value); }} inputMode="decimal" style={numberInputStyle} data-testid={`discount-${item.id}`} />
+      <input value={mrp} readOnly={readOnly} onChange={(event) => { setMrp(event.currentTarget.value); syncSellingFromMrpDiscount(event.currentTarget.value, discount); }} inputMode="decimal" style={numberInputStyle} data-testid={`mrp-${item.id}`} />
+      <input value={discount} readOnly={readOnly} onChange={(event) => { setDiscount(event.currentTarget.value); syncSellingFromMrpDiscount(mrp, event.currentTarget.value); }} inputMode="decimal" style={numberInputStyle} data-testid={`discount-${item.id}`} />
       <label style={metricStyle}>
         <span style={metricLabelStyle}>Sell</span>
-        <input value={selling} onChange={(event) => changeSelling(event.currentTarget.value)} inputMode="decimal" style={metricInputStyle} data-testid={`selling-${item.id}`} />
+        <input value={selling} readOnly={readOnly} onChange={(event) => changeSelling(event.currentTarget.value)} inputMode="decimal" style={metricInputStyle} data-testid={`selling-${item.id}`} />
       </label>
       <label style={{ ...metricStyle, backgroundColor: "#F0FDFA", borderColor: "#99F6E4" }}>
         <span style={{ ...metricLabelStyle, color: "#0F766E" }}>Qty</span>
-        <input value={stock} onChange={(event) => setStock(event.currentTarget.value)} inputMode="decimal" style={{ ...metricInputStyle, color: "#0F766E" }} data-testid={`stock-${item.id}`} />
+        <input value={stock} readOnly={readOnly} onChange={(event) => setStock(event.currentTarget.value)} inputMode="decimal" style={{ ...metricInputStyle, color: "#0F766E" }} data-testid={`stock-${item.id}`} />
       </label>
-      <div style={actionsStyle}>
-        <Button title={saving ? "Saving" : dirty ? "Save" : "Saved"} size="sm" onPress={() => void save()} loading={saving} disabled={!dirty} testID={`save-price-${item.id}`} />
-        <button type="button" onClick={props.onEdit} aria-label={`Edit ${item.name}`} data-testid={`edit-item-${item.id}`} style={editButtonStyle}>
-          <Icon name="create-outline" size={18} color={colors.primary} />
-        </button>
-        <button type="button" onClick={props.onDelete} aria-label={`Delete ${item.name}`} title="Delete product" data-testid={`delete-item-${item.id}`} style={editButtonStyle}>
-          <Icon name="trash-outline" size={18} color={colors.error} />
-        </button>
-      </div>
+      {!readOnly ? (
+        <div style={actionsStyle}>
+          <Button title={saving ? "Saving" : dirty ? "Save" : "Saved"} size="sm" onPress={() => void save()} loading={saving} disabled={!dirty} testID={`save-price-${item.id}`} />
+          <button type="button" onClick={props.onEdit} aria-label={`Edit ${item.name}`} data-testid={`edit-item-${item.id}`} style={editButtonStyle}>
+            <Icon name="create-outline" size={18} color={colors.primary} />
+          </button>
+          <button type="button" onClick={props.onDelete} aria-label={`Delete ${item.name}`} title="Delete product" data-testid={`delete-item-${item.id}`} style={editButtonStyle}>
+            <Icon name="trash-outline" size={18} color={colors.error} />
+          </button>
+        </div>
+      ) : (
+        <div style={actionsStyle} />
+      )}
     </div>
   );
 }

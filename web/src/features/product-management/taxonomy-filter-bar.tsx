@@ -31,7 +31,7 @@ type Props = {
   options: OptionSets;
   onChange: (next: ProductFilters) => void;
   onRefresh: () => void;
-  onOpenBatchImport: () => void;
+  onOpenBatchImport?: () => void;
 };
 
 type Segment = {

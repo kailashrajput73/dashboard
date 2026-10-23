@@ -18,6 +18,7 @@ from app.schemas.auth import (
     PartnerRegisterIn,
     RequesterRegisterIn,
 )
+from app.access_modules import public_module_access
 from app.services._common import constraint_name, envelope, error_response, isoformat
 
 
@@ -88,6 +89,13 @@ def admin_register(
     session: Session,
     body: AdminRegisterIn,
 ) -> dict[str, object] | JSONResponse:
+    if session.scalar(
+        select(User.id).where(
+            User.role == "admin",
+            User.deleted_at.is_(None),
+        )
+    ):
+        return error_response(403, "Admin registration is disabled")
     contact_number = body.contactNumber.strip()
     admin_id = str(uuid4())
     now = datetime.now(timezone.utc)
@@ -187,6 +195,7 @@ def admin_login(
             )
         )
         session.flush()
+        stored_access = user.module_access if isinstance(user.module_access, dict) else None
         response = {
             "token": token,
             "adminId": user.id,
@@ -194,8 +203,38 @@ def admin_login(
             "companyName": user.company_name or user.name,
             "contactNumber": user.contact_number,
             "gstin": user.gstin,
+            "moduleAccess": public_module_access(user.role, stored_access),
         }
     return envelope(response)
+
+
+def admin_me(
+    session: Session,
+    *,
+    user_id: str,
+) -> dict[str, object] | JSONResponse:
+    user = session.scalar(
+        select(User).where(
+            User.id == user_id,
+            User.role.in_(("admin", "store_manager", "staff")),
+            User.deleted_at.is_(None),
+        )
+    )
+    if user is None:
+        return error_response(401, "Invalid or expired admin token")
+    if user.is_active is False:
+        return error_response(401, "Account is inactive")
+    stored_access = user.module_access if isinstance(user.module_access, dict) else None
+    return envelope(
+        {
+            "adminId": user.id,
+            "role": user.role,
+            "companyName": user.company_name or user.name,
+            "contactNumber": user.contact_number,
+            "gstin": user.gstin,
+            "moduleAccess": public_module_access(user.role, stored_access),
+        }
+    )
 
 
 def _partner_defaults(body: PartnerIn) -> dict[str, object]:

@@ -5,6 +5,17 @@ import { ApiError } from "../api/client";
 import { AppModal, Button, Chip, ErrorModal, Header, Input } from "../components/UI";
 import { Icon } from "../components/Icon";
 import { colors, font, radii, spacing } from "../theme";
+import {
+  ACCESS_LEVEL_OPTIONS,
+  ALL_MODULES,
+  MODULE_LABELS,
+  defaultModuleAccessForRole,
+  mergeModuleAccess,
+  type AccessLevel,
+  type ModuleAccessMap,
+  type ModuleId,
+} from "../access/modules";
+import { useIsAdminRole } from "../access/useAccess";
 
 const roles: TeamUser["role"][] = ["admin", "store_manager", "staff"];
 const roleLabels: Record<TeamUser["role"], string> = { admin: "Admin", store_manager: "Store manager", staff: "Staff" };
@@ -45,6 +56,10 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [moduleAccessDraft, setModuleAccessDraft] = useState<ModuleAccessMap>(
+    defaultModuleAccessForRole("staff"),
+  );
+  const viewerIsAdmin = useIsAdminRole();
 
   const load = useCallback(async () => {
     try {
@@ -87,6 +102,7 @@ export default function TeamPage() {
     setPasscode("");
     setRole("staff");
     setIsActive(true);
+    setModuleAccessDraft(defaultModuleAccessForRole("staff"));
     setError(null);
     setSuccessMessage(null);
   }
@@ -98,8 +114,15 @@ export default function TeamPage() {
     setRole(user.role);
     setIsActive(user.isActive);
     setPasscode("");
+    setModuleAccessDraft(
+      mergeModuleAccess(user.role, user.moduleAccessOverrides ?? user.moduleAccess),
+    );
     setError(null);
     setSuccessMessage(null);
+  }
+
+  function setModuleLevel(module: ModuleId, level: AccessLevel) {
+    setModuleAccessDraft((current) => ({ ...current, [module]: level }));
   }
 
   async function save() {
@@ -110,7 +133,14 @@ export default function TeamPage() {
     setSaving(true);
     setError(null);
     try {
-      const payload = { name: name.trim(), contactNumber: contact.trim(), role, isActive, permissions: defaultPermissionsForRole(role) };
+      const payload = {
+        name: name.trim(),
+        contactNumber: contact.trim(),
+        role,
+        isActive,
+        permissions: defaultPermissionsForRole(role),
+        moduleAccess: role === "admin" ? null : moduleAccessDraft,
+      };
       if (editor) {
         await updateTeamUser(editor.id, payload);
         setSuccessMessage(`${name.trim()} was saved.`);
@@ -145,7 +175,7 @@ export default function TeamPage() {
 
   return (
     <main style={pageStyle}>
-      <Header title="Team Management" subtitle={`${filtered.length} of ${users.length} users`} onBack={() => navigate(-1)} right={<button type="button" data-testid="open-add-team-user" aria-label="Add team user" title="Add team user" onClick={openCreate} style={iconButtonStyle}><Icon name="add-circle" size={25} color={colors.primary} /></button>} />
+      <Header title="Team Management" subtitle={`${filtered.length} of ${users.length} users`} onBack={() => navigate(-1)} right={viewerIsAdmin ? <button type="button" data-testid="open-add-team-user" aria-label="Add team user" title="Add team user" onClick={openCreate} style={iconButtonStyle}><Icon name="add-circle" size={25} color={colors.primary} /></button> : null} />
       <div className="admin-page-container" style={controlsStyle}>
         <Input testID="team-search" value={query} onChangeText={setQuery} placeholder="Search team" style={{ marginBottom: spacing.sm }} />
         <div style={filtersStyle}>{(["all", ...roles] as const).map((item) => <Chip key={item} label={item === "all" ? "All" : roleLabels[item]} selected={filter === item} onPress={() => setFilter(item)} testID={`team-filter-${item}`} />)}</div>
@@ -163,7 +193,17 @@ export default function TeamPage() {
             <div style={userMainStyle}>
               <div style={userHeadingStyle}><strong style={userNameStyle}>{user.name}</strong><span style={{ ...statusBadgeStyle, ...(user.isActive ? activeBadgeStyle : inactiveBadgeStyle) }}>{user.isActive ? "Active" : "Inactive"}</span></div>
               <div style={metaStyle}>{user.contactNumber} · {roleLabels[user.role]}</div>
-              <div style={permissionsStyle}>{(user.permissions || []).map((permission) => <span key={`${user.id}-${permission}`} style={permissionPillStyle}>{permission}</span>)}</div>
+              {user.role === "admin" ? (
+                <div style={permissionsStyle}>{(user.permissions || []).map((permission) => <span key={`${user.id}-${permission}`} style={permissionPillStyle}>{permission}</span>)}</div>
+              ) : (
+                <div style={permissionsStyle}>
+                  {ALL_MODULES.filter((module) => (user.moduleAccess?.[module] ?? "hidden") !== "hidden").map((module) => (
+                    <span key={`${user.id}-${module}`} style={permissionPillStyle}>
+                      {MODULE_LABELS[module]}: {user.moduleAccess?.[module] === "write" ? "Full" : "View"}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <div style={userActionsStyle}>
               <label style={toggleLabelStyle} title={user.isActive ? "Deactivate user" : "Activate user"}><input type="checkbox" role="switch" aria-label={`${user.isActive ? "Deactivate" : "Activate"} ${user.name}`} data-testid={`toggle-team-${user.id}`} checked={user.isActive} onChange={() => void toggle(user)} /><span>{user.isActive ? "Active" : "Inactive"}</span></label>
@@ -176,10 +216,36 @@ export default function TeamPage() {
         <Input testID="team-name-input" label="Name" value={name} onChangeText={setName} placeholder="Full name" autoCapitalize="words" />
         <Input testID="team-contact-input" label="Contact number" value={contact} onChangeText={setContact} keyboardType="phone-pad" />
         <span style={fieldLabelStyle}>Role</span>
-        <div style={filtersStyle}>{roles.map((item) => <Chip key={item} label={roleLabels[item]} selected={role === item} onPress={() => setRole(item)} testID={`team-role-${item}`} />)}</div>
+        <div style={filtersStyle}>{roles.map((item) => <Chip key={item} label={roleLabels[item]} selected={role === item} onPress={() => { setRole(item); setModuleAccessDraft(defaultModuleAccessForRole(item)); }} testID={`team-role-${item}`} />)}</div>
         <label style={formToggleStyle}><span>Status</span><input type="checkbox" role="switch" checked={isActive} onChange={() => setIsActive((current) => !current)} /><strong>{isActive ? "Active" : "Inactive"}</strong></label>
         {!editor ? <Input testID="team-passcode-input" label="Passcode" value={passcode} onChangeText={setPasscode} secureTextEntry keyboardType="numeric" /> : null}
-        <p style={hintStyle}>Default permissions: {defaultPermissionsForRole(role).join(", ") || "none"}</p>
+        {role !== "admin" ? (
+          <div style={{ marginBottom: spacing.md }}>
+            <span style={fieldLabelStyle}>Page access</span>
+            <p style={hintStyle}>Hidden = no sidebar link. View only = page opens but save/import/add buttons are off. Full = read and write.</p>
+            <div style={moduleMatrixStyle}>
+              {ALL_MODULES.filter((module) => module !== "team").map((module) => (
+                <div key={module} style={moduleRowStyle}>
+                  <span style={moduleNameStyle}>{MODULE_LABELS[module]}</span>
+                  <div style={filtersStyle}>
+                    {ACCESS_LEVEL_OPTIONS.map((option) => (
+                      <Chip
+                        key={`${module}-${option.value}`}
+                        label={option.label}
+                        selected={moduleAccessDraft[module] === option.value}
+                        onPress={() => setModuleLevel(module, option.value)}
+                        testID={`team-module-${module}-${option.value}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p style={hintStyle}>Admins always have full access to every module.</p>
+        )}
+        <p style={hintStyle}>Legacy permission tags: {defaultPermissionsForRole(role).join(", ") || "none"}</p>
         {editor ? <p style={hintStyle}>Passcode changes are not supported by the current endpoint; create a new user or add the reset endpoint later.</p> : null}
         <Button testID="save-team-user" title={editor ? "Save changes" : "Create user"} onPress={save} loading={saving} fullWidth />
       </AppModal>
@@ -214,3 +280,6 @@ const fieldLabelStyle: React.CSSProperties = { display: "block", color: colors.t
 const formToggleStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.md, color: colors.textSecondary };
 const hintStyle: React.CSSProperties = { color: colors.textSecondary, fontSize: 12, margin: `0 0 ${spacing.md}px` };
 const emptyStyle: React.CSSProperties = { textAlign: "center", color: colors.textSecondary, padding: spacing.xl };
+const moduleMatrixStyle: React.CSSProperties = { display: "grid", gap: spacing.sm, maxHeight: 280, overflowY: "auto", paddingRight: spacing.xs };
+const moduleRowStyle: React.CSSProperties = { borderBottom: `1px solid ${colors.border}`, paddingBottom: spacing.sm };
+const moduleNameStyle: React.CSSProperties = { display: "block", color: colors.textPrimary, fontSize: 13, fontWeight: 600, marginBottom: spacing.xs };

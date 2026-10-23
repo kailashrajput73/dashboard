@@ -24,6 +24,7 @@ from app.schemas.auth import (
     TeamUserUpdateIn,
 )
 from app.services import auth_service
+from app.access_modules import public_module_access
 from app.services._common import (
     ROLE_PERMISSIONS,
     constraint_name,
@@ -65,12 +66,15 @@ def _partner_dict(partner: Partner) -> dict[str, object]:
 
 
 def _public_team_user(user: User) -> dict[str, object]:
+    stored_access = user.module_access if isinstance(user.module_access, dict) else None
     return {
         "id": user.id,
         "name": user.name,
         "contactNumber": user.contact_number,
         "role": user.role,
         "permissions": user.permissions or ROLE_PERMISSIONS.get(user.role, []),
+        "moduleAccess": public_module_access(user.role, stored_access),
+        "moduleAccessOverrides": stored_access,
         "isActive": user.is_active if user.is_active is not None else True,
         "createdAt": isoformat(user.created_at),
         "updatedAt": isoformat(user.updated_at),
@@ -304,6 +308,7 @@ def create_team_user(
         contact_number=contact,
         role=body.role,
         permissions=body.permissions or ROLE_PERMISSIONS[body.role],
+        module_access=body.moduleAccess,
         is_active=True,
         passcode_hash=bcrypt.hashpw(
             body.passcode.encode(),
@@ -371,6 +376,8 @@ def update_team_user(
             user.role = body.role
             user.is_active = body.isActive
             user.permissions = body.permissions or ROLE_PERMISSIONS[body.role]
+            if body.moduleAccess is not None:
+                user.module_access = body.moduleAccess
             user.updated_at = now
             session.flush()
     except IntegrityError as error:

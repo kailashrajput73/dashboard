@@ -59,6 +59,7 @@ const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 export default function ProductManagementPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const canWrite = useCanWriteModule("product-management");
   const [tabs, setTabs] = useState<TaxonomyTabs>({ showProductType: true, showProductClass: true });
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -363,20 +364,24 @@ export default function ProductManagementPage() {
         subtitle={`${pageItems.length ? (page - 1) * pageSize + 1 : 0}–${Math.min(page * pageSize, total)} of ${total} item${total === 1 ? "" : "s"}`}
         onBack={() => navigate(-1)}
         right={
-          <button
-            type="button"
-            data-testid="open-add-item"
-            aria-label="Add item"
-            onClick={() => {
-              setEditing(null);
-              setEditorOpen(true);
-            }}
-            style={headerActionStyle}
-          >
-            <Icon name="add-circle" size={26} color={colors.primary} />
-          </button>
+          canWrite ? (
+            <button
+              type="button"
+              data-testid="open-add-item"
+              aria-label="Add item"
+              onClick={() => {
+                setEditing(null);
+                setEditorOpen(true);
+              }}
+              style={headerActionStyle}
+            >
+              <Icon name="add-circle" size={26} color={colors.primary} />
+            </button>
+          ) : null
         }
       />
+
+      {!canWrite ? <ReadOnlyBanner moduleLabel="products" /> : null}
 
       <div className="admin-page-container" style={toolbarStyle}>
         <Input
@@ -397,19 +402,21 @@ export default function ProductManagementPage() {
             <Icon name="download-outline" size={20} color={colors.primary} />
             <span>Export</span>
           </button>
-          <button
-            type="button"
-            data-testid="open-catalog-import-hub"
-            aria-label="Import spreadsheet"
-            onClick={() => {
-              setImportInitialStep("pick");
-              setImportOpen(true);
-            }}
-            style={toolButtonStyle}
-          >
-            <Icon name="cloud-upload-outline" size={20} color={colors.primary} />
-            <span>Import</span>
-          </button>
+          {canWrite ? (
+            <button
+              type="button"
+              data-testid="open-catalog-import-hub"
+              aria-label="Import spreadsheet"
+              onClick={() => {
+                setImportInitialStep("pick");
+                setImportOpen(true);
+              }}
+              style={toolButtonStyle}
+            >
+              <Icon name="cloud-upload-outline" size={20} color={colors.primary} />
+              <span>Import</span>
+            </button>
+          ) : null}
         </div>
       </div>
 

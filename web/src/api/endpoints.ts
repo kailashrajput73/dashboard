@@ -97,7 +97,17 @@ export type PartnerAdminCreate = {
   documents: string[];
 };
 export type RewardWallet = { balance: number; entries: { id: string; requesterId: string; quotationId: string; points: number; type: string; createdAt: string }[] };
-export type TeamUser = { id: string; name: string; contactNumber: string; role: "admin" | "store_manager" | "staff"; permissions: string[]; isActive: boolean; createdAt?: string };
+export type TeamUser = {
+  id: string;
+  name: string;
+  contactNumber: string;
+  role: "admin" | "store_manager" | "staff";
+  permissions: string[];
+  moduleAccess?: Record<string, ModuleAccessLevel>;
+  moduleAccessOverrides?: Record<string, ModuleAccessLevel> | null;
+  isActive: boolean;
+  createdAt?: string;
+};
 
 export type DashboardSnapshot = {
   catalogCount: number;
@@ -172,12 +182,16 @@ export type CatalogItem = {
   updatedAt?: string;
 };
 
+export type ModuleAccessLevel = "hidden" | "read" | "write";
+
 export type AdminSession = {
   token: string;
   adminId: string;
   companyName: string;
   contactNumber: string;
   gstin: string;
+  role?: "admin" | "store_manager" | "staff";
+  moduleAccess?: Record<string, ModuleAccessLevel>;
 };
 
 export type MoneyConfig = {
@@ -248,6 +262,10 @@ export function loginAdmin(body: { contactNumber: string; passcode: string }) {
     body,
     auth: false,
   });
+}
+
+export function fetchAdminMe() {
+  return apiRequest<Omit<AdminSession, "token">>("/auth/admin/me");
 }
 
 // ---------- Categories ----------
@@ -328,8 +346,30 @@ export function createPartnerAdmin(body: PartnerAdminCreate) { return apiRequest
 export function reviewPartnerKyc(id: string, body: { approved: boolean; locationVerified: boolean; rejectionReason?: string }) { return apiRequest<Partner>(`/partners/${id}/kyc`, { method: "PUT", body }); }
 export function getPartnerRewards(id: string) { return apiRequest<RewardWallet>(`/partners/${id}/rewards`); }
 export function listTeamUsers() { return apiRequest<TeamUser[]>("/team/users", { cache: "no-store" }); }
-export function createTeamUser(body: { name: string; contactNumber: string; role: TeamUser["role"]; passcode: string; isActive?: boolean; permissions?: string[] }) { return apiRequest<TeamUser>("/team/users", { method: "POST", body }); }
-export function updateTeamUser(id: string, body: { name: string; contactNumber: string; role: TeamUser["role"]; isActive: boolean; permissions?: string[] }) { return apiRequest<TeamUser>(`/team/users/${id}`, { method: "PUT", body }); }
+export function createTeamUser(body: {
+  name: string;
+  contactNumber: string;
+  role: TeamUser["role"];
+  passcode: string;
+  isActive?: boolean;
+  permissions?: string[];
+  moduleAccess?: Record<string, ModuleAccessLevel> | null;
+}) {
+  return apiRequest<TeamUser>("/team/users", { method: "POST", body });
+}
+export function updateTeamUser(
+  id: string,
+  body: {
+    name: string;
+    contactNumber: string;
+    role: TeamUser["role"];
+    isActive: boolean;
+    permissions?: string[];
+    moduleAccess?: Record<string, ModuleAccessLevel> | null;
+  },
+) {
+  return apiRequest<TeamUser>(`/team/users/${id}`, { method: "PUT", body });
+}
 
 export function listSubcategories(categoryId?: string) {
   return apiRequest<Subcategory[]>("/subcategories", { query: categoryId ? { category_id: categoryId } : undefined });

@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
-from app.deps.auth import AuthenticatedPrincipal, get_current_admin
+from app.deps.auth import AuthenticatedPrincipal
+from app.deps.module_access import module_read, module_write
 from app.schemas.taxonomy import (
     AdminPasscodeIn,
     BrandIn,
@@ -20,13 +21,14 @@ from app.services import taxonomy_service as service
 
 router = APIRouter(prefix="/api")
 DbSession = Annotated[Session, Depends(get_db_session)]
-AdminPrincipal = Annotated[AuthenticatedPrincipal, Depends(get_current_admin)]
+CatalogRead = Annotated[AuthenticatedPrincipal, Depends(module_read("product-management"))]
+CatalogWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("product-management"))]
 
 
 @router.get("/categories")
 def list_categories(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogRead,
     active_only: bool = False,
 ):
     return service.list_categories(session, active_only=active_only)
@@ -36,7 +38,7 @@ def list_categories(
 def create_category(
     body: CategoryIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.create_category(session, body)
 
@@ -46,7 +48,7 @@ def update_category(
     category_id: str,
     body: CategoryUpdateIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.update_category(
         session,
@@ -59,7 +61,7 @@ def update_category(
 def delete_category(
     category_id: str,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.delete_category(session, category_id=category_id)
 
@@ -69,6 +71,7 @@ def delete_category_cascade(
     category_id: str,
     body: AdminPasscodeIn,
     session: DbSession,
+    _admin: CatalogWrite,
 ):
     return service.delete_category_cascade(
         session,
@@ -78,7 +81,7 @@ def delete_category_cascade(
 
 
 @router.get("/brands")
-def list_brands(session: DbSession, _admin: AdminPrincipal):
+def list_brands(session: DbSession, _admin: CatalogRead):
     return service.list_brands(session)
 
 
@@ -86,7 +89,7 @@ def list_brands(session: DbSession, _admin: AdminPrincipal):
 def create_brand(
     body: BrandIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.create_brand(session, body)
 
@@ -96,7 +99,7 @@ def update_brand(
     brand_id: str,
     body: BrandUpdateIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.update_brand(session, brand_id=brand_id, body=body)
 
@@ -106,6 +109,7 @@ def delete_brand_cascade(
     brand_id: str,
     body: AdminPasscodeIn,
     session: DbSession,
+    _admin: CatalogWrite,
 ):
     return service.delete_brand_cascade(
         session,
@@ -117,7 +121,7 @@ def delete_brand_cascade(
 @router.get("/product-types")
 def list_product_types(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogRead,
     active_only: bool = False,
 ):
     return service.list_product_types(session, active_only=active_only)
@@ -127,7 +131,7 @@ def list_product_types(
 def create_product_type(
     body: ProductTypeIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.create_product_type(session, body)
 
@@ -137,6 +141,6 @@ def update_product_type(
     type_id: str,
     body: ProductTypeUpdateIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
     return service.update_product_type(session, type_id=type_id, body=body)
