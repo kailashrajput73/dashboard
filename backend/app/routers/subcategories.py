@@ -25,7 +25,6 @@ CatalogWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("product-m
 @router.get("/subcategories")
 def list_subcategories(
     session: DbSession,
-    _admin: CatalogRead,
     category_id: str | None = None,
 ):
     return service.list_subcategories(session, category_id=category_id)
