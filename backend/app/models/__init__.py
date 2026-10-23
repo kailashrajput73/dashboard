@@ -108,6 +108,14 @@ class Partner(TimestampMixin, Base):
             unique=True,
             postgresql_where=text("phone IS NOT NULL"),
         ),
+        Index(
+            "partners_firebase_uid_uq",
+            "firebase_uid",
+            unique=True,
+            postgresql_where=text(
+                "firebase_uid IS NOT NULL AND deleted_at IS NULL"
+            ),
+        ),
         Index("partners_kyc_name_sort", "kyc_status", "name"),
         Index("partners_sales_manager", "sales_manager"),
         Index("partners_name_sort", "name"),
@@ -150,6 +158,14 @@ class Partner(TimestampMixin, Base):
     )
     reviewed_by: Mapped[str | None] = mapped_column(Text, nullable=True)
     rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    firebase_uid: Mapped[str | None] = mapped_column(Text, nullable=True)
+    kyc_submitted: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    kyc_submitted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    pan_number: Mapped[str | None] = mapped_column(Text, nullable=True)
+    aadhaar_last4: Mapped[str | None] = mapped_column(Text, nullable=True)
+    kyc_method: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class PartnerToken(TimestampMixin, Base):
