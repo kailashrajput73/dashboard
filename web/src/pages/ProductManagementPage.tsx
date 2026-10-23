@@ -44,7 +44,8 @@ import {
   fetchAllCatalogMatching,
   type ExportScopeMode,
 } from "../features/product-management/export-catalog-utils";
-
+import { useCanWriteModule } from "../access/useAccess";
+import { ReadOnlyBanner } from "../components/AccessGate";
 const defaultFilters: ProductFilters = {
   category: ALL_FILTER,
   subcategory: ALL_FILTER,
