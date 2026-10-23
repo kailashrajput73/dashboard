@@ -35,7 +35,84 @@ PRODUCT_FAMILY_ALIASES = ("product_family", "product")
 
 OPTIONAL_HEADERS = {
     "product_name": "Product Name",
+    "status": "status",
 }
+
+ACTIVE_STATUS_TOKENS = frozenset({"active", "yes", "y", "1", "true", "live"})
+
+
+_COLUMN_NORMS = {**REQUIRED_HEADERS, **OPTIONAL_HEADERS}
+
+
+def cell_looks_like_column_header(cell: str, norm_key: str) -> bool:
+    """True when a data cell repeats the row-1 column title (duplicate header row)."""
+    if not str(cell).strip():
+        return False
+    display = _COLUMN_NORMS.get(norm_key)
+    if not display:
+        return False
+    cell_norm = normalize_header(str(cell)).replace("_", " ")
+    key_norm = normalize_header(display).replace("_", " ")
+    return normalize_header(str(cell)) == norm_key or cell_norm == key_norm
+
+
+def count_header_like_cells(row: dict[str, Any], column_map: dict[str, str]) -> int:
+    return sum(
+        1
+        for norm_key in _COLUMN_NORMS
+        if cell_looks_like_column_header(row_get(row, column_map, norm_key), norm_key)
+    )
+
+
+def is_duplicate_header_data_row(row: dict[str, Any], column_map: dict[str, str]) -> bool:
+    """Detect a second header row or header text pasted into a data row."""
+    if count_header_like_cells(row, column_map) >= 3:
+        return True
+    code = row_get(row, column_map, "product_code")
+    if cell_looks_like_column_header(code, "product_code"):
+        return True
+    if (
+        cell_looks_like_column_header(row_get(row, column_map, "category"), "category")
+        and cell_looks_like_column_header(row_get(row, column_map, "type"), "type")
+    ):
+        return True
+    if (
+        cell_looks_like_column_header(row_get(row, column_map, "category"), "category")
+        and cell_looks_like_column_header(row_get(row, column_map, "product_family"), "product_family")
+    ):
+        return True
+    return False
+
+
+def product_code_looks_like_header_label(code: str) -> bool:
+    """Product code cell contains a column title instead of a SKU."""
+    text = str(code or "").strip()
+    if not text:
+        return False
+    if cell_looks_like_column_header(text, "product_code"):
+        return True
+    blocked = {
+        normalize_header("Category"),
+        normalize_header("Type"),
+        normalize_header("Brand"),
+        normalize_header("product_family"),
+        normalize_header("product"),
+        normalize_header("Product Name"),
+        normalize_header("status"),
+        normalize_header("ROL"),
+        normalize_header("HSN Code"),
+    }
+    return normalize_header(text) in blocked
+
+
+def parse_product_status(value: str | None) -> bool:
+    """Empty status → inactive; explicit active tokens → active."""
+    text = normalize_header(str(value or "")).replace("_", " ").strip().lower()
+    if not text:
+        return False
+    if text in ACTIVE_STATUS_TOKENS:
+        return True
+    return False
 
 
 def validate_headers(raw_headers: list[str]) -> tuple[dict[str, str], list[dict[str, str | int | None]]]:
@@ -74,6 +151,10 @@ def validate_headers(raw_headers: list[str]) -> tuple[dict[str, str], list[dict[
                 "message": f"Missing required column: {display}",
             }
         )
+
+    for norm in OPTIONAL_HEADERS:
+        if norm in seen:
+            column_map[norm] = seen[norm]
 
     allowed_norms = (
         set(REQUIRED_HEADERS)

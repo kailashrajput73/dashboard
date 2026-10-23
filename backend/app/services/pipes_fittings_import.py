@@ -34,6 +34,9 @@ from app.services.catalog_service import (
 )
 from app.services.pipes_fittings_template import (
     TEMPLATE_ID,
+    is_duplicate_header_data_row,
+    parse_product_status,
+    product_code_looks_like_header_label,
     row_get,
     validate_headers,
 )
@@ -62,12 +65,15 @@ class ParsedRow:
     mrp_pkg: float | None
     reorder_level: float
     family_key: str
+    is_active: bool = False
 
 
 @dataclass
 class ValidationResult:
     errors: list[dict[str, Any]] = field(default_factory=list)
     rows: list[ParsedRow] = field(default_factory=list)
+    skipped_blank_rows: int = 0
+    rejected_header_rows: int = 0
 
     @property
     def ok(self) -> bool:
@@ -120,11 +126,53 @@ def parse_rows(
         length = canonical_label(row_get(row, column_map, "length"))
 
         if not any([category, type_name, product_family, product_code]):
+            result.skipped_blank_rows += 1
+            continue
+
+        if is_duplicate_header_data_row(row, column_map):
+            result.rejected_header_rows += 1
+            result.errors.append(
+                _err(
+                    excel_row,
+                    None,
+                    (
+                        "This row looks like a duplicate header row (column titles pasted as data). "
+                        "Keep headers on row 1 only; delete or fix this row."
+                    ),
+                )
+            )
             continue
 
         if not product_code:
             result.errors.append(
                 _err(excel_row, "product code", "Product code is required")
+            )
+            continue
+
+        if product_code_looks_like_header_label(product_code):
+            result.rejected_header_rows += 1
+            result.errors.append(
+                _err(
+                    excel_row,
+                    "product code",
+                    (
+                        f"Product code '{product_code}' looks like a column header, not a real SKU. "
+                        "Remove duplicate header rows from the sheet."
+                    ),
+                )
+            )
+            continue
+
+        if product_code and not category and not type_name:
+            result.errors.append(
+                _err(
+                    excel_row,
+                    "Category",
+                    (
+                        "Row has a product code but is missing Category and Type. "
+                        "Check for incomplete rows or header text mixed into data."
+                    ),
+                )
             )
             continue
         if not size and not length:
@@ -163,6 +211,8 @@ def parse_rows(
         mrp_pkg = _parse_float(row_get(row, column_map, "mrp_pkg"))
         rol_raw = _parse_float(row_get(row, column_map, "rol"))
         reorder = float(rol_raw if rol_raw is not None else 0)
+        status_raw = row_get(row, column_map, "status") if "status" in column_map else ""
+        is_active = parse_product_status(status_raw)
 
         family_key = build_family_key(
             category=category,
@@ -195,6 +245,7 @@ def parse_rows(
                 mrp_pkg=mrp_pkg,
                 reorder_level=reorder,
                 family_key=family_key,
+                is_active=is_active,
             )
         )
 
@@ -397,7 +448,7 @@ def import_pipes_fittings_rows(
                 "hsn_code": None,
                 "gst_rate": None,
                 "image_url": None,
-                "is_active": True,
+                "is_active": row.is_active,
             }
             product = existing or Catalog(created_at=_now(), updated_at=_now())
             _product_payload(
@@ -440,24 +491,59 @@ def import_pipes_fittings_rows(
     return _run_transaction(session, operation)
 
 
-def pipes_fittings_image_template_rows(session: Session) -> list[dict[str, str]]:
-    """Rows for image sidecar CSV: brand + product_family from DB, empty image_url."""
+def _family_needs_image(family: ProductFamily) -> bool:
+    url = (family.image_url or "").strip()
+    if not url:
+        return True
+    return not url.lower().startswith(("http://", "https://"))
+
+
+def pipes_fittings_image_template_rows(
+    session: Session,
+    *,
+    subcategory: str | None = None,
+    missing_image_only: bool = True,
+) -> list[dict[str, str]]:
+    """Rows for image sidecar CSV; optional subcategory filter and missing-image-only."""
     families = session.scalars(
         select(ProductFamily)
         .where(ProductFamily.deleted_at.is_(None))
         .order_by(ProductFamily.name)
     ).all()
+    subcategory_key = normalize_label(subcategory) if subcategory and subcategory.strip() else ""
     rows: list[dict[str, str]] = []
     for family in families:
+        if missing_image_only and not _family_needs_image(family):
+            continue
+        sub_name = ""
+        if family.subcategory_id:
+            sub_name = (
+                session.scalar(
+                    select(Subcategory.name).where(Subcategory.id == family.subcategory_id)
+                )
+                or ""
+            )
+        if subcategory_key and normalize_label(sub_name) != subcategory_key:
+            continue
         brand_name = ""
         if family.brand_id:
             brand_name = (
                 session.scalar(select(Brand.name).where(Brand.id == family.brand_id)) or ""
             )
+        type_name = ""
+        if family.product_type_id:
+            type_name = (
+                session.scalar(
+                    select(ProductType.name).where(ProductType.id == family.product_type_id)
+                )
+                or ""
+            )
         rows.append(
             {
                 "brand": brand_name,
                 "product_family": family.name,
+                "type": type_name,
+                "class": (family.product_class or "").strip(),
                 "image_url": "",
             }
         )

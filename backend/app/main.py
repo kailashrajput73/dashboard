@@ -16,6 +16,7 @@ from .routers import (
     dispatch_inventory,
     media_proxy,
     money_config,
+    partner_app,
     partners_team,
     product_groups,
     purchases_rfq,
@@ -24,6 +25,7 @@ from .routers import (
     subcategories,
     taxonomy,
 )
+from .services.firebase_auth import validate_auth_config
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 load_dotenv(BACKEND_DIR / ".env")
@@ -126,11 +128,16 @@ def create_app() -> FastAPI:
     app.include_router(media_proxy.router)
     app.include_router(money_config.router)
     app.include_router(partners_team.router)
+    app.include_router(partner_app.router)
     app.include_router(product_groups.router)
     app.include_router(racks.router)
     app.include_router(service_requests.router)
     app.include_router(taxonomy.router)
     app.include_router(subcategories.router)
+
+    @app.on_event("startup")
+    def _validate_firebase_auth_config() -> None:
+        validate_auth_config()
 
     @app.get("/api/health")
     async def health() -> dict[str, str]:
