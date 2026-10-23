@@ -42,7 +42,6 @@ CatalogWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("product-m
 @router.get("/catalog")
 def list_catalog(
     session: DbSession,
-    _admin: CatalogRead,
     category: str | None = None,
     search: str | None = None,
     group_id: str | None = None,
@@ -76,7 +75,6 @@ def list_catalog(
 @router.get("/catalog/filter-options")
 def catalog_filter_options(
     session: DbSession,
-    _admin: AdminPrincipal,
     category: str | None = None,
     subcategory: str | None = None,
 ):
@@ -90,7 +88,6 @@ def catalog_filter_options(
 @router.get("/catalog/tree")
 def get_catalog_tree(
     session: DbSession,
-    _admin: CatalogRead,
     active_only: bool = True,
 ):
     return service.catalog_tree(session, active_only=active_only)
