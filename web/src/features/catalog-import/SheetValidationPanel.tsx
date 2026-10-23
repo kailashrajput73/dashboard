@@ -8,6 +8,8 @@ type Props = {
   errors: SheetValidationError[];
   rowCount: number;
   sourceFileName?: string;
+  skippedBlankRows?: number;
+  rejectedHeaderRows?: number;
 };
 
 function downloadErrorReport(errors: SheetValidationError[], sourceFileName: string) {
@@ -40,6 +42,13 @@ export function SheetValidationPanel(props: Props) {
   }
 
   if (valid && rowCount > 0) {
+    const notes: string[] = [];
+    if (props.skippedBlankRows) {
+      notes.push(`${props.skippedBlankRows} blank row(s) ignored`);
+    }
+    if (props.rejectedHeaderRows) {
+      notes.push(`${props.rejectedHeaderRows} header-like row(s) would be rejected`);
+    }
     return (
       <Card
         style={{
@@ -50,6 +59,7 @@ export function SheetValidationPanel(props: Props) {
       >
         <p style={{ margin: 0, color: colors.textPrimary, lineHeight: 1.45 }}>
           Sheet OK — {rowCount} row(s) passed validation. You can import now.
+          {notes.length ? ` (${notes.join("; ")})` : ""}
         </p>
       </Card>
     );
@@ -71,6 +81,10 @@ export function SheetValidationPanel(props: Props) {
       </p>
       <p style={{ margin: `0 0 ${spacing.sm}px`, color: colors.textSecondary, fontSize: 13, lineHeight: 1.45 }}>
         Excel row numbers match your sheet (row 1 = headers). Fix these rows, then upload again.
+        {props.skippedBlankRows ? ` ${props.skippedBlankRows} blank row(s) were ignored.` : ""}
+        {props.rejectedHeaderRows
+          ? ` ${props.rejectedHeaderRows} row(s) look like duplicate headers and were not imported.`
+          : ""}
       </p>
       <Button
         title="Download error list (CSV)"

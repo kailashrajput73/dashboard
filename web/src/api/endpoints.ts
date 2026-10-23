@@ -354,25 +354,94 @@ export function importSubcategories(items: { name: string; categoryId?: string; 
 // ---------- Catalog ----------
 
 // NOTE (DB): reads `catalog`; optional `category` filters by exact match.
-export function listCatalog(category?: string, search?: string, groupId?: string, filters?: {
+export type CatalogListFilters = {
   type?: string;
   brand?: string;
   productGroup?: string;
   subcategory?: string;
   productClass?: string;
   sizeMm?: number;
-}) {
+};
+
+export type CatalogPageResult = {
+  items: CatalogItem[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  sort: string;
+};
+
+function catalogListQuery(
+  category?: string,
+  search?: string,
+  groupId?: string,
+  filters?: CatalogListFilters,
+  paging?: { page?: number; limit?: number; sort?: string },
+) {
+  return {
+    category: category && category !== "All" ? category : undefined,
+    search: search?.trim() || undefined,
+    group_id: groupId,
+    type: filters?.type && filters.type !== "All" ? filters.type : undefined,
+    brand: filters?.brand && filters.brand !== "All" ? filters.brand : undefined,
+    product_group:
+      filters?.productGroup && filters.productGroup !== "All"
+        ? filters.productGroup
+        : undefined,
+    subcategory:
+      filters?.subcategory && filters.subcategory !== "All"
+        ? filters.subcategory
+        : undefined,
+    product_class:
+      filters?.productClass && filters.productClass !== "All"
+        ? filters.productClass
+        : undefined,
+    size_mm: filters?.sizeMm,
+    page: paging?.page,
+    limit: paging?.limit,
+    sort: paging?.sort,
+  };
+}
+
+export function listCatalog(category?: string, search?: string, groupId?: string, filters?: CatalogListFilters) {
   return apiRequest<CatalogItem[]>("/catalog", {
+    query: catalogListQuery(category, search, groupId, filters),
+  });
+}
+
+export function listCatalogPage(
+  params: {
+    category?: string;
+    search?: string;
+    groupId?: string;
+    filters?: CatalogListFilters;
+    page: number;
+    limit: number;
+    sort?: string;
+  },
+) {
+  return apiRequest<CatalogPageResult>("/catalog", {
+    query: catalogListQuery(
+      params.category,
+      params.search,
+      params.groupId,
+      params.filters,
+      { page: params.page, limit: params.limit, sort: params.sort ?? "updated_desc" },
+    ),
+  });
+}
+
+export function fetchCatalogFilterOptions(category?: string, subcategory?: string) {
+  return apiRequest<{
+    productTypes: string[];
+    productClasses: string[];
+    brands: string[];
+    productGroups: string[];
+  }>("/catalog/filter-options", {
     query: {
       category: category && category !== "All" ? category : undefined,
-      search,
-      group_id: groupId,
-      type: filters?.type,
-      brand: filters?.brand,
-      product_group: filters?.productGroup,
-      subcategory: filters?.subcategory,
-      product_class: filters?.productClass,
-      size_mm: filters?.sizeMm,
+      subcategory: subcategory && subcategory !== "All" ? subcategory : undefined,
     },
   });
 }
@@ -488,6 +557,13 @@ export async function applyCatalogPricingBulk(
     }
     return { updated, skipped };
   }
+}
+
+export function updateCatalogActive(id: string, isActive: boolean) {
+  return apiRequest<CatalogItem>(`/catalog/${id}/active`, {
+    method: "PATCH",
+    body: { isActive },
+  });
 }
 
 export async function updateCatalogPricing(
@@ -678,6 +754,8 @@ export function validatePipesFittingsImport(body: { rows: Record<string, string>
     valid: boolean;
     errors: SheetValidationError[];
     rowCount: number;
+    skippedBlankRows?: number;
+    rejectedHeaderRows?: number;
   }>("/catalog/import/pipes-fittings/validate", { method: "POST", body });
 }
 
@@ -692,11 +770,22 @@ export function importPipesFittings(body: { rows: Record<string, string>[] }) {
   }>("/catalog/import/pipes-fittings", { method: "POST", body });
 }
 
-export function fetchPipesFittingsImagesTemplate() {
+export function fetchPipesFittingsImagesTemplate(subcategory?: string) {
   return apiRequest<{
-    items: { brand: string; product_family: string; image_url: string }[];
+    items: {
+      brand: string;
+      product_family: string;
+      type: string;
+      class: string;
+      image_url: string;
+    }[];
     rowCount: number;
-  }>("/catalog/import/pipes-fittings/images/template", { method: "GET" });
+  }>("/catalog/import/pipes-fittings/images/template", {
+    method: "GET",
+    query: {
+      subcategory: subcategory?.trim() || undefined,
+    },
+  });
 }
 
 export function validatePipesFittingsImagesImport(body: {

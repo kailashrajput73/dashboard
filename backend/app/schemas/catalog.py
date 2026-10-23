@@ -67,6 +67,10 @@ class CatalogPricingIn(BaseModel):
     stock: float | None = None
 
 
+class CatalogActiveIn(BaseModel):
+    isActive: bool
+
+
 class CatalogBulkPricingIn(BaseModel):
     itemIds: list[str]
     mrp: float | None = None

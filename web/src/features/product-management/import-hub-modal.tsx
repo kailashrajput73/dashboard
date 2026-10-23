@@ -111,7 +111,7 @@ function stepConfig(step: ImportStep) {
     return {
       title: "Import pipes & fittings (catalog)",
       subtitle: "Category: Pipes & fitting — product families + SKU codes",
-      columnHelp: `${PIPES_FITTINGS_TEMPLATE_HEADERS.join(", ")}. Product Name is optional (display names are generated). Then use step 2 on this page for family images.`,
+      columnHelp: `${PIPES_FITTINGS_TEMPLATE_HEADERS.join(", ")}. Product Name is optional (display names are generated). status: leave blank for inactive; use active (or yes) to go live. Then use step 2 on this page for family images.`,
       showCategoryMode: false,
     };
   }

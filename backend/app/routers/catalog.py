@@ -16,6 +16,7 @@ from app.schemas.catalog import (
     CatalogItemIn,
     CatalogMasterImportIn,
     CatalogPricingImportIn,
+    CatalogActiveIn,
     CatalogPricingIn,
     CatalogStockImportIn,
     PipesFittingsImagesImportIn,
@@ -55,6 +56,9 @@ def list_catalog(
     subcategory: str | None = None,
     product_class: str | None = None,
     size_mm: float | None = None,
+    page: int | None = None,
+    limit: int | None = None,
+    sort: str | None = None,
 ):
     return service.list_catalog(
         session,
@@ -67,6 +71,23 @@ def list_catalog(
         subcategory=subcategory,
         product_class=product_class,
         size_mm=size_mm,
+        page=page,
+        limit=limit,
+        sort=sort,
+    )
+
+
+@router.get("/catalog/filter-options")
+def catalog_filter_options(
+    session: DbSession,
+    _admin: AdminPrincipal,
+    category: str | None = None,
+    subcategory: str | None = None,
+):
+    return service.catalog_filter_options(
+        session,
+        category=category,
+        subcategory=subcategory,
     )
 
 
@@ -109,6 +130,17 @@ def update_catalog_pricing(
 ):
     _require_catalog_write(_admin)
     return service.update_catalog_pricing(session, item_id, body)
+
+
+@router.patch("/catalog/{item_id}/active")
+def update_catalog_active(
+    item_id: str,
+    body: CatalogActiveIn,
+    session: DbSession,
+    _admin: AdminPrincipal,
+):
+    _require_catalog_write(_admin)
+    return service.set_catalog_active(session, item_id, body.isActive)
 
 
 @router.post("/catalog/pricing-bulk")
@@ -220,6 +252,8 @@ def validate_pipes_fittings_import(
             "valid": result.ok,
             "errors": result.errors,
             "rowCount": len(result.rows),
+            "skippedBlankRows": result.skipped_blank_rows,
+            "rejectedHeaderRows": result.rejected_header_rows,
         },
     )
 
@@ -241,9 +275,14 @@ def import_pipes_fittings(
 def pipes_fittings_images_template(
     session: DbSession,
     _admin: AdminPrincipal,
+    subcategory: str | None = None,
 ):
     _require_catalog_write(_admin)
-    items = pipes_fittings_image_template_rows(session)
+    items = pipes_fittings_image_template_rows(
+        session,
+        subcategory=subcategory,
+        missing_image_only=True,
+    )
     return envelope({"items": items, "rowCount": len(items)})
 
 

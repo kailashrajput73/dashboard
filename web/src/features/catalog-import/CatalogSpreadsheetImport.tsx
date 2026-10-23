@@ -8,6 +8,7 @@ import {
   importPipesFittings,
   importPipesFittingsImages,
   fetchPipesFittingsImagesTemplate,
+  listSubcategories,
   validatePipesFittingsImagesImport,
   validatePipesFittingsImport,
   type SheetValidationError,
@@ -38,6 +39,8 @@ type SheetCheckState = {
   valid: boolean;
   errors: SheetValidationError[];
   rowCount: number;
+  skippedBlankRows?: number;
+  rejectedHeaderRows?: number;
 };
 
 function mapPipesImageRows(rows: Record<string, string>[]) {
@@ -209,15 +212,31 @@ export function CatalogSpreadsheetImport(props: Props) {
   const [override, setOverride] = useState("");
   const [sheetCheck, setSheetCheck] = useState<SheetCheckState | null>(null);
   const [downloadingCatalogSheet, setDownloadingCatalogSheet] = useState(false);
+  const [pipesImageSubcategory, setPipesImageSubcategory] = useState("");
+  const [pipesImageSubcategoryOptions, setPipesImageSubcategoryOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (props.kind !== "pipes-fittings-images") return;
+    void listSubcategories()
+      .then((rows) => {
+        const names = [...new Set((rows || []).map((row) => row.name.trim()).filter(Boolean))].sort();
+        setPipesImageSubcategoryOptions(names);
+      })
+      .catch(() => setPipesImageSubcategoryOptions([]));
+  }, [props.kind]);
 
   async function downloadPipesImagesSheetFromCatalog() {
     setDownloadingCatalogSheet(true);
     setError(null);
     try {
-      const data = await fetchPipesFittingsImagesTemplate();
+      const data = await fetchPipesFittingsImagesTemplate(
+        pipesImageSubcategory.trim() || undefined,
+      );
       if (!data.items.length) {
         setError(
-          "No product families in the database yet. Import the pipes master sheet first, then download this sheet.",
+          pipesImageSubcategory.trim()
+            ? `No families missing images for subcategory “${pipesImageSubcategory.trim()}”. Try another subcategory or import the pipes master first.`
+            : "No families missing images. Pick a subcategory or import the pipes master sheet first.",
         );
         return;
       }
@@ -236,16 +255,25 @@ export function CatalogSpreadsheetImport(props: Props) {
   async function runPipesSheetValidation(rows: Record<string, string>[]) {
     setSheetCheck({ checking: true, valid: false, errors: [], rowCount: rows.length });
     try {
-      const check =
-        props.kind === "pipes-fittings-images"
-          ? await validatePipesFittingsImagesImport({ items: mapPipesImageRows(rows) })
-          : await validatePipesFittingsImport({ rows });
-      setSheetCheck({
-        checking: false,
-        valid: check.valid,
-        errors: check.errors ?? [],
-        rowCount: check.rowCount ?? rows.length,
-      });
+      if (props.kind === "pipes-fittings-images") {
+        const check = await validatePipesFittingsImagesImport({ items: mapPipesImageRows(rows) });
+        setSheetCheck({
+          checking: false,
+          valid: check.valid,
+          errors: check.errors ?? [],
+          rowCount: check.rowCount ?? rows.length,
+        });
+      } else {
+        const check = await validatePipesFittingsImport({ rows });
+        setSheetCheck({
+          checking: false,
+          valid: check.valid,
+          errors: check.errors ?? [],
+          rowCount: check.rowCount ?? rows.length,
+          skippedBlankRows: check.skippedBlankRows,
+          rejectedHeaderRows: check.rejectedHeaderRows,
+        });
+      }
     } catch (cause: unknown) {
       const apiErrors = errorsFromApi(cause);
       if (apiErrors?.length) {
@@ -254,6 +282,8 @@ export function CatalogSpreadsheetImport(props: Props) {
           valid: false,
           errors: apiErrors,
           rowCount: rows.length,
+          skippedBlankRows: undefined,
+          rejectedHeaderRows: undefined,
         });
       } else {
         setSheetCheck(null);
@@ -373,6 +403,8 @@ export function CatalogSpreadsheetImport(props: Props) {
             valid: false,
             errors: check.errors ?? [],
             rowCount: check.rowCount ?? rows.length,
+            skippedBlankRows: check.skippedBlankRows,
+            rejectedHeaderRows: check.rejectedHeaderRows,
           });
           return;
         }
@@ -522,11 +554,36 @@ export function CatalogSpreadsheetImport(props: Props) {
           <div style={{ display: "grid", gap: spacing.md, marginTop: spacing.sm }}>
             {props.kind === "pipes-fittings-images" ? (
               <>
+                <label style={{ display: "grid", gap: 6 }}>
+                  <span style={{ ...font.caption, color: colors.textSecondary, fontWeight: 600 }}>
+                    Subcategory (families missing image only)
+                  </span>
+                  <select
+                    value={pipesImageSubcategory}
+                    onChange={(event) => setPipesImageSubcategory(event.currentTarget.value)}
+                    data-testid="pipes-images-subcategory-filter"
+                    style={{
+                      height: 40,
+                      borderRadius: 8,
+                      border: `1px solid ${colors.border}`,
+                      padding: "0 10px",
+                      font: "inherit",
+                    }}
+                  >
+                    <option value="">Select subcategory…</option>
+                    {pipesImageSubcategoryOptions.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <Button
                   testID="download-pipes-fittings-images-from-catalog"
                   title="Download sheet from catalog (fill image URLs)"
                   icon="download-outline"
                   loading={downloadingCatalogSheet}
+                  disabled={!pipesImageSubcategory.trim()}
                   onPress={() => void downloadPipesImagesSheetFromCatalog()}
                   style={{ width: "100%" }}
                 />
@@ -609,6 +666,8 @@ export function CatalogSpreadsheetImport(props: Props) {
             errors={sheetCheck.errors}
             rowCount={sheetCheck.rowCount}
             sourceFileName={fileName}
+            skippedBlankRows={sheetCheck.skippedBlankRows}
+            rejectedHeaderRows={sheetCheck.rejectedHeaderRows}
           />
         ) : null}
         {result ? (
