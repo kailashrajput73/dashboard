@@ -1,363 +1,232 @@
-# SOW progress — admin platform (vs `Sow/SOW.pdf`)
+# SOW progress — simple handover
 
-**Updated:** 24 October 2026 (IST)  
-**Branch / stack:** `migration-mongodb-to-postgresql` — admin UI `web/`, API `backend/` + PostgreSQL (`migration-db/ACTIVE-STACK.md`)  
-**Contract source:** `Sow/SOW.pdf`  
-**Evidence:** `migration/STATUS.md`, `migration/SOW-STATUS.md`, `migration-db/DB-STATUS.md`, `web/map/`, `migration/admin/*`, `migration/dev/*`, `docs/SERVICE-REQUESTS-API.md`
+**Project:** Web admin panel for a sanitary / building-materials business (catalog, stock, partners, quotes, dispatch, team).  
+**Contract:** `Sow/SOW.pdf`  
+**Updated:** 24 October 2026  
 
----
+**Not included in this handover:** The **Referral Partner mobile app** (partners using phones to browse products and create quotes). That is a separate delivery. This document is only the **admin website** and the **server** that supports it.
 
-## How to read this file
+**Overall:** Most day-to-day admin work from the SOW is **built**. The biggest missing piece is the **full reports / analytics dashboard** described in the SOW. A few items (push notifications, barcode scanning at the counter, strict role permissions) are only partly done or planned for later.
 
-| Column | Meaning |
-|--------|---------|
-| **Status** | **Done** = SOW intent met for **admin + API** in this repo. **Partial** = core works; one or more SOW bullets missing. **Not started** = not implemented. **Deferred** = agreed not to build now (see §Deferred). **Skipped** = removed from product (not in SOW module list). **Out of scope** = **Referral Partner Mobile App** (or customer mobile) — not counted in admin completion %. |
-| **Where** | Primary place to verify today (not historical Expo/Mongo paths). |
+**Status words used below**
 
-**Important:** Many rows are **Built** in `migration/STATUS.md` but not yet **Done** (owner browser sign-off). This document describes **feature match to SOW**, not UAT sign-off.
-
----
-
-## Scope boundary (your rule)
-
-| In scope for this document | Out of scope |
-|----------------------------|--------------|
-| Web **Admin Panel** (`web/`) | **Referral Partner Mobile Application** (catalog browse, partner RFQ create, partner notifications, partner-facing pricing display, partner app auth/Firebase) |
-| **Admin** APIs in `backend/` (PostgreSQL) | Partner mobile UI in `customerapp/` or any separate mobile repo |
-| **Admin** management of partners, RFQs, dispatches, inventory | End-to-end “customer mobile” journeys except where a **public API** exists for a future app |
-| Database design & migration to PostgreSQL | — |
-
-Partner **admin** features (KYC, list, rewards on admin screen) **are in scope**.
+| Word | Meaning |
+|------|---------|
+| **Done** | Works in the admin panel for normal use. |
+| **Partial** | Main workflow works; some SOW extras are missing. |
+| **Not done** | Not built yet. |
+| **Not in this delivery** | In the SOW for the mobile app or another phase — not counted here. |
 
 ---
 
-## Executive summary
+## 1. Category management
 
-| Metric | Value | Notes |
-|--------|-------|--------|
-| **In-scope SOW (admin + API) — implementation** | **~82–86%** | Weighted by module below; largest gap is **Dashboard & Reports (§9)** |
-| **In-scope SOW — owner verified** | **~25–35%** | See `migration/bug_fix/OWNER-SIGNOFF.md`; VPS spot-checks only on subset |
-| **Partner mobile app (SOW platform #2)** | **Out of scope** | API contracts exist (`docs/PARTNER-API.md`); app not this delivery |
-| **PostgreSQL migration (engineering)** | **Schema + API ~95%** | Row **14** (bulk copy purchases/RFQ/dispatch/ledger data) **not started**; row **22** decommissioned Mongo mirror **Built** |
-| **Production deploy of `web/` build** | **Not started** | `migration/STATUS.md` row **21b** |
+**What it is about:** Top level of the product catalog (e.g. Pipes, Fittings). Staff create and organise categories so products and reports stay structured.
 
-**One-line:** Master data through dispatch/inventory/partners/RFQ/service-request **admin** is largely built on `web/` + Postgres API; **reporting hub**, **true RBAC**, **mobile-only SOW bullets**, and **several export/notification** items remain partial or deferred.
+**Status:** **Done**
+
+**What is done:** Create and edit categories; turn categories on/off; search; see how many products are in each category; avoid duplicate names; optional category image.
+
+**What is left:** Nothing major for admin.
 
 ---
 
-## Roll-up by SOW module (admin + API only)
+## 2. Subcategory management
 
-| # | SOW module (PDF) | Implementation | Owner verify | Main gap vs SOW |
-|---|------------------|----------------|--------------|-----------------|
-| 1 | Category Management | **Done** | Partial | — |
-| 2 | Sub Category Management | **Partial** | Partial | Shelf price board is extra; export parity vs SOW “full Excel export” — confirm with `migration/admin/subcategories.md` |
-| 3 | Brand Management | **Done** | Partial | — |
-| 4 | Product Management | **Partial** | Partial | Catalog **short CSV** export vs SOW “bulk Excel export” / full master sheet; auto product code rules — see §4 |
-| 5 | Product Group Management | **Done** | Partial | Partner mobile group filter = out of scope |
-| 6 | Rack Management | **Done** | Partial | Rack-wise inventory search — partial via inventory + racks |
-| 7 | Purchase Management | **Partial** | Partial | No dedicated **purchase analytics report** (SOW bullet) |
-| 8 | Referral Partner KYC | **Partial** | Partial | KYC history CSV added (`20e`); full **KYC Excel export** per early SOW notes still thin |
-| 9 | Referral Partner Management | **Partial** | Partial | **Partner list export**; **sales performance** depth vs SOW |
-| 10 | RFQ Management | **Partial** | Partial | No **approval push** to partner app; no **camera QR scan** at dispatch desk; **Manager** filter thinner than SOW |
-| 11 | Dispatch Management | **Partial** | Partial | Core RFQ→dispatch, retail bill, stock down **Done**; **barcode scan** not built; store-manager = role label only |
-| — | Stock / Inventory (SOW summary §) | **Partial** | Partial | Live inventory, low stock, valuation, movements **Done**; some **report/export** labels differ from SOW marketing list |
-| 12 | Team Management | **Partial** | Partial | Users CRUD **Done**; **role-based access control** (route/menu lock) **not** enforced |
-| 13 | Dashboard & Reports | **Partial** | Partial | **Operations snapshot only** — not Product/Partner/Category/Brand/Retail/RFQ/Purchase/Dispatch/Inventory report pack or **M/Q/Y analytics** |
-| 14 | Plumber & Electrician (admin) | **Done** | Partial | Admin list/filter/update/history **Done**; **mobile submit** = out of scope (API exists) |
+**What it is about:** Finer grouping under a category (e.g. CPVC pipes under Pipes). Supports bulk upload from Excel/CSV for faster setup.
 
-*Dispatch is only detailed in SOW **summary** (PDF pp. 3–4), not a separate chapter; rows above follow PDF numbering for modules 1–11 + summary sections.*
+**Status:** **Done** (with one extra feature beyond SOW)
+
+**What is done:** Create, edit, delete; link to parent category; bulk import; search; validation on import. There is also a **shelf price board** tool for shop display (extra, not in SOW).
+
+**What is left:** Confirm with business if “export all subcategories to Excel” needs to match a specific report format.
 
 ---
 
-## Cross-cutting SOW promises (admin panel intro, PDF p. 3)
+## 3. Brand management
 
-| SOW bullet | Status | Notes |
-|------------|--------|--------|
-| Web-based admin panel | **Done** | `web/` replaces removed Expo `frontend/` (row **21c Built**) |
-| Bulk data management through Excel | **Partial** | Master, batch master, prices, stock, subcategory import, purchase import — `migration/SHEET-FORMAT.md`, rows **10a–10c**, **11** |
-| QR / Barcode integration | **Partial** | **QR display/generation** on products **Done**; **camera scan** on RFQ/dispatch **Not started** (optional FIX-07) |
-| Role-based access control | **Partial** | Roles stored; **routes not locked** by role |
-| Real-time dashboards | **Partial** | Snapshot dashboard **Done**; full analytics **Not started** |
+**What it is about:** List of brands (e.g. Astral, Jaguar). Products must link to a brand; partners often search by brand.
 
----
+**Status:** **Done**
 
-## Detail by SOW feature (point-by-point)
+**What is done:** Create and edit brands; logo; active/inactive; search; product counts; link products to brands.
 
-### 1. Category Management (PDF §1)
-
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Create categories | **Done** | `web/pages/categories`, `migration/admin/categories.md` |
-| Update categories | **Done** | Includes photo |
-| Activate / deactivate | **Done** | |
-| Search and filter | **Done** | |
-| Category-wise product count | **Done** | |
-| Prevent duplicate names | **Done** | API validation |
-| Disable vs delete | **Done** | Cascade delete with products supported |
+**What is left:** Nothing major for admin.
 
 ---
 
-### 2. Sub Category Management (PDF §2)
+## 4. Product management
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Create, edit, delete | **Done** | Row **3a Done** |
-| Map to parent category | **Done** | |
-| Bulk upload (Excel) | **Done** | Row **3b Built** — CSV/xlsx import |
-| Export complete list | **Partial** | Confirm export UX vs SOW “Excel export” wording |
-| Search and filter | **Done** | |
-| Duplicate validation | **Done** | Import validation |
-| *(Extra, not SOW)* Shelf price board | **Done** | Row **3c Built** — business add-on |
+**What it is about:** The full product catalogue — names, codes, prices, stock, discounts, Hindi/Gujarati names, aliases, QR codes, imports from spreadsheets.
+
+**Status:** **Partial**
+
+**What is done:** Add and edit products; search by name, code, brand, alias; reorder level; regular discount; categories and subcategories; product groups; QR code on screen; bulk **import** (master sheet, prices, stock); pricing and stock updates; product types and classes (supporting fields).
+
+**What is left:** SOW also asks for strong **bulk export** of the full product master to Excel — today export is a **shorter catalog list**, not the full master sheet. Auto product code on every new item — confirm business rules with owner.
 
 ---
 
-### 3. Brand Management (PDF §3)
+## 5. Product group management
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Create, update, manage brands | **Done** | Row **4 Built** |
-| Activate / deactivate | **Done** | |
-| Associate with products | **Done** | |
-| Search and filter | **Done** | |
-| Duplicate validation | **Done** | |
-| Logo | **Done** | |
+**What it is about:** Bundle related products (e.g. a “bathroom set”) so they can be managed and filtered together.
 
----
+**Status:** **Done** (admin)
 
-### 4. Product Management (PDF §4)
+**What is done:** Create groups; add/remove products; edit groups; search.
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Auto-generated product code | **Partial** | Codes supported; verify auto-gen vs manual entry on create |
-| Product name, sequence, ROL, regular discount | **Done** | Row **7b Built** |
-| Aliases | **Done** | |
-| Multi-language names | **Done** | Hindi / Gujarati on form |
-| Brand / category / subcategory mapping | **Done** | |
-| Product group assignment | **Done** | |
-| QR code generation | **Done** | Row **7d Built** |
-| Bulk Excel import | **Done** | Master + batch via rows **10b**, **10a** |
-| Bulk Excel export | **Partial** | Row **7e**: **short catalog CSV**, not full master export per early `migration/SOW-STATUS.md` |
-| Search by code, name, alias, brand | **Done** | Row **7a Built** |
-| Pricing, stock patch, bulk pricing | **Done** | Row **7c Built** |
-| Product types / classes (supporting taxonomy) | **Done** | Rows **5**, **6** — not separate SOW chapters |
+**What is left:** Filtering groups inside the **partner mobile app** is **not in this delivery**.
 
 ---
 
-### 5. Product Group Management (PDF §5)
+## 6. Rack management (warehouse locations)
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Create groups | **Done** | Row **8 Built** |
-| Assign multiple products | **Done** | |
-| Edit / remove products from groups | **Done** | |
-| Search groups | **Done** | |
-| Group-wise filtering (admin) | **Done** | Catalog filters |
-| Group-wise filtering (partner mobile) | **Out of scope** | |
+**What it is about:** Physical racks in the warehouse (rows and columns, slots like A1, B2). Stock is assigned to a slot when goods are purchased.
 
----
+**Status:** **Done**
 
-### 6. Rack Management (PDF §6)
+**What is done:** Create racks; auto slot codes; assign location when recording a purchase; see where a product is stored.
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Create rack, rows/columns | **Done** | Row **9 Built** |
-| Auto rack slot codes | **Done** | |
-| Assign rack on purchase | **Done** | Purchases flow |
-| View product storage location | **Done** | Racks + catalog/purchase fields |
-| Rack-wise inventory search | **Partial** | Inventory views; not a dedicated “rack search” SOW screen name |
+**What is left:** Dedicated “search entire warehouse by rack only” screen — partly covered via inventory and rack screens.
 
 ---
 
-### 7. Purchase Management (PDF §7)
+## 7. Purchase management
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Purchase entry | **Done** | Row **11 Built** |
-| Bulk Excel upload | **Done** | |
-| Purchase discount, list price | **Done** | |
-| Rack allocation | **Done** | |
-| Automatic stock update | **Done** | Postgres TXN per `migration-db` row **15** |
-| Purchase history | **Done** | |
-| Purchase report | **Partial** | No separate analytics report module |
-| Excel export | **Partial** | List/export UX — see `migration/dev/2026-10-07-11-purchases.md` |
+**What it is about:** Recording stock coming in from suppliers — quantities, prices, discounts, rack placement — and keeping purchase history.
+
+**Status:** **Partial**
+
+**What is done:** Manual purchase entry; bulk upload from file; discounts and list price; rack per line; stock increases automatically; view purchase history.
+
+**What is left:** SOW mentions a separate **purchase report** / analytics view — not a full module yet (history and lists exist).
 
 ---
 
-### 8. Referral Partner KYC (PDF §8) — admin only
+## 8. Referral partner KYC (admin)
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Review registration requests | **Done** | Row **13 Built** |
-| Document verification | **Done** | Document URLs on partner |
-| Location verification flag | **Done** | |
-| Approve / reject | **Done** | |
-| Responsible person / history | **Done** | `kycHistory`; export **20e Built** |
-| Direct partner creation | **Done** | |
-| KYC export | **Partial** | History CSV; full Excel export per SOW marketing list — partial |
-| Automatic mobile app activation | **Out of scope** | Partner app; `appActive` field exists in API |
+**What it is about:** Plumbers, electricians, and contractors apply to become partners. Admin checks documents and location, then approves or rejects. Admin can also create a partner directly.
+
+**Status:** **Partial**
+
+**What is done:** List requests; view documents; approve/reject with reason; location flag; who approved and when; history; create partner from admin; export KYC history to CSV.
+
+**What is left:** Full **Excel export** of all KYC data as in marketing SOW text; automatic “app unlocked on phone” is **partner app** — **not in this delivery**.
 
 ---
 
-### 9. Referral Partner Management (PDF §9) — admin only
+## 9. Referral partner management (admin)
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Partner listing | **Done** | |
-| Search by location / pincode / city / area | **Done** | |
-| Filter by sales manager | **Done** | |
-| View KYC status, reward points | **Done** | Ledger-based rewards |
-| View purchase history | **Partial** | Partner detail aggregates — verify depth vs SOW |
-| View sales performance | **Partial** | RFQ/reward linkage; not full “performance” report suite |
-| Export data | **Partial** | KYC history export; not full partner export |
+**What it is about:** After KYC, admin manages the partner list — search by city, pincode, area, sales manager; see rewards and activity.
+
+**Status:** **Partial**
+
+**What is done:** Partner list; search and filters; KYC status; reward points (ledger-based); partner profile and documents.
+
+**What is left:** Rich **sales performance** dashboards per partner; **export full partner list** to Excel (partial exports exist).
 
 ---
 
-### 10. RFQ Management (PDF §10) — admin + API; partner create out of scope
+## 10. RFQ — request for quotation (admin)
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Create RFQ from partner mobile | **Out of scope** | API supports create; mobile app not in repo |
-| View / manage RFQs in admin | **Done** | Rows **14a–14c Built** |
-| Filter by partner, category, product, date, status | **Partial** | **20d** improved category/product; **Manager** filter thinner than SOW |
-| Export RFQ reports (Excel) | **Done** | **14a** |
-| Approve with special discount | **Done** | |
-| Allocate reward points on approve | **Done** | `reward_ledger`; TXN row **16** |
-| Record approver | **Done** | History |
-| Approval notification to partner app | **Deferred** | Push not built |
-| Show approved pricing in partner app | **Out of scope** | |
-| Pickup / delivery + schedule | **Done** | |
-| Update approved RFQ before dispatch | **Done** | **14b** |
-| Add/remove lines, change quantities | **Done** | |
-| Barcode / QR scan to add products | **Not started** | Optional FIX-07 |
-| RFQ update history / audit | **Done** | **14c** |
+**What it is about:** Partners request a quote for products. Admin reviews, applies special discount, sets pickup or delivery time, approves, and can change lines before goods leave the store. Reward points are granted on approval.
+
+**Status:** **Partial**
+
+**What is done:** See all RFQs; filter by partner, status, dates, category, product; export list; approve/reject; special discount; reward points on approve; pickup/delivery and schedule; edit lines before dispatch; full change history on admin.
+
+**What is left:** Partner **creates** RFQ on **mobile** — **not in this delivery** (server can accept it when app exists). **Push notification** when approved — not built. **Scan barcode/QR** at counter to add lines — not built. Filter by “manager” — lighter than SOW wording.
 
 ---
 
-### Dispatch Management (SOW summary, PDF pp. 3–4)
+## 11. Dispatch management
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Convert RFQ to dispatch | **Done** | Row **15 Built** |
-| Update products before dispatch | **Done** | Retail cart / line edits |
-| Barcode / QR scanning | **Not started** | |
-| Retail customer billing | **Done** | |
-| Store manager access | **Partial** | Role exists; **no route-level enforcement** |
-| Automatic stock deduction | **Done** | TXN row **17**; unique dispatch per RFQ |
-| Dispatch history | **Done** | |
+**What it is about:** Turn an approved quote into a sale: final product list, bill for walk-in customer if needed, reduce stock when goods go out.
+
+**Status:** **Partial**
+
+**What is done:** Dispatch from approved RFQ; change lines before billing; retail customer name/phone; stock goes down; dispatch history; prevent double dispatch of same RFQ.
+
+**What is left:** **Barcode/QR scanning** at dispatch — not built. “Store manager only” — role exists but **menus are not locked** by role yet.
 
 ---
 
-### Stock Management (SOW summary, PDF pp. 3–4)
+## 12. Stock / inventory management
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Live inventory | **Done** | Row **12 Built** |
-| Current stock report | **Done** | |
-| Stock in / stock out statement | **Done** | Purchases + dispatches |
-| Product-wise stock report | **Done** | |
-| Inventory valuation | **Done** | |
-| Low stock (ROL) report | **Done** | |
-| Excel export | **Partial** | Export paths — see `migration/dev/2026-10-07-12-inventory.md` |
+**What it is about:** See current stock, what came in and went out, value of stock, and items below reorder level.
+
+**Status:** **Partial**
+
+**What is done:** Live stock; low-stock (ROL) list; stock in/out from purchases and dispatches; valuation; product-wise view; export in places.
+
+**What is left:** Some SOW report names are covered by screens/exports but not as one formal “report pack.”
 
 ---
 
-### Team Management (PDF summary + §Team)
+## 13. Team management
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| User management (CRUD) | **Done** | Row **16 Built** |
-| Admin / store_manager / staff login | **Done** | Teammate login on API |
-| Role-based access control | **Partial** | Permissions stored; **menus/routes not locked** |
+**What it is about:** Admin users for the business — admin, store manager, staff — with login for teammates.
 
----
+**Status:** **Partial**
 
-### Dashboard & Reports (PDF §Dashboard)
+**What is done:** Add and edit users; roles (admin, store manager, staff); teammate login with phone and passcode.
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Business dashboard (snapshot) | **Done** | Row **19 Built** |
-| Product performance reports | **Not started** | §9 hub |
-| Referral partner performance reports | **Not started** | |
-| Category & brand reports | **Not started** | |
-| Retail sales reports | **Not started** | |
-| RFQ / purchase / dispatch / inventory reports (dedicated) | **Partial** | Per-module CSV/list exports exist; not full SOW report pack |
-| Monthly, quarterly, yearly analytics | **Not started** | |
-| Customized analytics hub | **Not started** | Explicit gap in `HANDOFF-READY.md` |
+**What is left:** SOW **role-based access** (each role sees only allowed menus/actions) — **not fully enforced**; everyone with login can reach most admin pages.
 
 ---
 
-### 11. Plumber & Electrician requests (PDF §11)
+## 14. Dashboard and reports
 
-| SOW feature | Status | Where / notes |
-|-------------|--------|----------------|
-| Submit request via mobile app | **Out of scope** | Public `POST /service-requests` — `docs/SERVICE-REQUESTS-API.md` |
-| Admin list | **Done** | SCR-29 / `web/map/pages/service-requests.md` |
-| Filter by type, status, date | **Done** | |
-| Status updates | **Done** | |
-| Request history | **Done** | |
+**What it is about:** Business overview and reports — product performance, partners, categories, brands, sales, RFQ, purchase, dispatch, inventory, and monthly/quarterly/yearly analytics (SOW allows customisation).
+
+**Status:** **Partial** (small part done)
+
+**What is done:** **Operations snapshot** dashboard — high-level counts and quick view for daily work.
+
+**What is not done:** Full **report centre** and **monthly / quarterly / yearly analytics hub** described in the SOW. This is the largest gap vs the contract.
 
 ---
 
-## Supporting screens (not separate SOW chapters)
+## 15. Plumber and electrician service requests (admin)
 
-| Item | Status | Notes |
+**What it is about:** Customers request plumber or electrician help. Admin sees requests, filters them, updates status, and keeps history.
+
+**Status:** **Partial** (admin done; customer side separate)
+
+**What is done on admin:** List requests; filter by type (plumber/electrician), status, date; update status; notes; history.
+
+**What is not in this delivery:** Customer submitting the request from **mobile app** — planned with partner/customer app; server endpoint exists for when that app is built.
+
+---
+
+## Extra admin features (not always listed as SOW chapters)
+
+| Item | About | Status |
 |------|--------|--------|
-| Admin login / register | **Done** | Rows **1e**, **20** |
-| Settings | **Done** | Row **18** |
-| Spreadsheet import hub | **Done** | Rows **10a–10c** |
-| Money config (quotation GST) | **Skipped** | Removed from nav; row **17 Skipped** |
-| Responsive admin / layout polish | **Partial** | **22a–22c Built**; **22b-3** not started |
-| Production build & deploy | **Not started** | Row **21b** |
+| Admin login | Staff sign-in to the panel | **Done** |
+| Company register | First-time admin setup | **Done** |
+| Settings | App/backend URL and preferences | **Done** |
+| Spreadsheet imports hub | One place for master, prices, stock imports | **Done** |
+| Money config (GST on quotes) | Quotation tax/discount setup | **Removed** from menu by product decision |
+| Mobile-friendly admin layout | Use admin on tablet/phone browser | **Mostly done**; small layout fixes may remain |
+| Live on production server | Hosted admin + database | **Not done** — still to deploy and test end-to-end |
 
 ---
 
-## Database & API (supports SOW — separate engineering track)
+## Database (short note for handover)
 
-| Item | Status | Notes |
-|------|--------|--------|
-| PostgreSQL schema (19 logical domains) | **Done** | `migration-db/DB-STATUS.md` rows **2–11** |
-| API parity vs Mongo-era inventory | **Built** | Row **21** audit + `POST-ROW21-FIX-PLAN.md` |
-| Transactional purchase / RFQ approve / dispatch | **Done** | Rows **15–17** |
-| Mongo `backend_refactor/` removed | **Done** | Row **22 Built** |
-| One-shot data migration (purchases, RFQs, ledger, dispatches) | **Not started** | Row **14** |
-| Many rows **Built** not **Done** | **Partial** | Owner verification + commits pending on DB tracker |
+The system now runs on **PostgreSQL** (structured tables, safer stock and dispatch updates). Old MongoDB copy was removed from the project. Moving old live data for purchases, quotes, and dispatches into Postgres in one bulk job is **still pending** if you have historical data to move.
 
 ---
 
-## Deferred / not in current plan (still in repo notes)
+## Summary for the person taking over
 
-From `migration/SOW-STATUS.md` and `migration/bug_fix/HANDOFF-READY.md`:
-
-- Partner mobile app and Firebase auth  
-- RFQ **approval push** notifications  
-- Full **report pack** and **M/Q/Y analytics** (Dashboard §9)  
-- **Reward redemption** path  
-- **List pagination** at scale  
-- **True RBAC** (route/menu enforcement)  
-- Import policy changes FIX-03 / FIX-04 / FIX-11  
-- Go-live destructive/wipe policies FIX-10  
+1. **Built and usable:** Categories, brands, products (core), groups, racks, purchases, inventory, partners (KYC + list), RFQ workflow, dispatch, team users, service requests on admin, imports, login.  
+2. **Biggest SOW gap:** **Reports and analytics dashboard** (Section 14).  
+3. **Common partial gaps:** Full Excel exports, push notifications to partners, barcode scanning at RFQ/dispatch, strict role permissions.  
+4. **Out of scope for this handover:** **Partner mobile app** (browse catalog, create RFQ on phone, partner notifications).  
+5. **Next practical steps:** Finish reports if client requires them; deploy admin to VPS; one full test pass with the owner checklist; decide on barcode scanning and RBAC priority.
 
 ---
 
-## Where to go deeper (existing repo docs)
-
-| Need | Document |
-|------|----------|
-| Screen-level controls | `web/map/INDEX.md` |
-| Operator how-to | `migration/admin/*.md` |
-| What was built per migration row | `migration/dev/*.md` |
-| DB row status | `migration-db/DB-STATUS.md` |
-| API contract (historical + supplement) | `docs/BACKEND_INVENTORY.md`, `migration-db/BACKEND-FACTS-SUPPLEMENT.md` |
-| Owner test checklist | `migration/bug_fix/OWNER-SIGNOFF.md` |
-
----
-
-## Changelog
-
-| Date | Change |
-|------|--------|
-| 2026-10-24 | Initial rewrite for `web/` + PostgreSQL stack; partner app excluded; supersedes outdated phase list in `DASHBOARD.md` for **SOW %** purposes only (do not delete `DASHBOARD.md` — it remains handoff context). |
-
----
-
-*Send this file as the single “how much SOW is done” summary. For the full per-feature spec guide (next phase), use the approved master SOW guide plan — this file is the **status matrix** only.*
+*For technical detail (files, migration rows, APIs), ask the dev team — this sheet is only for business handover.*
