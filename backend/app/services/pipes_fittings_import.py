@@ -12,6 +12,7 @@ from app.models import Brand, Catalog, Category, ProductFamily, ProductType, Sub
 from app.services.catalog_family_util import (
     build_family_key,
     canonical_label,
+    canonicalize_pipes_master_taxonomy,
     generate_sku_display_name,
     normalize_discount,
     normalize_gst_rate,
@@ -115,12 +116,16 @@ def parse_rows(
         excel_row = header_row + 1 + index
         row = {str(k): raw[k] for k in raw}
 
-        category = canonical_label(row_get(row, column_map, "category"))
-        type_name = canonical_label(row_get(row, column_map, "type"))
-        subcategory = canonical_label(row_get(row, column_map, "sub_category"))
-        product_class = canonical_label(row_get(row, column_map, "class"))
-        brand = canonical_label(row_get(row, column_map, "brand"))
-        product_family = canonical_label(row_get(row, column_map, "product_family"))
+        category, type_name, subcategory, product_class, brand, product_family = (
+            canonicalize_pipes_master_taxonomy(
+                category=row_get(row, column_map, "category"),
+                type_name=row_get(row, column_map, "type"),
+                subcategory=row_get(row, column_map, "sub_category"),
+                product_class=row_get(row, column_map, "class"),
+                brand=row_get(row, column_map, "brand"),
+                product_family=row_get(row, column_map, "product_family"),
+            )
+        )
         product_code = row_get(row, column_map, "product_code").strip().rstrip("^")
         size = canonical_label(row_get(row, column_map, "size_mm_cm_in"))
         length = canonical_label(row_get(row, column_map, "length"))
