@@ -810,7 +810,35 @@ export function importPipesFittings(body: { rows: Record<string, string>[] }) {
   }>("/catalog/import/pipes-fittings", { method: "POST", body });
 }
 
-export function fetchPipesFittingsImagesTemplate(subcategory?: string) {
+export type PipesFittingsImagesTemplateQuery = {
+  subcategory?: string;
+  brand?: string;
+  type?: string;
+  class?: string;
+  includeInactive?: boolean;
+  /** Default true: only families without a valid image URL. False includes all (URLs prefilled). */
+  missingImageOnly?: boolean;
+};
+
+export function fetchPipesFittingsImagesTemplateFilterOptions(
+  query: Pick<PipesFittingsImagesTemplateQuery, "subcategory" | "includeInactive"> = {},
+) {
+  return apiRequest<{
+    brands: string[];
+    types: string[];
+    classes: string[];
+  }>("/catalog/import/pipes-fittings/images/template/filter-options", {
+    method: "GET",
+    query: {
+      subcategory: query.subcategory?.trim() || undefined,
+      includeInactive: query.includeInactive ? "true" : undefined,
+    },
+  });
+}
+
+export function fetchPipesFittingsImagesTemplate(
+  query: PipesFittingsImagesTemplateQuery = {},
+) {
   return apiRequest<{
     items: {
       brand: string;
@@ -823,13 +851,25 @@ export function fetchPipesFittingsImagesTemplate(subcategory?: string) {
   }>("/catalog/import/pipes-fittings/images/template", {
     method: "GET",
     query: {
-      subcategory: subcategory?.trim() || undefined,
+      subcategory: query.subcategory?.trim() || undefined,
+      brand: query.brand?.trim() || undefined,
+      type: query.type?.trim() || undefined,
+      productClass: query.class?.trim() || undefined,
+      includeInactive: query.includeInactive ? "true" : undefined,
+      missingImageOnly:
+        query.missingImageOnly === false ? "false" : undefined,
     },
   });
 }
 
 export function validatePipesFittingsImagesImport(body: {
-  items: { brand?: string; product_family?: string; image_url?: string }[];
+  items: {
+    brand?: string;
+    product_family?: string;
+    type?: string;
+    class?: string;
+    image_url?: string;
+  }[];
 }) {
   return apiRequest<{
     valid: boolean;
@@ -840,7 +880,13 @@ export function validatePipesFittingsImagesImport(body: {
 }
 
 export function importPipesFittingsImages(body: {
-  items: { brand?: string; product_family?: string; image_url?: string }[];
+  items: {
+    brand?: string;
+    product_family?: string;
+    type?: string;
+    class?: string;
+    image_url?: string;
+  }[];
 }) {
   return apiRequest<{ updated: number; errors?: SheetValidationError[]; valid?: boolean }>(
     "/catalog/import/pipes-fittings/images",

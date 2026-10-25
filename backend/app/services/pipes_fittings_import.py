@@ -12,6 +12,7 @@ from app.models import Brand, Catalog, Category, ProductFamily, ProductType, Sub
 from app.services.catalog_family_util import (
     build_family_key,
     canonical_label,
+    canonicalize_pipes_master_taxonomy,
     generate_sku_display_name,
     normalize_discount,
     normalize_gst_rate,
@@ -115,12 +116,16 @@ def parse_rows(
         excel_row = header_row + 1 + index
         row = {str(k): raw[k] for k in raw}
 
-        category = canonical_label(row_get(row, column_map, "category"))
-        type_name = canonical_label(row_get(row, column_map, "type"))
-        subcategory = canonical_label(row_get(row, column_map, "sub_category"))
-        product_class = canonical_label(row_get(row, column_map, "class"))
-        brand = canonical_label(row_get(row, column_map, "brand"))
-        product_family = canonical_label(row_get(row, column_map, "product_family"))
+        category, type_name, subcategory, product_class, brand, product_family = (
+            canonicalize_pipes_master_taxonomy(
+                category=row_get(row, column_map, "category"),
+                type_name=row_get(row, column_map, "type"),
+                subcategory=row_get(row, column_map, "sub_category"),
+                product_class=row_get(row, column_map, "class"),
+                brand=row_get(row, column_map, "brand"),
+                product_family=row_get(row, column_map, "product_family"),
+            )
+        )
         product_code = row_get(row, column_map, "product_code").strip().rstrip("^")
         size = canonical_label(row_get(row, column_map, "size_mm_cm_in"))
         length = canonical_label(row_get(row, column_map, "length"))
@@ -311,29 +316,26 @@ def _check_code_family_consistency(parsed: list[ParsedRow], result: ValidationRe
         by_code[row.product_code] = row
 
 
+def _resolve_family_for_import_row(
+    session: Session,
+    row: ParsedRow,
+    category: Category,
+) -> ProductFamily:
+    """Existing SKUs keep their DB family on re-upload; new SKUs use family_key upsert."""
+    existing = _catalog_by_code(session, row.product_code)
+    if existing is not None and existing.deleted_at is None and existing.family_id:
+        family = session.get(ProductFamily, existing.family_id)
+        if family is not None and family.deleted_at is None:
+            return family
+    return _upsert_family(session, row, category)
+
+
 def validate_pipes_fittings_rows(
     session: Session,
     raw_rows: list[dict[str, Any]],
 ) -> ValidationResult:
-    result = parse_rows(raw_rows)
-    if not result.ok:
-        return result
-
-    for row in result.rows:
-        existing = _catalog_by_code(session, row.product_code)
-        if existing is None or existing.deleted_at is not None:
-            continue
-        if existing.family_id:
-            family = session.get(ProductFamily, existing.family_id)
-            if family and family.family_key != row.family_key:
-                result.errors.append(
-                    _err(
-                        row.excel_row,
-                        "product code",
-                        f"Code '{row.product_code}' already exists in database under a different family",
-                    )
-                )
-    return result
+    """Validate sheet; existing product codes may be updated on import (no family_key block)."""
+    return parse_rows(raw_rows)
 
 
 def _upsert_family(session: Session, row: ParsedRow, category: Category) -> ProductFamily:
@@ -404,7 +406,7 @@ def import_pipes_fittings_rows(
         inserted = updated = 0
         for row in validation.rows:
             category = _get_category(session, row.category)
-            family = _upsert_family(session, row, category)
+            family = _resolve_family_for_import_row(session, row, category)
             brand = session.get(Brand, family.brand_id) if family.brand_id else None
             subcategory = (
                 session.get(Subcategory, family.subcategory_id)
@@ -498,62 +500,326 @@ def _family_needs_image(family: ProductFamily) -> bool:
     return not url.lower().startswith(("http://", "https://"))
 
 
-def pipes_fittings_image_template_rows(
+def _family_image_url_for_sidecar(family: ProductFamily) -> str:
+    url = (family.image_url or "").strip()
+    if url.lower().startswith(("http://", "https://")):
+        return url
+    return ""
+
+
+def _family_has_catalog_skus(session: Session, family_id: str) -> bool:
+    row = session.scalar(
+        select(Catalog.id)
+        .where(
+            Catalog.family_id == family_id,
+            Catalog.deleted_at.is_(None),
+        )
+        .limit(1)
+    )
+    return row is not None
+
+
+def _family_has_active_catalog_sku(session: Session, family_id: str) -> bool:
+    row = session.scalar(
+        select(Catalog.id)
+        .where(
+            Catalog.family_id == family_id,
+            Catalog.deleted_at.is_(None),
+            Catalog.is_active.is_(True),
+        )
+        .limit(1)
+    )
+    return row is not None
+
+
+def _include_family_for_image_download(
+    session: Session,
+    family: ProductFamily,
+    *,
+    include_inactive: bool,
+) -> bool:
+    """When include_inactive is false, skip families whose SKUs are all inactive."""
+    if include_inactive:
+        return True
+    if not _family_has_catalog_skus(session, family.id):
+        return True
+    return _family_has_active_catalog_sku(session, family.id)
+
+
+def _family_matches_image_template_filters(
+    *,
+    brand_name: str,
+    type_name: str,
+    product_class: str,
+    brand_filter: str,
+    type_filter: str,
+    class_filter: str,
+) -> bool:
+    if brand_filter and normalize_label(brand_name) != brand_filter:
+        return False
+    if type_filter and normalize_label(type_name) != type_filter:
+        return False
+    if class_filter and normalize_label(product_class) != class_filter:
+        return False
+    return True
+
+
+def _family_subcategory_name(session: Session, family: ProductFamily) -> str:
+    if family.subcategory_id:
+        return (
+            session.scalar(
+                select(Subcategory.name).where(Subcategory.id == family.subcategory_id)
+            )
+            or ""
+        ).strip()
+    catalog_sub = session.scalar(
+        select(Catalog.subcategory)
+        .where(
+            Catalog.family_id == family.id,
+            Catalog.deleted_at.is_(None),
+        )
+        .limit(1)
+    )
+    return (catalog_sub or "").strip()
+
+
+def _family_type_and_brand(
+    session: Session,
+    family: ProductFamily,
+) -> tuple[str, str]:
+    brand_name = ""
+    if family.brand_id:
+        brand_name = (
+            session.scalar(select(Brand.name).where(Brand.id == family.brand_id)) or ""
+        )
+    type_name = ""
+    if family.product_type_id:
+        type_name = (
+            session.scalar(
+                select(ProductType.name).where(ProductType.id == family.product_type_id)
+            )
+            or ""
+        )
+    return brand_name, type_name
+
+
+def _family_brand_type_class_for_image_sidecar(
+    session: Session,
+    family: ProductFamily,
+) -> tuple[str, str, str]:
+    """Display brand, type, class for image template rows (family row, then catalog SKU)."""
+    brand_name, type_name = _family_type_and_brand(session, family)
+    product_class = (family.product_class or "").strip()
+    if brand_name.strip() and type_name.strip() and product_class:
+        return brand_name.strip(), type_name.strip(), product_class
+
+    catalog_row = session.execute(
+        select(Catalog.brand, Catalog.type_name, Catalog.product_class)
+        .where(
+            Catalog.family_id == family.id,
+            Catalog.deleted_at.is_(None),
+        )
+        .limit(1)
+    ).first()
+    if catalog_row is not None:
+        cat_brand, cat_type, cat_class = catalog_row
+        if not brand_name.strip():
+            brand_name = (cat_brand or "").strip()
+        if not type_name.strip():
+            type_name = (cat_type or "").strip()
+        if not product_class:
+            product_class = (cat_class or "").strip()
+    return brand_name.strip(), type_name.strip(), product_class
+
+
+def image_sidecar_row_key(
+    *,
+    brand: str,
+    product_family: str,
+    type_name: str,
+    product_class: str,
+) -> tuple[str, str, str, str]:
+    """One logical family row in the image sidecar (brand + family + type + class)."""
+    return (
+        normalize_label(brand),
+        normalize_label(product_family),
+        normalize_label(type_name),
+        normalize_label(product_class),
+    )
+
+
+def families_for_image_sidecar_item(
+    session: Session,
+    item: dict[str, Any],
+) -> list[ProductFamily]:
+    """Match DB families for an image sheet row (type/class aware)."""
+    brand = canonical_label(str(item.get("brand") or ""))
+    family_name = canonical_label(
+        str(item.get("product_family") or item.get("product") or "")
+    )
+    type_name = canonical_label(str(item.get("type") or item.get("Type") or ""))
+    product_class = canonical_label(
+        str(item.get("class") or item.get("product_class") or item.get("productClass") or "")
+    )
+    if not family_name:
+        return []
+
+    candidates = session.scalars(
+        select(ProductFamily).where(
+            ProductFamily.deleted_at.is_(None),
+            ProductFamily.name.ilike(family_name),
+        )
+    ).all()
+    matched: list[ProductFamily] = []
+    for family in candidates:
+        fam_brand, fam_type, fam_class = _family_brand_type_class_for_image_sidecar(
+            session, family
+        )
+        if brand and normalize_label(fam_brand) != normalize_label(brand):
+            continue
+        if type_name and normalize_label(fam_type) != normalize_label(type_name):
+            continue
+        if product_class and normalize_label(fam_class) != normalize_label(product_class):
+            continue
+        matched.append(family)
+    return matched
+
+
+def _iter_pipes_fittings_image_template_candidates(
     session: Session,
     *,
     subcategory: str | None = None,
+    brand: str | None = None,
+    type_name: str | None = None,
+    product_class: str | None = None,
     missing_image_only: bool = True,
-) -> list[dict[str, str]]:
-    """Rows for image sidecar CSV; optional subcategory filter and missing-image-only."""
+    include_inactive: bool = False,
+) -> list[tuple[str, str, str, str, str, str]]:
+    """Yield (brand, type, class, product_family, subcategory, image_url) for eligible families."""
     families = session.scalars(
         select(ProductFamily)
         .where(ProductFamily.deleted_at.is_(None))
         .order_by(ProductFamily.name)
     ).all()
     subcategory_key = normalize_label(subcategory) if subcategory and subcategory.strip() else ""
-    rows: list[dict[str, str]] = []
+    brand_key = normalize_label(brand) if brand and brand.strip() else ""
+    type_key = normalize_label(type_name) if type_name and type_name.strip() else ""
+    class_key = normalize_label(product_class) if product_class and product_class.strip() else ""
+    out: list[tuple[str, str, str, str, str]] = []
+    seen_keys: set[tuple[str, str, str, str]] = set()
     for family in families:
         if missing_image_only and not _family_needs_image(family):
             continue
-        sub_name = ""
-        if family.subcategory_id:
-            sub_name = (
-                session.scalar(
-                    select(Subcategory.name).where(Subcategory.id == family.subcategory_id)
-                )
-                or ""
-            )
+        if not _include_family_for_image_download(
+            session, family, include_inactive=include_inactive
+        ):
+            continue
+        sub_name = _family_subcategory_name(session, family)
         if subcategory_key and normalize_label(sub_name) != subcategory_key:
             continue
-        brand_name = ""
-        if family.brand_id:
-            brand_name = (
-                session.scalar(select(Brand.name).where(Brand.id == family.brand_id)) or ""
-            )
-        type_name = ""
-        if family.product_type_id:
-            type_name = (
-                session.scalar(
-                    select(ProductType.name).where(ProductType.id == family.product_type_id)
-                )
-                or ""
-            )
-        rows.append(
-            {
-                "brand": brand_name,
-                "product_family": family.name,
-                "type": type_name,
-                "class": (family.product_class or "").strip(),
-                "image_url": "",
-            }
+        brand_name, fam_type, fam_class = _family_brand_type_class_for_image_sidecar(
+            session, family
         )
+        if not _family_matches_image_template_filters(
+            brand_name=brand_name,
+            type_name=fam_type,
+            product_class=fam_class,
+            brand_filter=brand_key,
+            type_filter=type_key,
+            class_filter=class_key,
+        ):
+            continue
+        key = image_sidecar_row_key(
+            brand=brand_name,
+            product_family=family.name,
+            type_name=fam_type,
+            product_class=fam_class,
+        )
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        out.append(
+            (
+                brand_name,
+                fam_type,
+                fam_class,
+                family.name,
+                sub_name,
+                _family_image_url_for_sidecar(family),
+            )
+        )
+    return out
+
+
+def pipes_fittings_image_template_rows(
+    session: Session,
+    *,
+    subcategory: str | None = None,
+    brand: str | None = None,
+    type_name: str | None = None,
+    product_class: str | None = None,
+    missing_image_only: bool = True,
+    include_inactive: bool = False,
+) -> list[dict[str, str]]:
+    """Rows for image sidecar CSV; optional filters and missing-image-only."""
+    candidates = _iter_pipes_fittings_image_template_candidates(
+        session,
+        subcategory=subcategory,
+        brand=brand,
+        type_name=type_name,
+        product_class=product_class,
+        missing_image_only=missing_image_only,
+        include_inactive=include_inactive,
+    )
+    rows = [
+        {
+            "brand": brand_name,
+            "product_family": family_name,
+            "type": fam_type,
+            "class": fam_class,
+            "image_url": "" if missing_image_only else image_url,
+        }
+        for brand_name, fam_type, fam_class, family_name, _sub, image_url in candidates
+    ]
     rows.sort(
         key=lambda row: (
             normalize_label(row["brand"]),
+            normalize_label(row["type"]),
+            normalize_label(row["class"]),
             normalize_label(row["product_family"]),
         )
     )
     return rows
+
+
+def pipes_fittings_image_template_filter_options(
+    session: Session,
+    *,
+    subcategory: str | None = None,
+    include_inactive: bool = False,
+) -> dict[str, list[str]]:
+    """Distinct brand / type / class values for families missing images."""
+    candidates = _iter_pipes_fittings_image_template_candidates(
+        session,
+        subcategory=subcategory,
+        missing_image_only=True,
+        include_inactive=include_inactive,
+    )
+    brands: set[str] = set()
+    types: set[str] = set()
+    classes: set[str] = set()
+    for brand_name, fam_type, fam_class, _family_name, _sub, _url in candidates:
+        if brand_name.strip():
+            brands.add(brand_name.strip())
+        if fam_type.strip():
+            types.add(fam_type.strip())
+        if fam_class.strip():
+            classes.add(fam_class.strip())
+    return {
+        "brands": sorted(brands, key=lambda value: normalize_label(value)),
+        "types": sorted(types, key=lambda value: normalize_label(value)),
+        "classes": sorted(classes, key=lambda value: normalize_label(value)),
+    }
 
 
 def validate_pipes_fittings_image_items(
@@ -569,6 +835,10 @@ def validate_pipes_fittings_image_items(
             str(item.get("product_family") or item.get("product") or "")
         )
         url = canonical_label(str(item.get("image_url") or item.get("imageUrl") or ""))
+        type_name = canonical_label(str(item.get("type") or item.get("Type") or ""))
+        product_class = canonical_label(
+            str(item.get("class") or item.get("product_class") or item.get("productClass") or "")
+        )
         if not family_name:
             errors.append(
                 _err(excel_row, "product_family", "product_family is required")
@@ -577,23 +847,7 @@ def validate_pipes_fittings_image_items(
         if not url:
             errors.append(_err(excel_row, "image_url", "image_url is required"))
             continue
-        families = session.scalars(
-            select(ProductFamily).where(
-                ProductFamily.deleted_at.is_(None),
-                ProductFamily.name.ilike(family_name),
-            )
-        ).all()
-        if brand:
-            matched: list[ProductFamily] = []
-            for family in families:
-                if not family.brand_id:
-                    continue
-                brand_name = session.scalar(
-                    select(Brand.name).where(Brand.id == family.brand_id)
-                )
-                if brand_name and normalize_label(brand_name) == normalize_label(brand):
-                    matched.append(family)
-            families = matched
+        families = families_for_image_sidecar_item(session, item)
         if not families:
             errors.append(
                 _err(
@@ -601,6 +855,7 @@ def validate_pipes_fittings_image_items(
                     "product_family",
                     (
                         f"No family in database for brand='{brand or '(any)'}' "
+                        f"type='{type_name or '(any)'}' class='{product_class or '(any)'}' "
                         f"product_family='{family_name}'. "
                         "Import the pipes master sheet first (same spelling), then upload images."
                     ),
@@ -625,34 +880,18 @@ def import_pipes_fittings_images(
             )
 
         updated = 0
-        for excel_row, item in enumerate(items, start=2):
-            brand = canonical_label(str(item.get("brand") or ""))
-            family_name = canonical_label(
-                str(item.get("product_family") or item.get("product") or "")
-            )
+        updated_ids: set[str] = set()
+        for _excel_row, item in enumerate(items, start=2):
             url = canonical_label(str(item.get("image_url") or item.get("imageUrl") or ""))
-            if not family_name or not url:
+            if not url:
                 continue
-            families = session.scalars(
-                select(ProductFamily).where(
-                    ProductFamily.deleted_at.is_(None),
-                    ProductFamily.name.ilike(family_name),
-                )
-            ).all()
-            if brand:
-                matched: list[ProductFamily] = []
-                for family in families:
-                    if not family.brand_id:
-                        continue
-                    brand_name = session.scalar(
-                        select(Brand.name).where(Brand.id == family.brand_id)
-                    )
-                    if brand_name and normalize_label(brand_name) == normalize_label(brand):
-                        matched.append(family)
-                families = matched
+            families = families_for_image_sidecar_item(session, item)
             for family in families:
+                if family.id in updated_ids:
+                    continue
                 family.image_url = url
                 family.updated_at = _now()
+                updated_ids.add(family.id)
                 updated += 1
         return envelope({"updated": updated, "valid": True, "errors": []})
 

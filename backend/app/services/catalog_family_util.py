@@ -20,6 +20,94 @@ def canonical_label(value: str | None) -> str:
     return re.sub(r"\s+", " ", str(value).strip())
 
 
+# Sheet / legacy category labels that must share one family_key.
+_CATEGORY_KEY_ALIASES: dict[str, str] = {
+    "pipe & fittings": "pipes & fitting",
+    "pipes & fittings": "pipes & fitting",
+    "pipes and fittings": "pipes & fitting",
+}
+
+# Canonical display after alias fold (extend when new top-level categories are added).
+_CATEGORY_DISPLAY: dict[str, str] = {
+    "pipes & fitting": "Pipes & Fittings",
+}
+
+
+def _collapse_spaces(value: str) -> str:
+    return re.sub(r"\s+", " ", str(value).strip())
+
+
+def _title_case_words(value: str) -> str:
+    text = _collapse_spaces(value)
+    if not text:
+        return ""
+    words: list[str] = []
+    for chunk in re.split(r"(\s+|&)", text):
+        if not chunk or chunk.isspace():
+            continue
+        if chunk == "&":
+            words.append("&")
+            continue
+        words.append(chunk[0].upper() + chunk[1:].lower() if chunk else chunk)
+    return " ".join(words)
+
+
+def normalize_category_for_key(category: str) -> str:
+    normalized = normalize_label(category)
+    return _CATEGORY_KEY_ALIASES.get(normalized, normalized)
+
+
+def canonical_category_label(value: str | None) -> str:
+    collapsed = _collapse_spaces(str(value or ""))
+    if not collapsed:
+        return ""
+    key = normalize_category_for_key(collapsed)
+    display = _CATEGORY_DISPLAY.get(key)
+    if display:
+        return display
+    return _title_case_words(collapsed)
+
+
+def canonical_subcategory_label(value: str | None) -> str:
+    return _title_case_words(str(value or ""))
+
+
+def canonical_type_label(value: str | None) -> str:
+    return _collapse_spaces(str(value or "")).upper()
+
+
+def canonical_class_label(value: str | None) -> str:
+    return _collapse_spaces(str(value or "")).upper()
+
+
+def canonical_brand_label(value: str | None) -> str:
+    return _title_case_words(str(value or ""))
+
+
+def canonical_product_family_label(value: str | None) -> str:
+    return _collapse_spaces(str(value or "")).upper()
+
+
+def canonicalize_pipes_master_taxonomy(
+    *,
+    category: str,
+    type_name: str,
+    subcategory: str,
+    product_class: str,
+    brand: str,
+    product_family: str,
+) -> tuple[str, str, str, str, str, str]:
+    """Normalize messy sheet text to stable display + family_key values (no errors)."""
+    return (
+        canonical_category_label(category),
+        canonical_type_label(type_name),
+        canonical_subcategory_label(subcategory),
+        canonical_class_label(product_class),
+        canonical_brand_label(brand),
+        canonical_product_family_label(product_family),
+    )
+
+
 def build_family_key(
     *,
     category: str,
@@ -30,7 +118,7 @@ def build_family_key(
     product_family: str,
 ) -> str:
     parts = [
-        normalize_label(category),
+        normalize_category_for_key(category),
         normalize_label(type_name),
         normalize_label(subcategory),
         normalize_label(product_class),

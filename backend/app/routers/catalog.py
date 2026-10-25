@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from pydantic import AliasChoices
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
@@ -27,6 +28,7 @@ from app.services._common import envelope, error_response
 from app.services.pipes_fittings_import import (
     import_pipes_fittings_images,
     import_pipes_fittings_rows,
+    pipes_fittings_image_template_filter_options,
     pipes_fittings_image_template_rows,
     validate_pipes_fittings_image_items,
     validate_pipes_fittings_rows,
@@ -127,9 +129,8 @@ def update_catalog_active(
     item_id: str,
     body: CatalogActiveIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.set_catalog_active(session, item_id, body.isActive)
 
 
@@ -254,17 +255,43 @@ def import_pipes_fittings(
     return result
 
 
+@router.get("/catalog/import/pipes-fittings/images/template/filter-options")
+def pipes_fittings_images_template_filter_options(
+    session: DbSession,
+    _admin: CatalogRead,
+    subcategory: str | None = None,
+    include_inactive: bool = Query(False, alias="includeInactive"),
+):
+    options = pipes_fittings_image_template_filter_options(
+        session,
+        subcategory=subcategory,
+        include_inactive=include_inactive,
+    )
+    return envelope(options)
+
+
 @router.get("/catalog/import/pipes-fittings/images/template")
 def pipes_fittings_images_template(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogRead,
     subcategory: str | None = None,
+    brand: str | None = None,
+    product_type: str | None = Query(None, alias="type"),
+    product_class: str | None = Query(
+        None,
+        validation_alias=AliasChoices("productClass", "class"),
+    ),
+    include_inactive: bool = Query(False, alias="includeInactive"),
+    missing_image_only: bool = Query(True, alias="missingImageOnly"),
 ):
-    _require_catalog_write(_admin)
     items = pipes_fittings_image_template_rows(
         session,
         subcategory=subcategory,
-        missing_image_only=True,
+        brand=brand,
+        type_name=product_type,
+        product_class=product_class,
+        missing_image_only=missing_image_only,
+        include_inactive=include_inactive,
     )
     return envelope({"items": items, "rowCount": len(items)})
 
@@ -275,7 +302,7 @@ def validate_pipes_fittings_images_import(
     session: DbSession,
     _admin: CatalogWrite,
 ):
-    items = [item.model_dump() for item in body.items]
+    items = [item.model_dump(by_alias=True) for item in body.items]
     errors, match_count = validate_pipes_fittings_image_items(session, items)
     return envelope(
         {
@@ -293,7 +320,7 @@ def import_pipes_fittings_images_route(
     session: DbSession,
     _admin: CatalogWrite,
 ):
-    items = [item.model_dump() for item in body.items]
+    items = [item.model_dump(by_alias=True) for item in body.items]
     result = import_pipes_fittings_images(session, items)
     if isinstance(result, dict) and not result.get("success", True):
         return error_response(400, result.get("error") or "Import failed", result.get("data"))

@@ -226,8 +226,14 @@ class PipesFittingsImageRow(BaseModel):
     brand: str | None = None
     product_family: str | None = None
     product: str | None = None
+    type: str | None = None
+    Type: str | None = None
+    class_: str | None = Field(default=None, alias="class")
+    product_class: str | None = None
     image_url: str | None = None
     imageUrl: str | None = None
+
+    model_config = {"populate_by_name": True}
 
 
 class PipesFittingsImagesImportIn(BaseModel):
