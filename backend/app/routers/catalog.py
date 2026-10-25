@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
@@ -27,6 +27,7 @@ from app.services._common import envelope, error_response
 from app.services.pipes_fittings_import import (
     import_pipes_fittings_images,
     import_pipes_fittings_rows,
+    pipes_fittings_image_template_filter_options,
     pipes_fittings_image_template_rows,
     validate_pipes_fittings_image_items,
     validate_pipes_fittings_rows,
@@ -256,16 +257,39 @@ def import_pipes_fittings(
     return result
 
 
+@router.get("/catalog/import/pipes-fittings/images/template/filter-options")
+def pipes_fittings_images_template_filter_options(
+    session: DbSession,
+    _admin: CatalogRead,
+    subcategory: str | None = None,
+    include_inactive: bool = Query(False, alias="includeInactive"),
+):
+    options = pipes_fittings_image_template_filter_options(
+        session,
+        subcategory=subcategory,
+        include_inactive=include_inactive,
+    )
+    return envelope(options)
+
+
 @router.get("/catalog/import/pipes-fittings/images/template")
 def pipes_fittings_images_template(
     session: DbSession,
     _admin: CatalogRead,
     subcategory: str | None = None,
+    brand: str | None = None,
+    product_type: str | None = Query(None, alias="type"),
+    product_class: str | None = Query(None, alias="class"),
+    include_inactive: bool = Query(False, alias="includeInactive"),
 ):
     items = pipes_fittings_image_template_rows(
         session,
         subcategory=subcategory,
+        brand=brand,
+        type_name=product_type,
+        product_class=product_class,
         missing_image_only=True,
+        include_inactive=include_inactive,
     )
     return envelope({"items": items, "rowCount": len(items)})
 

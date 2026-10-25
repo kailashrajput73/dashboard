@@ -1,6 +1,9 @@
 import unittest
 
-from app.services.pipes_fittings_import import image_sidecar_row_key
+from app.services.pipes_fittings_import import (
+    _family_matches_image_template_filters,
+    image_sidecar_row_key,
+)
 
 
 class PipesFittingsImageSidecarTests(unittest.TestCase):
@@ -33,6 +36,28 @@ class PipesFittingsImageSidecarTests(unittest.TestCase):
             product_class="Sch 80",
         )
         self.assertNotEqual(sch40, sch80)
+
+    def test_template_filters_match_normalized_labels(self) -> None:
+        self.assertTrue(
+            _family_matches_image_template_filters(
+                brand_name="King",
+                type_name="CPVC",
+                product_class="SDR 11",
+                brand_filter="king",
+                type_filter="cpvc",
+                class_filter="sdr 11",
+            )
+        )
+        self.assertFalse(
+            _family_matches_image_template_filters(
+                brand_name="King",
+                type_name="CPVC",
+                product_class="SDR 11",
+                brand_filter="astral",
+                type_filter="",
+                class_filter="",
+            )
+        )
 
 
 if __name__ == "__main__":

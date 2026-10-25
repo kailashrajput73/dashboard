@@ -500,6 +500,63 @@ def _family_needs_image(family: ProductFamily) -> bool:
     return not url.lower().startswith(("http://", "https://"))
 
 
+def _family_has_catalog_skus(session: Session, family_id: str) -> bool:
+    row = session.scalar(
+        select(Catalog.id)
+        .where(
+            Catalog.family_id == family_id,
+            Catalog.deleted_at.is_(None),
+        )
+        .limit(1)
+    )
+    return row is not None
+
+
+def _family_has_active_catalog_sku(session: Session, family_id: str) -> bool:
+    row = session.scalar(
+        select(Catalog.id)
+        .where(
+            Catalog.family_id == family_id,
+            Catalog.deleted_at.is_(None),
+            Catalog.is_active.is_(True),
+        )
+        .limit(1)
+    )
+    return row is not None
+
+
+def _include_family_for_image_download(
+    session: Session,
+    family: ProductFamily,
+    *,
+    include_inactive: bool,
+) -> bool:
+    """When include_inactive is false, skip families whose SKUs are all inactive."""
+    if include_inactive:
+        return True
+    if not _family_has_catalog_skus(session, family.id):
+        return True
+    return _family_has_active_catalog_sku(session, family.id)
+
+
+def _family_matches_image_template_filters(
+    *,
+    brand_name: str,
+    type_name: str,
+    product_class: str,
+    brand_filter: str,
+    type_filter: str,
+    class_filter: str,
+) -> bool:
+    if brand_filter and normalize_label(brand_name) != brand_filter:
+        return False
+    if type_filter and normalize_label(type_name) != type_filter:
+        return False
+    if class_filter and normalize_label(product_class) != class_filter:
+        return False
+    return True
+
+
 def _family_type_and_brand(
     session: Session,
     family: ProductFamily,
@@ -572,23 +629,34 @@ def families_for_image_sidecar_item(
     return matched
 
 
-def pipes_fittings_image_template_rows(
+def _iter_pipes_fittings_image_template_candidates(
     session: Session,
     *,
     subcategory: str | None = None,
+    brand: str | None = None,
+    type_name: str | None = None,
+    product_class: str | None = None,
     missing_image_only: bool = True,
-) -> list[dict[str, str]]:
-    """Rows for image sidecar CSV; optional subcategory filter and missing-image-only."""
+    include_inactive: bool = False,
+) -> list[tuple[str, str, str, str, str]]:
+    """Yield (brand, type, class, product_family, subcategory) for eligible families."""
     families = session.scalars(
         select(ProductFamily)
         .where(ProductFamily.deleted_at.is_(None))
         .order_by(ProductFamily.name)
     ).all()
     subcategory_key = normalize_label(subcategory) if subcategory and subcategory.strip() else ""
-    rows: list[dict[str, str]] = []
+    brand_key = normalize_label(brand) if brand and brand.strip() else ""
+    type_key = normalize_label(type_name) if type_name and type_name.strip() else ""
+    class_key = normalize_label(product_class) if product_class and product_class.strip() else ""
+    out: list[tuple[str, str, str, str, str]] = []
     seen_keys: set[tuple[str, str, str, str]] = set()
     for family in families:
         if missing_image_only and not _family_needs_image(family):
+            continue
+        if not _include_family_for_image_download(
+            session, family, include_inactive=include_inactive
+        ):
             continue
         sub_name = ""
         if family.subcategory_id:
@@ -600,26 +668,60 @@ def pipes_fittings_image_template_rows(
             )
         if subcategory_key and normalize_label(sub_name) != subcategory_key:
             continue
-        brand_name, type_name = _family_type_and_brand(session, family)
-        product_class = (family.product_class or "").strip()
+        brand_name, fam_type = _family_type_and_brand(session, family)
+        fam_class = (family.product_class or "").strip()
+        if not _family_matches_image_template_filters(
+            brand_name=brand_name,
+            type_name=fam_type,
+            product_class=fam_class,
+            brand_filter=brand_key,
+            type_filter=type_key,
+            class_filter=class_key,
+        ):
+            continue
         key = image_sidecar_row_key(
             brand=brand_name,
             product_family=family.name,
-            type_name=type_name,
-            product_class=product_class,
+            type_name=fam_type,
+            product_class=fam_class,
         )
         if key in seen_keys:
             continue
         seen_keys.add(key)
-        rows.append(
-            {
-                "brand": brand_name,
-                "product_family": family.name,
-                "type": type_name,
-                "class": product_class,
-                "image_url": "",
-            }
-        )
+        out.append((brand_name, fam_type, fam_class, family.name, sub_name))
+    return out
+
+
+def pipes_fittings_image_template_rows(
+    session: Session,
+    *,
+    subcategory: str | None = None,
+    brand: str | None = None,
+    type_name: str | None = None,
+    product_class: str | None = None,
+    missing_image_only: bool = True,
+    include_inactive: bool = False,
+) -> list[dict[str, str]]:
+    """Rows for image sidecar CSV; optional filters and missing-image-only."""
+    candidates = _iter_pipes_fittings_image_template_candidates(
+        session,
+        subcategory=subcategory,
+        brand=brand,
+        type_name=type_name,
+        product_class=product_class,
+        missing_image_only=missing_image_only,
+        include_inactive=include_inactive,
+    )
+    rows = [
+        {
+            "brand": brand_name,
+            "product_family": family_name,
+            "type": fam_type,
+            "class": fam_class,
+            "image_url": "",
+        }
+        for brand_name, fam_type, fam_class, family_name, _sub in candidates
+    ]
     rows.sort(
         key=lambda row: (
             normalize_label(row["brand"]),
@@ -629,6 +731,36 @@ def pipes_fittings_image_template_rows(
         )
     )
     return rows
+
+
+def pipes_fittings_image_template_filter_options(
+    session: Session,
+    *,
+    subcategory: str | None = None,
+    include_inactive: bool = False,
+) -> dict[str, list[str]]:
+    """Distinct brand / type / class values for families missing images."""
+    candidates = _iter_pipes_fittings_image_template_candidates(
+        session,
+        subcategory=subcategory,
+        missing_image_only=True,
+        include_inactive=include_inactive,
+    )
+    brands: set[str] = set()
+    types: set[str] = set()
+    classes: set[str] = set()
+    for brand_name, fam_type, fam_class, _family_name, _sub in candidates:
+        if brand_name.strip():
+            brands.add(brand_name.strip())
+        if fam_type.strip():
+            types.add(fam_type.strip())
+        if fam_class.strip():
+            classes.add(fam_class.strip())
+    return {
+        "brands": sorted(brands, key=lambda value: normalize_label(value)),
+        "types": sorted(types, key=lambda value: normalize_label(value)),
+        "classes": sorted(classes, key=lambda value: normalize_label(value)),
+    }
 
 
 def validate_pipes_fittings_image_items(

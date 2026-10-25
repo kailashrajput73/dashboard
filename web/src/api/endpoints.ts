@@ -810,7 +810,33 @@ export function importPipesFittings(body: { rows: Record<string, string>[] }) {
   }>("/catalog/import/pipes-fittings", { method: "POST", body });
 }
 
-export function fetchPipesFittingsImagesTemplate(subcategory?: string) {
+export type PipesFittingsImagesTemplateQuery = {
+  subcategory?: string;
+  brand?: string;
+  type?: string;
+  class?: string;
+  includeInactive?: boolean;
+};
+
+export function fetchPipesFittingsImagesTemplateFilterOptions(
+  query: Pick<PipesFittingsImagesTemplateQuery, "subcategory" | "includeInactive"> = {},
+) {
+  return apiRequest<{
+    brands: string[];
+    types: string[];
+    classes: string[];
+  }>("/catalog/import/pipes-fittings/images/template/filter-options", {
+    method: "GET",
+    query: {
+      subcategory: query.subcategory?.trim() || undefined,
+      includeInactive: query.includeInactive ? "true" : undefined,
+    },
+  });
+}
+
+export function fetchPipesFittingsImagesTemplate(
+  query: PipesFittingsImagesTemplateQuery = {},
+) {
   return apiRequest<{
     items: {
       brand: string;
@@ -823,7 +849,11 @@ export function fetchPipesFittingsImagesTemplate(subcategory?: string) {
   }>("/catalog/import/pipes-fittings/images/template", {
     method: "GET",
     query: {
-      subcategory: subcategory?.trim() || undefined,
+      subcategory: query.subcategory?.trim() || undefined,
+      brand: query.brand?.trim() || undefined,
+      type: query.type?.trim() || undefined,
+      class: query.class?.trim() || undefined,
+      includeInactive: query.includeInactive ? "true" : undefined,
     },
   });
 }
