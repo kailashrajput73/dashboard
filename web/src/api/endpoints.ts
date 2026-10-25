@@ -852,7 +852,7 @@ export function fetchPipesFittingsImagesTemplate(
       subcategory: query.subcategory?.trim() || undefined,
       brand: query.brand?.trim() || undefined,
       type: query.type?.trim() || undefined,
-      class: query.class?.trim() || undefined,
+      productClass: query.class?.trim() || undefined,
       includeInactive: query.includeInactive ? "true" : undefined,
     },
   });

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import AliasChoices
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
@@ -279,7 +280,10 @@ def pipes_fittings_images_template(
     subcategory: str | None = None,
     brand: str | None = None,
     product_type: str | None = Query(None, alias="type"),
-    product_class: str | None = Query(None, alias="class"),
+    product_class: str | None = Query(
+        None,
+        validation_alias=AliasChoices("productClass", "class"),
+    ),
     include_inactive: bool = Query(False, alias="includeInactive"),
 ):
     items = pipes_fittings_image_template_rows(

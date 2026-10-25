@@ -47,6 +47,34 @@ function pipesImageNorm(value: string) {
   return value.trim().toLowerCase();
 }
 
+type PipesImageTemplateRow = {
+  brand: string;
+  product_family: string;
+  type: string;
+  class: string;
+  image_url: string;
+};
+
+function filterPipesImageTemplateItems(
+  items: PipesImageTemplateRow[],
+  filters: { brand?: string; type?: string; class?: string },
+): PipesImageTemplateRow[] {
+  let rows = items;
+  if (filters.brand?.trim()) {
+    const want = pipesImageNorm(filters.brand);
+    rows = rows.filter((row) => pipesImageNorm(row.brand ?? "") === want);
+  }
+  if (filters.type?.trim()) {
+    const want = pipesImageNorm(filters.type);
+    rows = rows.filter((row) => pipesImageNorm(row.type ?? "") === want);
+  }
+  if (filters.class?.trim()) {
+    const want = pipesImageNorm(filters.class);
+    rows = rows.filter((row) => pipesImageNorm(row.class ?? "") === want);
+  }
+  return rows;
+}
+
 function pipesImageFacetsFromTemplateItems(
   items: { brand?: string; type?: string; class?: string }[],
 ): { brands: string[]; types: string[]; classes: string[] } {
@@ -242,11 +270,12 @@ export function CatalogSpreadsheetImport(props: Props) {
   const [pipesImageType, setPipesImageType] = useState("");
   const [pipesImageClass, setPipesImageClass] = useState("");
   const [pipesImageIncludeInactive, setPipesImageIncludeInactive] = useState(false);
-  const [pipesImageSubcategoryItems, setPipesImageSubcategoryItems] = useState<
-    { brand: string; product_family: string; type: string; class: string; image_url: string }[]
-  >([]);
-  const [pipesImageDownloadCount, setPipesImageDownloadCount] = useState<number | null>(null);
-  const [pipesImageCountLoading, setPipesImageCountLoading] = useState(false);
+  const [pipesImageSubcategoryItems, setPipesImageSubcategoryItems] = useState<PipesImageTemplateRow[]>(
+    [],
+  );
+  const [pipesImageSubcategoryLoading, setPipesImageSubcategoryLoading] = useState(false);
+  const [pipesImageAllMissingCount, setPipesImageAllMissingCount] = useState<number | null>(null);
+  const [pipesImageAllMissingLoading, setPipesImageAllMissingLoading] = useState(false);
   const [pipesImageOptionalFiltersOpen, setPipesImageOptionalFiltersOpen] = useState(false);
 
   const pipesImageSelectStyle = {
@@ -286,6 +315,7 @@ export function CatalogSpreadsheetImport(props: Props) {
       return;
     }
     let cancelled = false;
+    setPipesImageSubcategoryLoading(true);
     void fetchPipesFittingsImagesTemplate({
       subcategory,
       includeInactive: pipesImageIncludeInactive,
@@ -297,6 +327,9 @@ export function CatalogSpreadsheetImport(props: Props) {
       .catch(() => {
         if (cancelled) return;
         setPipesImageSubcategoryItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setPipesImageSubcategoryLoading(false);
       });
     return () => {
       cancelled = true;
@@ -349,6 +382,31 @@ export function CatalogSpreadsheetImport(props: Props) {
     [pipesImageItemsForClassOptions],
   );
 
+  const pipesImageFilteredRows = useMemo(() => {
+    if (!pipesImageSubcategory.trim()) return null;
+    return filterPipesImageTemplateItems(pipesImageSubcategoryItems, {
+      brand: pipesImageBrand,
+      type: pipesImageType,
+      class: pipesImageClass,
+    });
+  }, [
+    pipesImageSubcategoryItems,
+    pipesImageSubcategory,
+    pipesImageBrand,
+    pipesImageType,
+    pipesImageClass,
+  ]);
+
+  const pipesImageDownloadCount = useMemo(() => {
+    if (pipesImageSubcategory.trim()) {
+      return pipesImageFilteredRows?.length ?? null;
+    }
+    return pipesImageAllMissingCount;
+  }, [pipesImageSubcategory, pipesImageFilteredRows, pipesImageAllMissingCount]);
+
+  const pipesImageCountLoading =
+    pipesImageSubcategory.trim() ? pipesImageSubcategoryLoading : pipesImageAllMissingLoading;
+
   const pipesImageDownloadScopeLabel = useMemo(() => {
     const parts: string[] = [];
     if (pipesImageSubcategory.trim()) {
@@ -366,34 +424,28 @@ export function CatalogSpreadsheetImport(props: Props) {
 
   useEffect(() => {
     if (props.kind !== "pipes-fittings-images") return;
+    if (pipesImageSubcategory.trim()) return;
     let cancelled = false;
-    setPipesImageCountLoading(true);
+    setPipesImageAllMissingLoading(true);
     const timer = window.setTimeout(() => {
-      void fetchPipesFittingsImagesTemplate(pipesImageDownloadQuery())
+      void fetchPipesFittingsImagesTemplate({ includeInactive: pipesImageIncludeInactive })
         .then((result) => {
           if (cancelled) return;
-          setPipesImageDownloadCount(result.rowCount ?? result.items.length);
+          setPipesImageAllMissingCount(result.rowCount ?? result.items.length);
         })
         .catch(() => {
           if (cancelled) return;
-          setPipesImageDownloadCount(null);
+          setPipesImageAllMissingCount(null);
         })
         .finally(() => {
-          if (!cancelled) setPipesImageCountLoading(false);
+          if (!cancelled) setPipesImageAllMissingLoading(false);
         });
     }, 300);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [
-    props.kind,
-    pipesImageSubcategory,
-    pipesImageBrand,
-    pipesImageType,
-    pipesImageClass,
-    pipesImageIncludeInactive,
-  ]);
+  }, [props.kind, pipesImageSubcategory, pipesImageIncludeInactive]);
 
   const pipesImageSubcategorySelected = !!pipesImageSubcategory.trim();
 
@@ -402,8 +454,25 @@ export function CatalogSpreadsheetImport(props: Props) {
     setError(null);
     try {
       const query = pipesImageDownloadQuery();
-      const data = await fetchPipesFittingsImagesTemplate(query);
-      if (!data.items.length) {
+      let items: PipesImageTemplateRow[];
+      if (query.subcategory && pipesImageSubcategoryItems.length) {
+        items = filterPipesImageTemplateItems(pipesImageSubcategoryItems, {
+          brand: query.brand,
+          type: query.type,
+          class: query.class,
+        });
+      } else {
+        const data = await fetchPipesFittingsImagesTemplate(query);
+        items = data.items ?? [];
+        if (query.subcategory && (query.brand || query.type || query.class)) {
+          items = filterPipesImageTemplateItems(items, {
+            brand: query.brand,
+            type: query.type,
+            class: query.class,
+          });
+        }
+      }
+      if (!items.length) {
         setError(
           query.subcategory
             ? "No families match this subcategory (and filters). Try another subcategory or import the pipes master first."
@@ -418,7 +487,7 @@ export function CatalogSpreadsheetImport(props: Props) {
           : "-subcategory";
       downloadCsvFromObjects(
         PIPES_FITTINGS_IMAGE_HEADERS,
-        data.items,
+        items,
         `pipes-fittings-images-from-catalog${suffix}.csv`,
       );
     } catch (cause: unknown) {
