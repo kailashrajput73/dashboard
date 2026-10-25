@@ -596,6 +596,35 @@ def _family_type_and_brand(
     return brand_name, type_name
 
 
+def _family_brand_type_class_for_image_sidecar(
+    session: Session,
+    family: ProductFamily,
+) -> tuple[str, str, str]:
+    """Display brand, type, class for image template rows (family row, then catalog SKU)."""
+    brand_name, type_name = _family_type_and_brand(session, family)
+    product_class = (family.product_class or "").strip()
+    if brand_name.strip() and type_name.strip() and product_class:
+        return brand_name.strip(), type_name.strip(), product_class
+
+    catalog_row = session.execute(
+        select(Catalog.brand, Catalog.type_name, Catalog.product_class)
+        .where(
+            Catalog.family_id == family.id,
+            Catalog.deleted_at.is_(None),
+        )
+        .limit(1)
+    ).first()
+    if catalog_row is not None:
+        cat_brand, cat_type, cat_class = catalog_row
+        if not brand_name.strip():
+            brand_name = (cat_brand or "").strip()
+        if not type_name.strip():
+            type_name = (cat_type or "").strip()
+        if not product_class:
+            product_class = (cat_class or "").strip()
+    return brand_name.strip(), type_name.strip(), product_class
+
+
 def image_sidecar_row_key(
     *,
     brand: str,
@@ -636,8 +665,9 @@ def families_for_image_sidecar_item(
     ).all()
     matched: list[ProductFamily] = []
     for family in candidates:
-        fam_brand, fam_type = _family_type_and_brand(session, family)
-        fam_class = canonical_label(family.product_class or "")
+        fam_brand, fam_type, fam_class = _family_brand_type_class_for_image_sidecar(
+            session, family
+        )
         if brand and normalize_label(fam_brand) != normalize_label(brand):
             continue
         if type_name and normalize_label(fam_type) != normalize_label(type_name):
@@ -680,8 +710,9 @@ def _iter_pipes_fittings_image_template_candidates(
         sub_name = _family_subcategory_name(session, family)
         if subcategory_key and normalize_label(sub_name) != subcategory_key:
             continue
-        brand_name, fam_type = _family_type_and_brand(session, family)
-        fam_class = (family.product_class or "").strip()
+        brand_name, fam_type, fam_class = _family_brand_type_class_for_image_sidecar(
+            session, family
+        )
         if not _family_matches_image_template_filters(
             brand_name=brand_name,
             type_name=fam_type,

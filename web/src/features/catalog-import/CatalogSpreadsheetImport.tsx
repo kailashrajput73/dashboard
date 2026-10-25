@@ -44,6 +44,24 @@ type SheetCheckState = {
   rejectedHeaderRows?: number;
 };
 
+function pipesImageFacetsFromTemplateItems(
+  items: { brand?: string; type?: string; class?: string }[],
+): { brands: string[]; types: string[]; classes: string[] } {
+  const brands = new Set<string>();
+  const types = new Set<string>();
+  const classes = new Set<string>();
+  for (const item of items) {
+    const brand = (item.brand ?? "").trim();
+    const type = (item.type ?? "").trim();
+    const klass = (item.class ?? "").trim();
+    if (brand) brands.add(brand);
+    if (type) types.add(type);
+    if (klass) classes.add(klass);
+  }
+  const sort = (values: Set<string>) => [...values].sort((a, b) => a.localeCompare(b));
+  return { brands: sort(brands), types: sort(types), classes: sort(classes) };
+}
+
 function mapPipesImageRows(rows: Record<string, string>[]) {
   return rows.map((row) => ({
     brand: row.brand ?? row.Brand ?? "",
@@ -267,22 +285,36 @@ export function CatalogSpreadsheetImport(props: Props) {
       return;
     }
     let cancelled = false;
+    const applyFacets = (brands: string[], types: string[], classes: string[]) => {
+      if (cancelled) return;
+      setPipesImageBrandOptions(brands);
+      setPipesImageTypeOptions(types);
+      setPipesImageClassOptions(classes);
+    };
+    const loadFacetsFromTemplate = () =>
+      fetchPipesFittingsImagesTemplate({
+        subcategory,
+        includeInactive: pipesImageIncludeInactive,
+      }).then((sheet) => {
+        const derived = pipesImageFacetsFromTemplateItems(sheet.items ?? []);
+        applyFacets(derived.brands, derived.types, derived.classes);
+      });
+
     void fetchPipesFittingsImagesTemplateFilterOptions({
       subcategory,
       includeInactive: pipesImageIncludeInactive,
     })
       .then((options) => {
-        if (cancelled) return;
-        setPipesImageBrandOptions(options.brands ?? []);
-        setPipesImageTypeOptions(options.types ?? []);
-        setPipesImageClassOptions(options.classes ?? []);
+        const brands = options.brands ?? [];
+        const types = options.types ?? [];
+        const classes = options.classes ?? [];
+        if (brands.length || types.length || classes.length) {
+          applyFacets(brands, types, classes);
+          return;
+        }
+        return loadFacetsFromTemplate();
       })
-      .catch(() => {
-        if (cancelled) return;
-        setPipesImageBrandOptions([]);
-        setPipesImageTypeOptions([]);
-        setPipesImageClassOptions([]);
-      });
+      .catch(() => loadFacetsFromTemplate().catch(() => applyFacets([], [], [])));
     return () => {
       cancelled = true;
     };
@@ -788,7 +820,7 @@ export function CatalogSpreadsheetImport(props: Props) {
                   loading={downloadingCatalogSheet || pipesImageCountLoading}
                   disabled={pipesImageDownloadCount === 0}
                   onPress={() => void downloadPipesImagesSheetFromCatalog()}
-                  style={{ width: "100%", maxWidth: 400 }}
+                  style={{ width: "100%" }}
                 />
                 <button
                   type="button"
