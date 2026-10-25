@@ -82,7 +82,7 @@ This folder is the **single organised guide** for what the system must do, why, 
 | Spreadsheet columns | `migration/SHEET-FORMAT.md`, `migration/SHEET-IMPORTS-INDEX.md`, pipes sheets |
 | Catalog family/SKU rules (locked) | `migration-db/CATALOG-DESIGN-RULES.md` |
 | DB migration rows | `migration-db/DB-STATUS.md` |
-| Web port rows | `migration/STATUS.md` |
+| Web port rows | `docs/migration/STATUS.md` |
 | Partner app API (separate) | `docs/PARTNER_APP_API.md` |
 | Service requests API | `docs/SERVICE-REQUESTS-API.md` |
 

@@ -275,4 +275,4 @@ Labelled **future** unless already done:
 | `00-index.md` | Roadmap |
 | `docs/SOW-PROGRESS.md` | Simple % handover |
 | `migration-db/DB-STATUS.md` | Migration row status |
-| `migration/STATUS.md` | Web port row status |
+| `docs/migration/STATUS.md` | Web port row status |

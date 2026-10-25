@@ -16,10 +16,10 @@
 
 - `docs/BACKEND_INVENTORY.md` — route/collection facts from the Mongo era
 - `migration-db/BACKEND-FACTS-SUPPLEMENT.md`
-- `migration/INVENTORY.md` — screen map (Expo paths are historical)
+- `docs/migration/INVENTORY.md` — screen map (Expo paths are historical)
 
 **DB migration tracker:** `migration-db/DB-STATUS.md`  
-**Web migration tracker:** `migration/STATUS.md`  
+**Web migration tracker:** `docs/migration/STATUS.md` (with `AGENTS.md`, `SOW-STATUS.md`, `INVENTORY.md`, `AGENT-PROMPTS.md` in the same folder)  
 **Catalog rules (locked):** `migration-db/CATALOG-DESIGN-RULES.md`  
 **Spreadsheet / import map:** `migration/SHEET-IMPORTS-INDEX.md` · operator guide `migration/admin/spreadsheet-imports.md`
 
