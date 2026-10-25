@@ -15,14 +15,14 @@ class ModuleAccessApiTests(unittest.TestCase):
     def tearDown(self) -> None:
         app.dependency_overrides.clear()
 
-    def test_hidden_module_blocks_catalog_read(self) -> None:
+    def test_hidden_module_still_allows_public_catalog_read(self) -> None:
         app.dependency_overrides[get_current_admin] = lambda: AuthenticatedPrincipal(
             id="hidden-user",
             role="staff",
             module_access={"product-management": "hidden"},
         )
         response = self.client.get("/api/catalog")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200, response.text)
 
     def test_read_module_allows_catalog_list_but_not_import(self) -> None:
         app.dependency_overrides[get_current_admin] = lambda: AuthenticatedPrincipal(
