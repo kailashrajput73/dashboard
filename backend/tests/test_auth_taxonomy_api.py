@@ -81,14 +81,10 @@ class AuthTaxonomyAPITests(unittest.TestCase):
         _, token = self._register_and_login_admin()
 
         unauthenticated = self.client.get("/api/categories")
-        self.assertEqual(unauthenticated.status_code, 401)
+        self.assertEqual(unauthenticated.status_code, 200, unauthenticated.text)
         self.assertEqual(
             unauthenticated.json(),
-            {
-                "success": False,
-                "data": None,
-                "error": "Missing admin token",
-            },
+            {"success": True, "data": [], "error": None},
         )
         app.dependency_overrides[get_current_admin] = (
             lambda: AuthenticatedPrincipal(id="test-admin", role="admin")

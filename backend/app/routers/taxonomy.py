@@ -28,7 +28,6 @@ CatalogWrite = Annotated[AuthenticatedPrincipal, Depends(module_write("product-m
 @router.get("/categories")
 def list_categories(
     session: DbSession,
-    _admin: CatalogRead,
     active_only: bool = False,
 ):
     return service.list_categories(session, active_only=active_only)
@@ -81,7 +80,7 @@ def delete_category_cascade(
 
 
 @router.get("/brands")
-def list_brands(session: DbSession, _admin: CatalogRead):
+def list_brands(session: DbSession):
     return service.list_brands(session)
 
 
@@ -121,7 +120,6 @@ def delete_brand_cascade(
 @router.get("/product-types")
 def list_product_types(
     session: DbSession,
-    _admin: CatalogRead,
     active_only: bool = False,
 ):
     return service.list_product_types(session, active_only=active_only)
