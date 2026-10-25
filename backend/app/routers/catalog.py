@@ -127,9 +127,8 @@ def update_catalog_active(
     item_id: str,
     body: CatalogActiveIn,
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
 ):
-    _require_catalog_write(_admin)
     return service.set_catalog_active(session, item_id, body.isActive)
 
 
@@ -257,10 +256,9 @@ def import_pipes_fittings(
 @router.get("/catalog/import/pipes-fittings/images/template")
 def pipes_fittings_images_template(
     session: DbSession,
-    _admin: AdminPrincipal,
+    _admin: CatalogWrite,
     subcategory: str | None = None,
 ):
-    _require_catalog_write(_admin)
     items = pipes_fittings_image_template_rows(
         session,
         subcategory=subcategory,
