@@ -557,6 +557,25 @@ def _family_matches_image_template_filters(
     return True
 
 
+def _family_subcategory_name(session: Session, family: ProductFamily) -> str:
+    if family.subcategory_id:
+        return (
+            session.scalar(
+                select(Subcategory.name).where(Subcategory.id == family.subcategory_id)
+            )
+            or ""
+        ).strip()
+    catalog_sub = session.scalar(
+        select(Catalog.subcategory)
+        .where(
+            Catalog.family_id == family.id,
+            Catalog.deleted_at.is_(None),
+        )
+        .limit(1)
+    )
+    return (catalog_sub or "").strip()
+
+
 def _family_type_and_brand(
     session: Session,
     family: ProductFamily,
@@ -658,14 +677,7 @@ def _iter_pipes_fittings_image_template_candidates(
             session, family, include_inactive=include_inactive
         ):
             continue
-        sub_name = ""
-        if family.subcategory_id:
-            sub_name = (
-                session.scalar(
-                    select(Subcategory.name).where(Subcategory.id == family.subcategory_id)
-                )
-                or ""
-            )
+        sub_name = _family_subcategory_name(session, family)
         if subcategory_key and normalize_label(sub_name) != subcategory_key:
             continue
         brand_name, fam_type = _family_type_and_brand(session, family)
