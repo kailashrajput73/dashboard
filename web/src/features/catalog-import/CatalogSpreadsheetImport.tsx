@@ -43,10 +43,6 @@ type SheetCheckState = {
   rejectedHeaderRows?: number;
 };
 
-function pipesImageNorm(value: string) {
-  return value.trim().toLowerCase();
-}
-
 type PipesImageTemplateRow = {
   brand: string;
   product_family: string;
@@ -54,6 +50,19 @@ type PipesImageTemplateRow = {
   class: string;
   image_url: string;
 };
+
+function pipesImageNorm(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function pipesImageRowMissingUrl(row: PipesImageTemplateRow) {
+  const url = (row.image_url ?? "").trim().toLowerCase();
+  return !url.startsWith("http://") && !url.startsWith("https://");
+}
+
+function pipesImageRowsForMissingDownload(rows: PipesImageTemplateRow[]) {
+  return rows.map((row) => ({ ...row, image_url: "" }));
+}
 
 function filterPipesImageTemplateItems(
   items: PipesImageTemplateRow[],
@@ -277,6 +286,10 @@ export function CatalogSpreadsheetImport(props: Props) {
   const [pipesImageAllMissingCount, setPipesImageAllMissingCount] = useState<number | null>(null);
   const [pipesImageAllMissingLoading, setPipesImageAllMissingLoading] = useState(false);
   const [pipesImageOptionalFiltersOpen, setPipesImageOptionalFiltersOpen] = useState(false);
+  const [pipesImageUpdateConfirmOpen, setPipesImageUpdateConfirmOpen] = useState(false);
+  const [pipesImageUpdateConfirmRows, setPipesImageUpdateConfirmRows] = useState<PipesImageTemplateRow[]>(
+    [],
+  );
 
   const pipesImageSelectStyle = {
     height: 36,
@@ -319,6 +332,7 @@ export function CatalogSpreadsheetImport(props: Props) {
     void fetchPipesFittingsImagesTemplate({
       subcategory,
       includeInactive: pipesImageIncludeInactive,
+      missingImageOnly: false,
     })
       .then((sheet) => {
         if (cancelled) return;
@@ -397,12 +411,29 @@ export function CatalogSpreadsheetImport(props: Props) {
     pipesImageClass,
   ]);
 
+  const pipesImageMissingFilteredRows = useMemo(() => {
+    if (!pipesImageFilteredRows) return null;
+    return pipesImageFilteredRows.filter(pipesImageRowMissingUrl);
+  }, [pipesImageFilteredRows]);
+
+  const pipesImageFamiliesInScopeCount = useMemo(() => {
+    if (pipesImageSubcategory.trim()) {
+      return pipesImageFilteredRows?.length ?? 0;
+    }
+    return pipesImageAllMissingCount ?? 0;
+  }, [pipesImageSubcategory, pipesImageFilteredRows, pipesImageAllMissingCount]);
+
   const pipesImageDownloadCount = useMemo(() => {
     if (pipesImageSubcategory.trim()) {
-      return pipesImageFilteredRows?.length ?? null;
+      return pipesImageMissingFilteredRows?.length ?? null;
     }
     return pipesImageAllMissingCount;
-  }, [pipesImageSubcategory, pipesImageFilteredRows, pipesImageAllMissingCount]);
+  }, [pipesImageSubcategory, pipesImageMissingFilteredRows, pipesImageAllMissingCount]);
+
+  const pipesImageUpdateDownloadMode =
+    !!pipesImageSubcategory.trim() &&
+    pipesImageDownloadCount === 0 &&
+    pipesImageFamiliesInScopeCount > 0;
 
   const pipesImageCountLoading =
     pipesImageSubcategory.trim() ? pipesImageSubcategoryLoading : pipesImageAllMissingLoading;
@@ -449,47 +480,87 @@ export function CatalogSpreadsheetImport(props: Props) {
 
   const pipesImageSubcategorySelected = !!pipesImageSubcategory.trim();
 
-  async function downloadPipesImagesSheetFromCatalog() {
+  function writePipesImageCatalogCsv(items: PipesImageTemplateRow[], suffix: string) {
+    downloadCsvFromObjects(
+      PIPES_FITTINGS_IMAGE_HEADERS,
+      items,
+      `pipes-fittings-images-from-catalog${suffix}.csv`,
+    );
+  }
+
+  function pipesImageFilteredScopeRows(): PipesImageTemplateRow[] {
+    const query = pipesImageDownloadQuery();
+    if (query.subcategory && pipesImageSubcategoryItems.length) {
+      return filterPipesImageTemplateItems(pipesImageSubcategoryItems, {
+        brand: query.brand,
+        type: query.type,
+        class: query.class,
+      });
+    }
+    return [];
+  }
+
+  function onPipesImageDownloadPress() {
+    const query = pipesImageDownloadQuery();
+    if (query.subcategory) {
+      const scoped = pipesImageFilteredScopeRows();
+      if (!scoped.length) {
+        setError(
+          "No families match this subcategory (and filters). Try another subcategory or import the pipes master first.",
+        );
+        return;
+      }
+      const missing = scoped.filter(pipesImageRowMissingUrl);
+      if (missing.length > 0) {
+        void downloadPipesImagesSheetFromCatalog(pipesImageRowsForMissingDownload(missing), "missing");
+        return;
+      }
+      setPipesImageUpdateConfirmRows(scoped);
+      setPipesImageUpdateConfirmOpen(true);
+      return;
+    }
+    void downloadPipesImagesSheetFromCatalog();
+  }
+
+  function confirmPipesImageUpdateDownload() {
+    setPipesImageUpdateConfirmOpen(false);
+    writePipesImageCatalogCsv(pipesImageUpdateConfirmRows, "-update");
+  }
+
+  async function downloadPipesImagesSheetFromCatalog(
+    prefilledItems?: PipesImageTemplateRow[],
+    mode: "missing" | "default" = "default",
+  ) {
+    if (prefilledItems?.length) {
+      setDownloadingCatalogSheet(true);
+      try {
+        const suffix =
+          mode === "missing"
+            ? pipesImageDownloadQuery().brand ||
+              pipesImageDownloadQuery().type ||
+              pipesImageDownloadQuery().class
+              ? "-filtered"
+              : "-subcategory"
+            : "-update";
+        writePipesImageCatalogCsv(prefilledItems, suffix);
+      } finally {
+        setDownloadingCatalogSheet(false);
+      }
+      return;
+    }
     setDownloadingCatalogSheet(true);
     setError(null);
     try {
       const query = pipesImageDownloadQuery();
-      let items: PipesImageTemplateRow[];
-      if (query.subcategory && pipesImageSubcategoryItems.length) {
-        items = filterPipesImageTemplateItems(pipesImageSubcategoryItems, {
-          brand: query.brand,
-          type: query.type,
-          class: query.class,
-        });
-      } else {
-        const data = await fetchPipesFittingsImagesTemplate(query);
-        items = data.items ?? [];
-        if (query.subcategory && (query.brand || query.type || query.class)) {
-          items = filterPipesImageTemplateItems(items, {
-            brand: query.brand,
-            type: query.type,
-            class: query.class,
-          });
-        }
-      }
+      const data = await fetchPipesFittingsImagesTemplate(query);
+      const items = data.items ?? [];
       if (!items.length) {
         setError(
-          query.subcategory
-            ? "No families match this subcategory (and filters). Try another subcategory or import the pipes master first."
-            : "No families missing images. Import the pipes master sheet first, or include inactive-only families.",
+          "No families missing images. Import the pipes master sheet first, or include inactive-only families.",
         );
         return;
       }
-      const suffix = !query.subcategory
-        ? "-all-missing"
-        : query.brand || query.type || query.class
-          ? "-filtered"
-          : "-subcategory";
-      downloadCsvFromObjects(
-        PIPES_FITTINGS_IMAGE_HEADERS,
-        items,
-        `pipes-fittings-images-from-catalog${suffix}.csv`,
-      );
+      writePipesImageCatalogCsv(items, "-all-missing");
     } catch (cause: unknown) {
       setError(cause instanceof ApiError ? cause.message : "Could not download catalog sheet.");
     } finally {
@@ -926,21 +997,30 @@ export function CatalogSpreadsheetImport(props: Props) {
                       ? " (this subcategory only)"
                       : " (every family missing an image)"}
                   . Rows sorted brand → type → class → family.
+                  {pipesImageUpdateDownloadMode
+                    ? " Every family in this scope already has an image; download will ask before exporting current URLs for editing."
+                    : null}
                 </p>
                 <Button
                   testID="download-pipes-fittings-images-from-catalog"
                   title={
                     pipesImageCountLoading
                       ? "Download sheet from catalog…"
-                      : pipesImageDownloadCount != null
-                        ? `Download sheet from catalog (${pipesImageDownloadCount})`
-                        : "Download sheet from catalog"
+                      : pipesImageUpdateDownloadMode
+                        ? `Download to update images (${pipesImageFamiliesInScopeCount})`
+                        : pipesImageDownloadCount != null
+                          ? `Download sheet from catalog (${pipesImageDownloadCount} missing)`
+                          : "Download sheet from catalog"
                   }
                   icon="download-outline"
                   size="sm"
                   loading={downloadingCatalogSheet || pipesImageCountLoading}
-                  disabled={pipesImageDownloadCount === 0}
-                  onPress={() => void downloadPipesImagesSheetFromCatalog()}
+                  disabled={
+                    pipesImageSubcategory.trim()
+                      ? pipesImageFamiliesInScopeCount === 0
+                      : pipesImageDownloadCount === 0
+                  }
+                  onPress={() => onPipesImageDownloadPress()}
                   style={{ width: "100%" }}
                 />
                 <button
@@ -1058,6 +1138,34 @@ export function CatalogSpreadsheetImport(props: Props) {
         <Button title="Confirm import" onPress={() => { setModeOpen(false); void submitImport(mode, false); }} loading={importing} fullWidth />
       </AppModal>
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
+      <AppModal
+        testID="pipes-images-update-download-confirm"
+        visible={pipesImageUpdateConfirmOpen}
+        onClose={() => setPipesImageUpdateConfirmOpen(false)}
+        title="Download sheet to update images?"
+      >
+        <p style={{ ...font.caption, color: colors.textSecondary, lineHeight: 1.5, margin: 0 }}>
+          All {pipesImageUpdateConfirmRows.length} famil
+          {pipesImageUpdateConfirmRows.length === 1 ? "y" : "ies"} in{" "}
+          <strong>{pipesImageDownloadScopeLabel}</strong> already have image URLs in the catalog.
+          Download a sheet with those links filled in so you can change URLs and re-upload?
+        </p>
+        <div style={{ display: "flex", gap: spacing.sm, marginTop: spacing.md }}>
+          <Button
+            testID="pipes-images-update-download-cancel"
+            title="Cancel"
+            variant="ghost"
+            onPress={() => setPipesImageUpdateConfirmOpen(false)}
+            style={{ flex: 1 }}
+          />
+          <Button
+            testID="pipes-images-update-download-confirm-btn"
+            title="Download with current URLs"
+            onPress={() => confirmPipesImageUpdateDownload()}
+            style={{ flex: 1 }}
+          />
+        </div>
+      </AppModal>
     </>
   );
 

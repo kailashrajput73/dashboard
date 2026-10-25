@@ -816,6 +816,8 @@ export type PipesFittingsImagesTemplateQuery = {
   type?: string;
   class?: string;
   includeInactive?: boolean;
+  /** Default true: only families without a valid image URL. False includes all (URLs prefilled). */
+  missingImageOnly?: boolean;
 };
 
 export function fetchPipesFittingsImagesTemplateFilterOptions(
@@ -854,6 +856,8 @@ export function fetchPipesFittingsImagesTemplate(
       type: query.type?.trim() || undefined,
       productClass: query.class?.trim() || undefined,
       includeInactive: query.includeInactive ? "true" : undefined,
+      missingImageOnly:
+        query.missingImageOnly === false ? "false" : undefined,
     },
   });
 }

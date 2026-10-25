@@ -500,6 +500,13 @@ def _family_needs_image(family: ProductFamily) -> bool:
     return not url.lower().startswith(("http://", "https://"))
 
 
+def _family_image_url_for_sidecar(family: ProductFamily) -> str:
+    url = (family.image_url or "").strip()
+    if url.lower().startswith(("http://", "https://")):
+        return url
+    return ""
+
+
 def _family_has_catalog_skus(session: Session, family_id: str) -> bool:
     row = session.scalar(
         select(Catalog.id)
@@ -687,8 +694,8 @@ def _iter_pipes_fittings_image_template_candidates(
     product_class: str | None = None,
     missing_image_only: bool = True,
     include_inactive: bool = False,
-) -> list[tuple[str, str, str, str, str]]:
-    """Yield (brand, type, class, product_family, subcategory) for eligible families."""
+) -> list[tuple[str, str, str, str, str, str]]:
+    """Yield (brand, type, class, product_family, subcategory, image_url) for eligible families."""
     families = session.scalars(
         select(ProductFamily)
         .where(ProductFamily.deleted_at.is_(None))
@@ -731,7 +738,16 @@ def _iter_pipes_fittings_image_template_candidates(
         if key in seen_keys:
             continue
         seen_keys.add(key)
-        out.append((brand_name, fam_type, fam_class, family.name, sub_name))
+        out.append(
+            (
+                brand_name,
+                fam_type,
+                fam_class,
+                family.name,
+                sub_name,
+                _family_image_url_for_sidecar(family),
+            )
+        )
     return out
 
 
@@ -761,9 +777,9 @@ def pipes_fittings_image_template_rows(
             "product_family": family_name,
             "type": fam_type,
             "class": fam_class,
-            "image_url": "",
+            "image_url": "" if missing_image_only else image_url,
         }
-        for brand_name, fam_type, fam_class, family_name, _sub in candidates
+        for brand_name, fam_type, fam_class, family_name, _sub, image_url in candidates
     ]
     rows.sort(
         key=lambda row: (
@@ -792,7 +808,7 @@ def pipes_fittings_image_template_filter_options(
     brands: set[str] = set()
     types: set[str] = set()
     classes: set[str] = set()
-    for brand_name, fam_type, fam_class, _family_name, _sub in candidates:
+    for brand_name, fam_type, fam_class, _family_name, _sub, _url in candidates:
         if brand_name.strip():
             brands.add(brand_name.strip())
         if fam_type.strip():

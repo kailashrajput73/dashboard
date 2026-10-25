@@ -285,6 +285,7 @@ def pipes_fittings_images_template(
         validation_alias=AliasChoices("productClass", "class"),
     ),
     include_inactive: bool = Query(False, alias="includeInactive"),
+    missing_image_only: bool = Query(True, alias="missingImageOnly"),
 ):
     items = pipes_fittings_image_template_rows(
         session,
@@ -292,7 +293,7 @@ def pipes_fittings_images_template(
         brand=brand,
         type_name=product_type,
         product_class=product_class,
-        missing_image_only=True,
+        missing_image_only=missing_image_only,
         include_inactive=include_inactive,
     )
     return envelope({"items": items, "rowCount": len(items)})
