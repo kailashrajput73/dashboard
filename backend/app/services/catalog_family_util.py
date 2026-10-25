@@ -20,6 +20,19 @@ def canonical_label(value: str | None) -> str:
     return re.sub(r"\s+", " ", str(value).strip())
 
 
+# Sheet / legacy category labels that must share one family_key.
+_CATEGORY_KEY_ALIASES: dict[str, str] = {
+    "pipe & fittings": "pipes & fitting",
+    "pipes & fittings": "pipes & fitting",
+    "pipes and fittings": "pipes & fitting",
+}
+
+
+def normalize_category_for_key(category: str) -> str:
+    normalized = normalize_label(category)
+    return _CATEGORY_KEY_ALIASES.get(normalized, normalized)
+
+
 def build_family_key(
     *,
     category: str,
@@ -30,7 +43,7 @@ def build_family_key(
     product_family: str,
 ) -> str:
     parts = [
-        normalize_label(category),
+        normalize_category_for_key(category),
         normalize_label(type_name),
         normalize_label(subcategory),
         normalize_label(product_class),

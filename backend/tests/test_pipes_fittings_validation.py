@@ -1,5 +1,6 @@
 import unittest
 
+from app.services.catalog_family_util import build_family_key
 from app.services.pipes_fittings_import import parse_rows
 
 
@@ -117,6 +118,18 @@ class PipesFittingsValidationTests(unittest.TestCase):
         result = parse_rows(rows)
         self.assertTrue(result.ok)
         self.assertEqual(result.rows[0].family_key, result.rows[1].family_key)
+
+    def test_category_label_aliases_share_family_key(self) -> None:
+        common = dict(
+            type_name="CPVC",
+            subcategory="FITTING",
+            product_class="SDR 11",
+            brand="KING",
+            product_family="COUPLER",
+        )
+        a = build_family_key(category="Pipe & Fittings", **common)
+        b = build_family_key(category="PIPES & FITTING", **common)
+        self.assertEqual(a, b)
 
 
 if __name__ == "__main__":

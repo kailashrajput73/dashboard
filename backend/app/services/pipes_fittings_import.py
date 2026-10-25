@@ -311,29 +311,26 @@ def _check_code_family_consistency(parsed: list[ParsedRow], result: ValidationRe
         by_code[row.product_code] = row
 
 
+def _resolve_family_for_import_row(
+    session: Session,
+    row: ParsedRow,
+    category: Category,
+) -> ProductFamily:
+    """Existing SKUs keep their DB family on re-upload; new SKUs use family_key upsert."""
+    existing = _catalog_by_code(session, row.product_code)
+    if existing is not None and existing.deleted_at is None and existing.family_id:
+        family = session.get(ProductFamily, existing.family_id)
+        if family is not None and family.deleted_at is None:
+            return family
+    return _upsert_family(session, row, category)
+
+
 def validate_pipes_fittings_rows(
     session: Session,
     raw_rows: list[dict[str, Any]],
 ) -> ValidationResult:
-    result = parse_rows(raw_rows)
-    if not result.ok:
-        return result
-
-    for row in result.rows:
-        existing = _catalog_by_code(session, row.product_code)
-        if existing is None or existing.deleted_at is not None:
-            continue
-        if existing.family_id:
-            family = session.get(ProductFamily, existing.family_id)
-            if family and family.family_key != row.family_key:
-                result.errors.append(
-                    _err(
-                        row.excel_row,
-                        "product code",
-                        f"Code '{row.product_code}' already exists in database under a different family",
-                    )
-                )
-    return result
+    """Validate sheet; existing product codes may be updated on import (no family_key block)."""
+    return parse_rows(raw_rows)
 
 
 def _upsert_family(session: Session, row: ParsedRow, category: Category) -> ProductFamily:
@@ -404,7 +401,7 @@ def import_pipes_fittings_rows(
         inserted = updated = 0
         for row in validation.rows:
             category = _get_category(session, row.category)
-            family = _upsert_family(session, row, category)
+            family = _resolve_family_for_import_row(session, row, category)
             brand = session.get(Brand, family.brand_id) if family.brand_id else None
             subcategory = (
                 session.get(Subcategory, family.subcategory_id)
