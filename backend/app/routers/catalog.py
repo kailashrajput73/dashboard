@@ -278,7 +278,7 @@ def validate_pipes_fittings_images_import(
     session: DbSession,
     _admin: CatalogWrite,
 ):
-    items = [item.model_dump() for item in body.items]
+    items = [item.model_dump(by_alias=True) for item in body.items]
     errors, match_count = validate_pipes_fittings_image_items(session, items)
     return envelope(
         {
@@ -296,7 +296,7 @@ def import_pipes_fittings_images_route(
     session: DbSession,
     _admin: CatalogWrite,
 ):
-    items = [item.model_dump() for item in body.items]
+    items = [item.model_dump(by_alias=True) for item in body.items]
     result = import_pipes_fittings_images(session, items)
     if isinstance(result, dict) and not result.get("success", True):
         return error_response(400, result.get("error") or "Import failed", result.get("data"))

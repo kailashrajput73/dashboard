@@ -45,9 +45,11 @@ type SheetCheckState = {
 
 function mapPipesImageRows(rows: Record<string, string>[]) {
   return rows.map((row) => ({
-    brand: row.brand ?? "",
-    product_family: row.product_family ?? row.product ?? "",
-    image_url: row.image_url ?? row.imageurl ?? "",
+    brand: row.brand ?? row.Brand ?? "",
+    product_family: row.product_family ?? row.product ?? row.productFamily ?? "",
+    type: row.type ?? row.Type ?? "",
+    class: row.class ?? row.Class ?? row.product_class ?? "",
+    image_url: row.image_url ?? row.imageurl ?? row.imageUrl ?? "",
   }));
 }
 
