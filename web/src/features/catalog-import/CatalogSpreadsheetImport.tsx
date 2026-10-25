@@ -225,15 +225,23 @@ export function CatalogSpreadsheetImport(props: Props) {
   const [pipesImageTypeOptions, setPipesImageTypeOptions] = useState<string[]>([]);
   const [pipesImageClassOptions, setPipesImageClassOptions] = useState<string[]>([]);
   const [pipesImageAllMissingCount, setPipesImageAllMissingCount] = useState<number | null>(null);
-  const [pipesImageFilteredCount, setPipesImageFilteredCount] = useState<number | null>(null);
+  const [pipesImageSubcategoryCount, setPipesImageSubcategoryCount] = useState<number | null>(null);
   const [pipesImageCountLoading, setPipesImageCountLoading] = useState(false);
+  const [pipesImageOptionalFiltersOpen, setPipesImageOptionalFiltersOpen] = useState(false);
 
   const pipesImageSelectStyle = {
-    height: 40,
+    height: 36,
     borderRadius: 8,
     border: `1px solid ${colors.border}`,
     padding: "0 10px",
     font: "inherit" as const,
+    width: "100%",
+  };
+  const pipesImageStepCaptionStyle = {
+    ...font.caption,
+    color: colors.textMuted,
+    margin: 0,
+    lineHeight: 1.4,
   };
 
   useEffect(() => {
@@ -275,6 +283,7 @@ export function CatalogSpreadsheetImport(props: Props) {
     setPipesImageBrand("");
     setPipesImageType("");
     setPipesImageClass("");
+    setPipesImageOptionalFiltersOpen(false);
   }, [props.kind, pipesImageSubcategory]);
 
   useEffect(() => {
@@ -282,25 +291,37 @@ export function CatalogSpreadsheetImport(props: Props) {
     let cancelled = false;
     setPipesImageCountLoading(true);
     const timer = window.setTimeout(() => {
-      void Promise.all([
-        fetchPipesFittingsImagesTemplate({ includeInactive: pipesImageIncludeInactive }),
-        fetchPipesFittingsImagesTemplate({
-          subcategory: pipesImageSubcategory.trim() || undefined,
-          brand: pipesImageBrand.trim() || undefined,
-          type: pipesImageType.trim() || undefined,
-          class: pipesImageClass.trim() || undefined,
-          includeInactive: pipesImageIncludeInactive,
-        }),
-      ])
-        .then(([allMissing, filtered]) => {
+      const subcategory = pipesImageSubcategory.trim();
+      void fetchPipesFittingsImagesTemplate({ includeInactive: pipesImageIncludeInactive })
+        .then((allMissing) => {
           if (cancelled) return;
           setPipesImageAllMissingCount(allMissing.rowCount ?? allMissing.items.length);
-          setPipesImageFilteredCount(filtered.rowCount ?? filtered.items.length);
         })
         .catch(() => {
           if (cancelled) return;
           setPipesImageAllMissingCount(null);
-          setPipesImageFilteredCount(null);
+        });
+
+      if (!subcategory) {
+        setPipesImageSubcategoryCount(null);
+        setPipesImageCountLoading(false);
+        return;
+      }
+
+      void fetchPipesFittingsImagesTemplate({
+        subcategory,
+        brand: pipesImageBrand.trim() || undefined,
+        type: pipesImageType.trim() || undefined,
+        class: pipesImageClass.trim() || undefined,
+        includeInactive: pipesImageIncludeInactive,
+      })
+        .then((scoped) => {
+          if (cancelled) return;
+          setPipesImageSubcategoryCount(scoped.rowCount ?? scoped.items.length);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setPipesImageSubcategoryCount(null);
         })
         .finally(() => {
           if (!cancelled) setPipesImageCountLoading(false);
@@ -319,21 +340,24 @@ export function CatalogSpreadsheetImport(props: Props) {
     pipesImageIncludeInactive,
   ]);
 
-  const pipesImageFilteredScope =
-    !!pipesImageSubcategory.trim() ||
-    !!pipesImageBrand.trim() ||
-    !!pipesImageType.trim() ||
-    !!pipesImageClass.trim();
+  const pipesImageSubcategorySelected = !!pipesImageSubcategory.trim();
+  const pipesImageHasOptionalFilters =
+    !!pipesImageBrand.trim() || !!pipesImageType.trim() || !!pipesImageClass.trim();
 
-  async function downloadPipesImagesSheetFromCatalog(scope: "all" | "filtered") {
+  async function downloadPipesImagesSheetFromCatalog(scope: "all" | "subcategory") {
     setDownloadingCatalogSheet(true);
     setError(null);
     try {
+      const subcategory = pipesImageSubcategory.trim();
+      if (scope === "subcategory" && !subcategory) {
+        setError("Choose a subcategory first, or use Download all missing.");
+        return;
+      }
       const query =
         scope === "all"
           ? { includeInactive: pipesImageIncludeInactive }
           : {
-              subcategory: pipesImageSubcategory.trim() || undefined,
+              subcategory,
               brand: pipesImageBrand.trim() || undefined,
               type: pipesImageType.trim() || undefined,
               class: pipesImageClass.trim() || undefined,
@@ -344,16 +368,16 @@ export function CatalogSpreadsheetImport(props: Props) {
         setError(
           scope === "all"
             ? "No families missing images. Import the pipes master sheet first, or include inactive-only families."
-            : "No families match these filters (missing image only). Adjust filters or import the pipes master first.",
+            : "No families match this subcategory (and filters). Try another subcategory or import the pipes master first.",
         );
         return;
       }
       const suffix =
-        scope === "filtered" && pipesImageFilteredScope
-          ? "-filtered"
-          : scope === "all"
-            ? "-all-missing"
-            : "";
+        scope === "subcategory"
+          ? pipesImageHasOptionalFilters
+            ? "-subcategory-filtered"
+            : "-subcategory"
+          : "-all-missing";
       downloadCsvFromObjects(
         PIPES_FITTINGS_IMAGE_HEADERS,
         data.items,
@@ -668,118 +692,176 @@ export function CatalogSpreadsheetImport(props: Props) {
           <div style={{ display: "grid", gap: spacing.md, marginTop: spacing.sm }}>
             {props.kind === "pipes-fittings-images" ? (
               <>
-                <label style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}>
+                <label style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer" }}>
                   <input
                     type="checkbox"
                     checked={pipesImageIncludeInactive}
                     onChange={(event) => setPipesImageIncludeInactive(event.currentTarget.checked)}
                     data-testid="pipes-images-include-inactive"
+                    style={{ marginTop: 2 }}
                   />
-                  <span style={{ ...font.caption, color: colors.textSecondary }}>
+                  <span style={{ ...font.caption, color: colors.textSecondary, lineHeight: 1.35 }}>
                     Include families whose SKUs are all inactive
                   </span>
                 </label>
-                <Button
-                  testID="download-pipes-fittings-images-all-missing"
-                  title={
-                    pipesImageAllMissingCount != null
-                      ? `Download all missing (${pipesImageAllMissingCount} families)`
-                      : "Download all missing families"
-                  }
-                  icon="download-outline"
-                  loading={downloadingCatalogSheet}
-                  disabled={pipesImageAllMissingCount === 0}
-                  onPress={() => void downloadPipesImagesSheetFromCatalog("all")}
-                  style={{ width: "100%" }}
-                />
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ ...font.caption, color: colors.textSecondary, fontWeight: 600 }}>
-                    Subcategory (optional, for filtered download)
-                  </span>
+
+                <div style={{ display: "grid", gap: spacing.sm }}>
+                  <p style={pipesImageStepCaptionStyle}>
+                    <strong style={{ color: colors.textSecondary }}>1 — All</strong> · Every family missing an image
+                  </p>
+                  <Button
+                    testID="download-pipes-fittings-images-all-missing"
+                    title={
+                      pipesImageAllMissingCount != null
+                        ? `Download all missing (${pipesImageAllMissingCount})`
+                        : "Download all missing"
+                    }
+                    icon="download-outline"
+                    size="sm"
+                    loading={downloadingCatalogSheet}
+                    disabled={pipesImageAllMissingCount === 0}
+                    onPress={() => void downloadPipesImagesSheetFromCatalog("all")}
+                    style={{ width: "100%", maxWidth: 360 }}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    borderTop: `1px solid ${colors.border}`,
+                    marginTop: spacing.xs,
+                    paddingTop: spacing.md,
+                    display: "grid",
+                    gap: spacing.sm,
+                  }}
+                >
+                  <p style={pipesImageStepCaptionStyle}>
+                    <strong style={{ color: colors.textSecondary }}>2 — Subcategory</strong> · Pick one, then download
+                  </p>
                   <select
                     value={pipesImageSubcategory}
                     onChange={(event) => setPipesImageSubcategory(event.currentTarget.value)}
                     data-testid="pipes-images-subcategory-filter"
                     style={pipesImageSelectStyle}
+                    aria-label="Subcategory"
                   >
-                    <option value="">Any subcategory</option>
+                    <option value="">Choose subcategory…</option>
                     {pipesImageSubcategoryOptions.map((name) => (
                       <option key={name} value={name}>
                         {name}
                       </option>
                     ))}
                   </select>
-                </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ ...font.caption, color: colors.textSecondary, fontWeight: 600 }}>Brand</span>
-                  <select
-                    value={pipesImageBrand}
-                    onChange={(event) => setPipesImageBrand(event.currentTarget.value)}
-                    data-testid="pipes-images-brand-filter"
-                    style={pipesImageSelectStyle}
-                  >
-                    <option value="">Any brand</option>
-                    {pipesImageBrandOptions.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ ...font.caption, color: colors.textSecondary, fontWeight: 600 }}>Type</span>
-                  <select
-                    value={pipesImageType}
-                    onChange={(event) => setPipesImageType(event.currentTarget.value)}
-                    data-testid="pipes-images-type-filter"
-                    style={pipesImageSelectStyle}
-                  >
-                    <option value="">Any type</option>
-                    {pipesImageTypeOptions.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ ...font.caption, color: colors.textSecondary, fontWeight: 600 }}>Class</span>
-                  <select
-                    value={pipesImageClass}
-                    onChange={(event) => setPipesImageClass(event.currentTarget.value)}
-                    data-testid="pipes-images-class-filter"
-                    style={pipesImageSelectStyle}
-                  >
-                    <option value="">Any class</option>
-                    {pipesImageClassOptions.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {pipesImageCountLoading ? (
-                  <p style={{ ...font.caption, color: colors.textMuted, margin: 0 }}>Updating row preview…</p>
-                ) : pipesImageFilteredCount != null && pipesImageFilteredScope ? (
-                  <p style={{ ...font.caption, color: colors.textMuted, margin: 0 }}>
-                    Filtered sheet: {pipesImageFilteredCount} family row
-                    {pipesImageFilteredCount === 1 ? "" : "s"} (missing image only)
-                  </p>
-                ) : null}
-                <Button
-                  testID="download-pipes-fittings-images-from-catalog"
-                  title={
-                    pipesImageFilteredCount != null && pipesImageFilteredScope
-                      ? `Download filtered sheet (${pipesImageFilteredCount})`
-                      : "Download filtered sheet"
-                  }
-                  icon="download-outline"
-                  variant="secondary"
-                  loading={downloadingCatalogSheet}
-                  disabled={!pipesImageFilteredScope || pipesImageFilteredCount === 0}
-                  onPress={() => void downloadPipesImagesSheetFromCatalog("filtered")}
-                  style={{ width: "100%" }}
-                />
+
+                  {pipesImageSubcategorySelected ? (
+                    <>
+                      <button
+                        type="button"
+                        data-testid="pipes-images-toggle-optional-filters"
+                        onClick={() => setPipesImageOptionalFiltersOpen((open) => !open)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          textAlign: "left",
+                          cursor: "pointer",
+                          ...font.caption,
+                          color: colors.primary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {pipesImageOptionalFiltersOpen ? "Hide" : "Show"} optional filters (brand, type, class)
+                        {pipesImageHasOptionalFilters ? " · active" : ""}
+                      </button>
+                      {pipesImageOptionalFiltersOpen ? (
+                        <div
+                          style={{
+                            display: "grid",
+                            gap: spacing.sm,
+                            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                          }}
+                        >
+                          <label style={{ display: "grid", gap: 4 }}>
+                            <span style={{ ...font.caption, color: colors.textMuted, fontSize: 11 }}>Brand</span>
+                            <select
+                              value={pipesImageBrand}
+                              onChange={(event) => setPipesImageBrand(event.currentTarget.value)}
+                              data-testid="pipes-images-brand-filter"
+                              style={pipesImageSelectStyle}
+                            >
+                              <option value="">Any</option>
+                              {pipesImageBrandOptions.map((name) => (
+                                <option key={name} value={name}>
+                                  {name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label style={{ display: "grid", gap: 4 }}>
+                            <span style={{ ...font.caption, color: colors.textMuted, fontSize: 11 }}>Type</span>
+                            <select
+                              value={pipesImageType}
+                              onChange={(event) => setPipesImageType(event.currentTarget.value)}
+                              data-testid="pipes-images-type-filter"
+                              style={pipesImageSelectStyle}
+                            >
+                              <option value="">Any</option>
+                              {pipesImageTypeOptions.map((name) => (
+                                <option key={name} value={name}>
+                                  {name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label style={{ display: "grid", gap: 4 }}>
+                            <span style={{ ...font.caption, color: colors.textMuted, fontSize: 11 }}>Class</span>
+                            <select
+                              value={pipesImageClass}
+                              onChange={(event) => setPipesImageClass(event.currentTarget.value)}
+                              data-testid="pipes-images-class-filter"
+                              style={pipesImageSelectStyle}
+                            >
+                              <option value="">Any</option>
+                              {pipesImageClassOptions.map((name) => (
+                                <option key={name} value={name}>
+                                  {name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        </div>
+                      ) : null}
+                      {pipesImageCountLoading ? (
+                        <p style={pipesImageStepCaptionStyle}>Counting rows…</p>
+                      ) : pipesImageSubcategoryCount != null ? (
+                        <p style={pipesImageStepCaptionStyle}>
+                          {pipesImageHasOptionalFilters ? "3 — With filters" : "2 — Subcategory"} ·{" "}
+                          {pipesImageSubcategoryCount} family row
+                          {pipesImageSubcategoryCount === 1 ? "" : "s"}
+                        </p>
+                      ) : null}
+                      <Button
+                        testID="download-pipes-fittings-images-from-catalog"
+                        title={
+                          pipesImageSubcategoryCount != null
+                            ? `Download for subcategory (${pipesImageSubcategoryCount})`
+                            : "Download for subcategory"
+                        }
+                        icon="download-outline"
+                        variant="secondary"
+                        size="sm"
+                        loading={downloadingCatalogSheet}
+                        disabled={pipesImageSubcategoryCount === 0}
+                        onPress={() => void downloadPipesImagesSheetFromCatalog("subcategory")}
+                        style={{ width: "100%", maxWidth: 360 }}
+                      />
+                    </>
+                  ) : (
+                    <p style={pipesImageStepCaptionStyle}>
+                      Optional: narrow with brand, type, or class after you choose a subcategory.
+                    </p>
+                  )}
+                </div>
+
                 <Button
                   testID={`download-${props.kind}-template`}
                   title="Empty template (headers only)"
@@ -787,7 +869,7 @@ export function CatalogSpreadsheetImport(props: Props) {
                   variant="ghost"
                   size="sm"
                   onPress={() => downloadImportTemplate("pipes_fittings_images")}
-                  style={{ width: "100%" }}
+                  style={{ alignSelf: "flex-start" }}
                 />
               </>
             ) : (
