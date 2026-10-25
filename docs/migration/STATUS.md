@@ -1,10 +1,12 @@
 # Migration status
 
+> **MIGRATION CLOSED (2026-10).** Expo → React **`web/`** is complete. Closure commit: **`7a4cb70`** on branch `web-migration-reactnative-to-react`. Rows below say **Built** because formal owner “Done” sign-off was optional — **treat Built as shipped**. Do not port more Expo screens. Summary: **`docs/MIGRATIONS-COMPLETE.md`**.
+
 Every migration chat starts here. Do only the row(s) the user names. If the user names several rows, do them in the order given, then STOP after the last one. Never go beyond the named rows.
 
-Branch: `web-migration-reactnative-to-react` only.
+Branch: `web-migration-reactnative-to-react` only (historical).
 
-Expo `frontend/` was removed (row **21c Built**). Admin is **`web/`** only. API is **`backend/`** (PostgreSQL). See `migration-db/ACTIVE-STACK.md`.
+Expo `frontend/` was removed (row **21c Built**). Admin is **`web/`** only. API is **`backend/`** (PostgreSQL). See `docs/mongodb-to-postgre/ACTIVE-STACK.md`.
 
 Scope: move what the Expo app already does, nothing more. No new features. What Expo is missing is listed in [SOW-STATUS.md](SOW-STATUS.md) and is not part of this migration.
 

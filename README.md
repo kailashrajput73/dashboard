@@ -8,7 +8,7 @@
 | `web/` | Vite + React **admin** (`/product-management`, RFQ, partners, …) |
 | `customerapp/` | Flutter partner app (separate; see `docs/PARTNER-API.md`) |
 
-**Docs:** Product/requirements → `docs/sow-guide/00-index.md` · Stack map → `docs/mongodb-to-postgre/ACTIVE-STACK.md` · Agent rules → `docs/migration/AGENTS.md`
+**Docs:** Product/requirements → `docs/sow-guide/00-index.md` · **Migrations closed (read first)** → `docs/MIGRATIONS-COMPLETE.md` · Stack → `docs/mongodb-to-postgre/ACTIVE-STACK.md` · Agents → `docs/migration/AGENTS.md`
 
 Legacy **Render** URL and Mongo `backend_refactor/` are **not** used.
 

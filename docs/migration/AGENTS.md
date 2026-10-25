@@ -5,8 +5,9 @@ API: **`backend/`** (PostgreSQL). See `migration-db/ACTIVE-STACK.md`.
 Branch: `web-migration-reactnative-to-react` for web tracker rows; DB work uses `migration-mongodb-to-postgresql`.
 
 ## Start of every chat
-1. Read `docs/migration/STATUS.md`, `migration/NOW.md`, then `docs/migration/SOW-STATUS.md` if present.
-2. Do ONLY the row(s) the user names. If none is named, ask. Do not start migrating on your own.
+1. Read **`docs/MIGRATIONS-COMPLETE.md`** — Expo→`web/` and Mongo→Postgres are **closed** (`7a4cb70`, `8ffd98c`). Do not re-run migration rows unless the owner says so.
+2. For feature work: `docs/sow-guide/00-index.md`, root `README.md`, `docs/mongodb-to-postgre/ACTIVE-STACK.md`.
+3. `docs/migration/STATUS.md` is **archive** (Built = shipped). Only follow row-by-row rules if the owner explicitly names a row.
 
 ## Rules
 - Do only the row(s) the user names. If the user names several rows, do them in the order given, then STOP after the last one. Never go beyond the named rows.
