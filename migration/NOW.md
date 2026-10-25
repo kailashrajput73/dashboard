@@ -15,4 +15,4 @@
 ## Do not
 
 - Recreate `frontend/` or point agents at Expo paths for new work.
-- Use `migration/INVENTORY.md` Expo paths as live code locations (historical map only).
+- Use `docs/migration/INVENTORY.md` Expo paths as live code locations (historical map only).
