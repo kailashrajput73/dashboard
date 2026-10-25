@@ -32,7 +32,7 @@ flowchart LR
 | Database | PostgreSQL via SQLAlchemy + Alembic | `backend/alembic/versions/` |
 | Media | `GET /api/media/proxy` | Hotlinked product images |
 
-**Local dev:** `VITE_BACKEND_URL` → API origin (no `/api` suffix); API `uvicorn app.main:app` port **8001** typical — see `docs/LOCAL-UBUNTU-DEV-RUN.md`.
+**Local dev:** `VITE_BACKEND_URL` → API origin (no `/api` suffix); API `uvicorn app.main:app` port **8001** — see root **`README.md`** § Local development.
 
 ---
 

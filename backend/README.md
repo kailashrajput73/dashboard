@@ -2,7 +2,7 @@
 
 This folder is the **only** API implementation in the repo (PostgreSQL).
 The legacy Mongo mirror `backend_refactor/` was removed in DB migration row 22.
-See `migration-db/ACTIVE-STACK.md`.
+See `docs/mongodb-to-postgre/ACTIVE-STACK.md`.
 
 ## Windows PowerShell
 
