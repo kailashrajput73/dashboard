@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
@@ -8,7 +8,6 @@ import {
   importPipesFittings,
   importPipesFittingsImages,
   fetchPipesFittingsImagesTemplate,
-  fetchPipesFittingsImagesTemplateFilterOptions,
   listSubcategories,
   validatePipesFittingsImagesImport,
   validatePipesFittingsImport,
@@ -43,6 +42,10 @@ type SheetCheckState = {
   skippedBlankRows?: number;
   rejectedHeaderRows?: number;
 };
+
+function pipesImageNorm(value: string) {
+  return value.trim().toLowerCase();
+}
 
 function pipesImageFacetsFromTemplateItems(
   items: { brand?: string; type?: string; class?: string }[],
@@ -239,9 +242,9 @@ export function CatalogSpreadsheetImport(props: Props) {
   const [pipesImageType, setPipesImageType] = useState("");
   const [pipesImageClass, setPipesImageClass] = useState("");
   const [pipesImageIncludeInactive, setPipesImageIncludeInactive] = useState(false);
-  const [pipesImageBrandOptions, setPipesImageBrandOptions] = useState<string[]>([]);
-  const [pipesImageTypeOptions, setPipesImageTypeOptions] = useState<string[]>([]);
-  const [pipesImageClassOptions, setPipesImageClassOptions] = useState<string[]>([]);
+  const [pipesImageSubcategoryItems, setPipesImageSubcategoryItems] = useState<
+    { brand: string; product_family: string; type: string; class: string; image_url: string }[]
+  >([]);
   const [pipesImageDownloadCount, setPipesImageDownloadCount] = useState<number | null>(null);
   const [pipesImageCountLoading, setPipesImageCountLoading] = useState(false);
   const [pipesImageOptionalFiltersOpen, setPipesImageOptionalFiltersOpen] = useState(false);
@@ -279,42 +282,22 @@ export function CatalogSpreadsheetImport(props: Props) {
     if (props.kind !== "pipes-fittings-images") return;
     const subcategory = pipesImageSubcategory.trim();
     if (!subcategory) {
-      setPipesImageBrandOptions([]);
-      setPipesImageTypeOptions([]);
-      setPipesImageClassOptions([]);
+      setPipesImageSubcategoryItems([]);
       return;
     }
     let cancelled = false;
-    const applyFacets = (brands: string[], types: string[], classes: string[]) => {
-      if (cancelled) return;
-      setPipesImageBrandOptions(brands);
-      setPipesImageTypeOptions(types);
-      setPipesImageClassOptions(classes);
-    };
-    const loadFacetsFromTemplate = () =>
-      fetchPipesFittingsImagesTemplate({
-        subcategory,
-        includeInactive: pipesImageIncludeInactive,
-      }).then((sheet) => {
-        const derived = pipesImageFacetsFromTemplateItems(sheet.items ?? []);
-        applyFacets(derived.brands, derived.types, derived.classes);
-      });
-
-    void fetchPipesFittingsImagesTemplateFilterOptions({
+    void fetchPipesFittingsImagesTemplate({
       subcategory,
       includeInactive: pipesImageIncludeInactive,
     })
-      .then((options) => {
-        const brands = options.brands ?? [];
-        const types = options.types ?? [];
-        const classes = options.classes ?? [];
-        if (brands.length || types.length || classes.length) {
-          applyFacets(brands, types, classes);
-          return;
-        }
-        return loadFacetsFromTemplate();
+      .then((sheet) => {
+        if (cancelled) return;
+        setPipesImageSubcategoryItems(sheet.items ?? []);
       })
-      .catch(() => loadFacetsFromTemplate().catch(() => applyFacets([], [], [])));
+      .catch(() => {
+        if (cancelled) return;
+        setPipesImageSubcategoryItems([]);
+      });
     return () => {
       cancelled = true;
     };
@@ -327,6 +310,59 @@ export function CatalogSpreadsheetImport(props: Props) {
     setPipesImageClass("");
     setPipesImageOptionalFiltersOpen(false);
   }, [props.kind, pipesImageSubcategory]);
+
+  useEffect(() => {
+    if (props.kind !== "pipes-fittings-images") return;
+    setPipesImageType("");
+    setPipesImageClass("");
+  }, [props.kind, pipesImageBrand]);
+
+  useEffect(() => {
+    if (props.kind !== "pipes-fittings-images") return;
+    setPipesImageClass("");
+  }, [props.kind, pipesImageType]);
+
+  const pipesImageItemsForTypeOptions = useMemo(() => {
+    if (!pipesImageBrand.trim()) return pipesImageSubcategoryItems;
+    return pipesImageSubcategoryItems.filter(
+      (row) => pipesImageNorm(row.brand ?? "") === pipesImageNorm(pipesImageBrand),
+    );
+  }, [pipesImageSubcategoryItems, pipesImageBrand]);
+
+  const pipesImageItemsForClassOptions = useMemo(() => {
+    if (!pipesImageType.trim()) return pipesImageItemsForTypeOptions;
+    return pipesImageItemsForTypeOptions.filter(
+      (row) => pipesImageNorm(row.type ?? "") === pipesImageNorm(pipesImageType),
+    );
+  }, [pipesImageItemsForTypeOptions, pipesImageType]);
+
+  const pipesImageBrandOptions = useMemo(
+    () => pipesImageFacetsFromTemplateItems(pipesImageSubcategoryItems).brands,
+    [pipesImageSubcategoryItems],
+  );
+  const pipesImageTypeOptions = useMemo(
+    () => pipesImageFacetsFromTemplateItems(pipesImageItemsForTypeOptions).types,
+    [pipesImageItemsForTypeOptions],
+  );
+  const pipesImageClassOptions = useMemo(
+    () => pipesImageFacetsFromTemplateItems(pipesImageItemsForClassOptions).classes,
+    [pipesImageItemsForClassOptions],
+  );
+
+  const pipesImageDownloadScopeLabel = useMemo(() => {
+    const parts: string[] = [];
+    if (pipesImageSubcategory.trim()) {
+      parts.push(pipesImageSubcategory.trim());
+    } else {
+      parts.push("all subcategories");
+    }
+    if (pipesImageSubcategory.trim()) {
+      if (pipesImageBrand.trim()) parts.push(pipesImageBrand.trim());
+      if (pipesImageType.trim()) parts.push(pipesImageType.trim());
+      if (pipesImageClass.trim()) parts.push(pipesImageClass.trim());
+    }
+    return parts.join(" · ");
+  }, [pipesImageSubcategory, pipesImageBrand, pipesImageType, pipesImageClass]);
 
   useEffect(() => {
     if (props.kind !== "pipes-fittings-images") return;
@@ -806,6 +842,22 @@ export function CatalogSpreadsheetImport(props: Props) {
                     ) : null}
                   </>
                 ) : null}
+                <p
+                  style={{ ...font.caption, color: colors.textMuted, margin: 0, lineHeight: 1.45 }}
+                  data-testid="pipes-images-download-scope"
+                >
+                  Sheet matches{" "}
+                  <strong style={{ color: colors.textSecondary, fontWeight: 600 }}>
+                    {pipesImageDownloadScopeLabel}
+                  </strong>
+                  {pipesImageSubcategorySelected &&
+                  (pipesImageBrand.trim() || pipesImageType.trim() || pipesImageClass.trim())
+                    ? " (subcategory + every filter you picked, combined)"
+                    : pipesImageSubcategory.trim()
+                      ? " (this subcategory only)"
+                      : " (every family missing an image)"}
+                  . Rows sorted brand → type → class → family.
+                </p>
                 <Button
                   testID="download-pipes-fittings-images-from-catalog"
                   title={
