@@ -618,6 +618,14 @@ export function CatalogSpreadsheetImport(props: Props) {
       setPipesImageInlineOpen(false);
       setPipesImageInlineRows([]);
       setResult(`Updated images on ${response.updated} product family row(s).`);
+      const subcategory = pipesImageSubcategory.trim();
+      if (subcategory) {
+        void fetchPipesFittingsImagesTemplate({
+          subcategory,
+          includeInactive: pipesImageIncludeInactive,
+          missingImageOnly: false,
+        }).then((sheet) => setPipesImageSubcategoryItems(sheet.items ?? []));
+      }
       props.onImported?.();
     } catch (cause: unknown) {
       const apiErrors = errorsFromApi(cause);
