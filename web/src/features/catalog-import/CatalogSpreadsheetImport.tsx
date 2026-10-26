@@ -64,6 +64,17 @@ function pipesImageRowsForMissingDownload(rows: PipesImageTemplateRow[]) {
   return rows.map((row) => ({ ...row, image_url: "" }));
 }
 
+const PIPES_IMAGE_INLINE_MAX_ROWS = 25;
+
+function pipesImageInlineRowKey(row: PipesImageTemplateRow) {
+  return [
+    pipesImageNorm(row.brand),
+    pipesImageNorm(row.type),
+    pipesImageNorm(row.class),
+    pipesImageNorm(row.product_family),
+  ].join("|");
+}
+
 function filterPipesImageTemplateItems(
   items: PipesImageTemplateRow[],
   filters: { brand?: string; type?: string; class?: string },
@@ -290,6 +301,10 @@ export function CatalogSpreadsheetImport(props: Props) {
   const [pipesImageUpdateConfirmRows, setPipesImageUpdateConfirmRows] = useState<PipesImageTemplateRow[]>(
     [],
   );
+  const [pipesImageInlineOpen, setPipesImageInlineOpen] = useState(false);
+  const [pipesImageInlineRows, setPipesImageInlineRows] = useState<PipesImageTemplateRow[]>([]);
+  const [pipesImageInlineSaving, setPipesImageInlineSaving] = useState(false);
+  const [pipesImageInlineErrors, setPipesImageInlineErrors] = useState<SheetValidationError[]>([]);
 
   const pipesImageSelectStyle = {
     height: 36,
@@ -525,6 +540,95 @@ export function CatalogSpreadsheetImport(props: Props) {
   function confirmPipesImageUpdateDownload() {
     setPipesImageUpdateConfirmOpen(false);
     writePipesImageCatalogCsv(pipesImageUpdateConfirmRows, "-update");
+  }
+
+  function pipesImageInlineCandidateRows(): PipesImageTemplateRow[] {
+    const scoped = pipesImageFilteredScopeRows();
+    const missing = scoped.filter(pipesImageRowMissingUrl);
+    if (missing.length > 0) {
+      return pipesImageRowsForMissingDownload(missing);
+    }
+    return scoped.map((row) => ({ ...row }));
+  }
+
+  const pipesImageInlineEligibleCount = useMemo(() => {
+    if (!pipesImageSubcategory.trim()) return 0;
+    if (pipesImageMissingFilteredRows?.length) return pipesImageMissingFilteredRows.length;
+    return pipesImageFilteredRows?.length ?? 0;
+  }, [pipesImageSubcategory, pipesImageMissingFilteredRows, pipesImageFilteredRows]);
+
+  function openPipesImageInlineModal() {
+    setPipesImageInlineErrors([]);
+    if (!pipesImageSubcategory.trim()) {
+      setError("Choose a subcategory to fill links here.");
+      return;
+    }
+    const rows = pipesImageInlineCandidateRows();
+    if (!rows.length) {
+      setError("No families in this filter scope.");
+      return;
+    }
+    if (rows.length > PIPES_IMAGE_INLINE_MAX_ROWS) {
+      setError(
+        `Too many families (${rows.length}) for quick upload. Use download sheet (max ${PIPES_IMAGE_INLINE_MAX_ROWS} here).`,
+      );
+      return;
+    }
+    setPipesImageInlineRows(rows);
+    setPipesImageInlineOpen(true);
+  }
+
+  function setPipesImageInlineRowUrl(key: string, imageUrl: string) {
+    setPipesImageInlineRows((prev) =>
+      prev.map((row) =>
+        pipesImageInlineRowKey(row) === key ? { ...row, image_url: imageUrl } : row,
+      ),
+    );
+  }
+
+  async function savePipesImageInline() {
+    const items = pipesImageInlineRows
+      .filter((row) => row.image_url.trim())
+      .map((row) => ({
+        brand: row.brand,
+        product_family: row.product_family,
+        type: row.type,
+        class: row.class,
+        image_url: row.image_url.trim(),
+      }));
+    if (!items.length) {
+      setPipesImageInlineErrors([
+        { row: 0, column: "image_url", message: "Enter at least one image URL." },
+      ]);
+      return;
+    }
+    setPipesImageInlineSaving(true);
+    setPipesImageInlineErrors([]);
+    try {
+      const check = await validatePipesFittingsImagesImport({ items });
+      if (!check.valid) {
+        setPipesImageInlineErrors(check.errors ?? []);
+        return;
+      }
+      const response = await importPipesFittingsImages({ items });
+      if (response.errors?.length) {
+        setPipesImageInlineErrors(response.errors);
+        return;
+      }
+      setPipesImageInlineOpen(false);
+      setPipesImageInlineRows([]);
+      setResult(`Updated images on ${response.updated} product family row(s).`);
+      props.onImported?.();
+    } catch (cause: unknown) {
+      const apiErrors = errorsFromApi(cause);
+      if (apiErrors?.length) {
+        setPipesImageInlineErrors(apiErrors);
+      } else {
+        setError(cause instanceof ApiError ? cause.message : "Could not save image links.");
+      }
+    } finally {
+      setPipesImageInlineSaving(false);
+    }
   }
 
   async function downloadPipesImagesSheetFromCatalog(
@@ -1001,28 +1105,52 @@ export function CatalogSpreadsheetImport(props: Props) {
                     ? " Every family in this scope already has an image; download will ask before exporting current URLs for editing."
                     : null}
                 </p>
-                <Button
-                  testID="download-pipes-fittings-images-from-catalog"
-                  title={
-                    pipesImageCountLoading
-                      ? "Download sheet from catalog…"
-                      : pipesImageUpdateDownloadMode
-                        ? `Download to update images (${pipesImageFamiliesInScopeCount})`
-                        : pipesImageDownloadCount != null
-                          ? `Download sheet from catalog (${pipesImageDownloadCount} missing)`
-                          : "Download sheet from catalog"
-                  }
-                  icon="download-outline"
-                  size="sm"
-                  loading={downloadingCatalogSheet || pipesImageCountLoading}
-                  disabled={
-                    pipesImageSubcategory.trim()
-                      ? pipesImageFamiliesInScopeCount === 0
-                      : pipesImageDownloadCount === 0
-                  }
-                  onPress={() => onPipesImageDownloadPress()}
-                  style={{ width: "100%" }}
-                />
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: spacing.sm,
+                    alignItems: "stretch",
+                  }}
+                >
+                  <Button
+                    testID="download-pipes-fittings-images-from-catalog"
+                    title={
+                      pipesImageCountLoading
+                        ? "Download sheet from catalog…"
+                        : pipesImageUpdateDownloadMode
+                          ? `Download to update images (${pipesImageFamiliesInScopeCount})`
+                          : pipesImageDownloadCount != null
+                            ? `Download sheet from catalog (${pipesImageDownloadCount} missing)`
+                            : "Download sheet from catalog"
+                    }
+                    icon="download-outline"
+                    size="sm"
+                    loading={downloadingCatalogSheet || pipesImageCountLoading}
+                    disabled={
+                      pipesImageSubcategory.trim()
+                        ? pipesImageFamiliesInScopeCount === 0
+                        : pipesImageDownloadCount === 0
+                    }
+                    onPress={() => onPipesImageDownloadPress()}
+                    style={{ flex: "1 1 220px" }}
+                  />
+                  <Button
+                    testID="pipes-images-fill-links-here"
+                    title="Fill links here"
+                    icon="create-outline"
+                    variant="secondary"
+                    size="sm"
+                    disabled={
+                      !pipesImageSubcategory.trim() ||
+                      pipesImageInlineEligibleCount === 0 ||
+                      pipesImageInlineEligibleCount > PIPES_IMAGE_INLINE_MAX_ROWS ||
+                      pipesImageSubcategoryLoading
+                    }
+                    onPress={() => openPipesImageInlineModal()}
+                    style={{ flex: "0 1 auto", minWidth: 140 }}
+                  />
+                </div>
                 <button
                   type="button"
                   data-testid={`download-${props.kind}-template`}
@@ -1138,6 +1266,114 @@ export function CatalogSpreadsheetImport(props: Props) {
         <Button title="Confirm import" onPress={() => { setModeOpen(false); void submitImport(mode, false); }} loading={importing} fullWidth />
       </AppModal>
       <ErrorModal visible={!!error} message={error || ""} onClose={() => setError(null)} />
+      <AppModal
+        testID="pipes-images-inline-upload"
+        visible={pipesImageInlineOpen}
+        onClose={() => {
+          if (pipesImageInlineSaving) return;
+          setPipesImageInlineOpen(false);
+        }}
+        title="Paste image links"
+        wide
+      >
+        <p style={{ ...font.caption, color: colors.textSecondary, lineHeight: 1.45, marginTop: 0 }}>
+          Scope: <strong>{pipesImageDownloadScopeLabel}</strong>. Same columns as the download sheet. Save
+          applies only rows where you entered a URL.
+        </p>
+        <div
+          style={{
+            overflowX: "auto",
+            maxHeight: "min(52vh, 420px)",
+            border: `1px solid ${colors.border}`,
+            borderRadius: 8,
+          }}
+        >
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: 12,
+            }}
+            data-testid="pipes-images-inline-table"
+          >
+            <thead>
+              <tr style={{ backgroundColor: colors.primaryLight, textAlign: "left" }}>
+                {["brand", "product_family", "type", "class", "image_url"].map((col) => (
+                  <th
+                    key={col}
+                    style={{
+                      padding: "8px 10px",
+                      fontWeight: 600,
+                      color: colors.textSecondary,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pipesImageInlineRows.map((row) => {
+                const key = pipesImageInlineRowKey(row);
+                return (
+                  <tr key={key} style={{ borderTop: `1px solid ${colors.border}` }}>
+                    <td style={{ padding: "6px 10px", verticalAlign: "top" }}>{row.brand}</td>
+                    <td style={{ padding: "6px 10px", verticalAlign: "top" }}>{row.product_family}</td>
+                    <td style={{ padding: "6px 10px", verticalAlign: "top" }}>{row.type}</td>
+                    <td style={{ padding: "6px 10px", verticalAlign: "top" }}>{row.class}</td>
+                    <td style={{ padding: "6px 10px", minWidth: 200 }}>
+                      <input
+                        type="url"
+                        value={row.image_url}
+                        onChange={(event) => setPipesImageInlineRowUrl(key, event.currentTarget.value)}
+                        placeholder="https://…"
+                        data-testid={`pipes-images-inline-url-${key}`}
+                        style={{
+                          width: "100%",
+                          height: 34,
+                          borderRadius: 6,
+                          border: `1px solid ${colors.border}`,
+                          padding: "0 8px",
+                          font: "inherit",
+                        }}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {pipesImageInlineErrors.length ? (
+          <div style={{ marginTop: spacing.sm }}>
+            <SheetValidationPanel
+              checking={false}
+              valid={false}
+              errors={pipesImageInlineErrors}
+              rowCount={pipesImageInlineRows.length}
+              sourceFileName="inline-links"
+            />
+          </div>
+        ) : null}
+        <div style={{ display: "flex", gap: spacing.sm, marginTop: spacing.md }}>
+          <Button
+            testID="pipes-images-inline-cancel"
+            title="Cancel"
+            variant="ghost"
+            disabled={pipesImageInlineSaving}
+            onPress={() => setPipesImageInlineOpen(false)}
+            style={{ flex: 1 }}
+          />
+          <Button
+            testID="pipes-images-inline-save"
+            title="Save image links"
+            loading={pipesImageInlineSaving}
+            onPress={() => void savePipesImageInline()}
+            style={{ flex: 1 }}
+          />
+        </div>
+      </AppModal>
       <AppModal
         testID="pipes-images-update-download-confirm"
         visible={pipesImageUpdateConfirmOpen}
