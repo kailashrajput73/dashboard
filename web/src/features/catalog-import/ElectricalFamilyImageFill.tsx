@@ -266,12 +266,14 @@ export function ElectricalFamilyImageFill(props: Props) {
 
   if (props.embedded) {
     return (
-      <Card style={{ marginTop: spacing.md }} id={props.sectionId}>
-        {props.sectionTitle ? (
-          <h3 style={{ ...font.title, margin: `0 0 ${spacing.sm}px`, fontSize: 16 }}>{props.sectionTitle}</h3>
-        ) : null}
-        {body}
-      </Card>
+      <section id={props.sectionId} style={{ marginTop: spacing.xl }}>
+        <Card style={{ marginTop: spacing.md }}>
+          {props.sectionTitle ? (
+            <h3 style={{ ...font.title, margin: `0 0 ${spacing.sm}px`, fontSize: 16 }}>{props.sectionTitle}</h3>
+          ) : null}
+          {body}
+        </Card>
+      </section>
     );
   }
 
