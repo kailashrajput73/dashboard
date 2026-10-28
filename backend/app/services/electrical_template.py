@@ -17,6 +17,8 @@ REQUIRED_HEADERS: dict[str, str] = {
     "category": "Category",
     "type": "Type",
     "sub_category": "Sub-Category",
+    "colours": "Colours",
+    "compound": "Compound",
     "conductor_core_pair": "Conductor/Core/Pair",
     "brand": "Brand",
     "hsn_code": "HSN Code",
@@ -97,6 +99,8 @@ def product_code_looks_like_header_label(code: str) -> bool:
         normalize_header("Product Name"),
         normalize_header("status"),
         normalize_header("Conductor/Core/Pair"),
+        normalize_header("Colours"),
+        normalize_header("Compound"),
     }
     return normalize_header(text) in blocked
 
@@ -133,6 +137,13 @@ def validate_headers(raw_headers: list[str]) -> tuple[dict[str, str], list[dict[
                     break
             if matched:
                 continue
+        if norm == "colours":
+            for key, original in seen.items():
+                if key in ("colours", "colors", "color"):
+                    column_map["colours"] = original
+                    break
+            if "colours" in column_map:
+                continue
         errors.append(
             {
                 "row": 1,
@@ -149,7 +160,7 @@ def validate_headers(raw_headers: list[str]) -> tuple[dict[str, str], list[dict[
         set(REQUIRED_HEADERS)
         | set(OPTIONAL_HEADERS)
         | set(PRODUCT_FAMILY_ALIASES)
-        | {"product_name", "product_code"}
+        | {"product_name", "product_code", "colors", "color"}
     )
     for norm, original in seen.items():
         if norm not in allowed_norms:

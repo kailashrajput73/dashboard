@@ -99,23 +99,87 @@ def canonical_conductor_core_pair_label(value: str | None) -> str:
     return _collapse_spaces(str(value or "")).upper()
 
 
+def canonical_colours_label(value: str | None) -> str:
+    return _title_case_words(str(value or ""))
+
+
+def canonical_compound_label(value: str | None) -> str:
+    return _collapse_spaces(str(value or "")).upper()
+
+
 def canonicalize_electrical_master_taxonomy(
     *,
     category: str,
     type_name: str,
     subcategory: str,
+    colours: str,
+    compound: str,
     conductor_core_pair: str,
     brand: str,
     product_family: str,
-) -> tuple[str, str, str, str, str, str]:
+) -> tuple[str, str, str, str, str, str, str, str]:
     return (
         canonical_category_label(category),
         canonical_type_label(type_name),
         canonical_subcategory_label(subcategory),
+        canonical_colours_label(colours),
+        canonical_compound_label(compound),
         canonical_conductor_core_pair_label(conductor_core_pair),
         canonical_brand_label(brand),
         canonical_product_family_label(product_family),
     )
+
+
+def build_electrical_family_key(
+    *,
+    category: str,
+    type_name: str,
+    subcategory: str,
+    colours: str,
+    compound: str,
+    conductor_core_pair: str,
+    brand: str,
+    product_family: str,
+) -> str:
+    parts = [
+        normalize_category_for_key(category),
+        normalize_label(type_name),
+        normalize_label(subcategory),
+        normalize_label(colours),
+        normalize_label(compound),
+        normalize_label(conductor_core_pair),
+        normalize_label(brand),
+        normalize_label(product_family),
+    ]
+    return "|".join(parts)
+
+
+def generate_electrical_sku_display_name(
+    *,
+    type_name: str | None,
+    product_family: str | None,
+    colours: str | None,
+    compound: str | None,
+    conductor_core_pair: str | None,
+    size: str | None,
+    brand: str | None,
+    length: str | None = None,
+) -> str:
+    size_part = format_size_and_length(size, length)
+    parts: list[str] = []
+    for piece in (
+        type_name,
+        product_family,
+        colours,
+        compound,
+        conductor_core_pair,
+        size_part,
+        brand,
+    ):
+        text = canonical_label(piece) if piece else ""
+        if text:
+            parts.append(text)
+    return ", ".join(parts) if parts else "Product"
 
 
 def canonicalize_pipes_master_taxonomy(

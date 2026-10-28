@@ -37,6 +37,8 @@ export const ELECTRICAL_TEMPLATE_HEADERS = [
   "Category",
   "Type",
   "Sub-Category",
+  "Colours",
+  "Compound",
   "Conductor/Core/Pair",
   "Brand",
   "HSN Code",

@@ -128,7 +128,7 @@ function stepConfig(step: ImportStep) {
     return {
       title: "Import electrical (catalog)",
       subtitle: "Category: Electrical — product families + SKU codes",
-      columnHelp: `${ELECTRICAL_TEMPLATE_HEADERS.join(", ")}. Product Name is optional (display names are generated). Conductor/Core/Pair identifies colour or core spec (not pipe class). status: blank = inactive; active/yes = live.`,
+      columnHelp: `${ELECTRICAL_TEMPLATE_HEADERS.join(", ")}. Product Name is optional (display names are generated). Colours, Compound, and Conductor/Core/Pair are separate from pipe class. Safetech-style Excel may use a second header row for Colours/Compound under empty cells in row 1. status: blank = inactive; active/yes = live.`,
       showCategoryMode: false,
     };
   }

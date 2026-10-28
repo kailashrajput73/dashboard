@@ -242,10 +242,15 @@ class PipesFittingsImagesImportIn(BaseModel):
 
 class ElectricalFamilyImageIn(BaseModel):
     subcategory: str
-    conductor_core_pair: str = Field(validation_alias=AliasChoices("conductorCorePair", "conductor"))
+    colours: str = Field(validation_alias=AliasChoices("colours", "colors", "color"))
+    compound: str
     brand: str
     product_family: str = Field(validation_alias=AliasChoices("productFamily", "product"))
     image_url: str = Field(validation_alias=AliasChoices("imageUrl", "image_url"))
+    conductor_core_pair: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("conductorCorePair", "conductor"),
+    )
 
     model_config = {"populate_by_name": True}
 

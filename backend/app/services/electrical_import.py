@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 
 from app.models import Brand, Catalog, Category, ProductFamily, ProductType, Subcategory
 from app.services.catalog_family_util import (
-    build_family_key,
+    build_electrical_family_key,
     canonical_label,
     canonicalize_electrical_master_taxonomy,
-    generate_sku_display_name,
+    generate_electrical_sku_display_name,
     is_electrical_category_label,
     normalize_discount,
     normalize_gst_rate,
@@ -51,6 +51,8 @@ class ParsedRow:
     category: str
     type_name: str
     subcategory: str
+    colours: str
+    compound: str
     conductor_core_pair: str
     brand: str
     product_family: str
@@ -117,11 +119,13 @@ def parse_rows(
         excel_row = header_row + 1 + index
         row = {str(k): raw[k] for k in raw}
 
-        category, type_name, subcategory, conductor_core_pair, brand, product_family = (
+        category, type_name, subcategory, colours, compound, conductor_core_pair, brand, product_family = (
             canonicalize_electrical_master_taxonomy(
                 category=row_get(row, column_map, "category"),
                 type_name=row_get(row, column_map, "type"),
                 subcategory=row_get(row, column_map, "sub_category"),
+                colours=row_get(row, column_map, "colours"),
+                compound=row_get(row, column_map, "compound"),
                 conductor_core_pair=row_get(row, column_map, "conductor_core_pair"),
                 brand=row_get(row, column_map, "brand"),
                 product_family=row_get(row, column_map, "product_family"),
@@ -191,12 +195,22 @@ def parse_rows(
                 _err(excel_row, "product_family", "product_family is required")
             )
             continue
+        if not colours:
+            result.errors.append(
+                _err(excel_row, "Colours", "Colours is required (e.g. Red, Black)")
+            )
+            continue
+        if not compound:
+            result.errors.append(
+                _err(excel_row, "Compound", "Compound is required (e.g. FR-LSH LF)")
+            )
+            continue
         if not conductor_core_pair:
             result.errors.append(
                 _err(
                     excel_row,
                     "Conductor/Core/Pair",
-                    "Conductor/Core/Pair is required (colour / core spec for this family)",
+                    "Conductor/Core/Pair is required (e.g. Class-5, 2C)",
                 )
             )
             continue
@@ -238,11 +252,13 @@ def parse_rows(
         status_raw = row_get(row, column_map, "status") if "status" in column_map else ""
         is_active = parse_product_status(status_raw)
 
-        family_key = build_family_key(
+        family_key = build_electrical_family_key(
             category=category,
             type_name=type_name,
             subcategory=subcategory,
-            product_class=conductor_core_pair,
+            colours=colours,
+            compound=compound,
+            conductor_core_pair=conductor_core_pair,
             brand=brand,
             product_family=product_family,
         )
@@ -253,6 +269,8 @@ def parse_rows(
                 category=category,
                 type_name=type_name,
                 subcategory=subcategory,
+                colours=colours,
+                compound=compound,
                 conductor_core_pair=conductor_core_pair,
                 brand=brand,
                 product_family=product_family,
@@ -385,6 +403,8 @@ def _upsert_family(session: Session, row: ParsedRow, category: Category) -> Prod
             brand_id=brand.id if brand else None,
             product_type_id=product_type.id if product_type else None,
             product_class=row.conductor_core_pair or None,
+            colours=row.colours or None,
+            compound=row.compound or None,
             name=row.product_family,
             family_key=row.family_key,
             hsn_code=row.hsn_code or None,
@@ -397,6 +417,9 @@ def _upsert_family(session: Session, row: ParsedRow, category: Category) -> Prod
         session.flush()
     else:
         family.deleted_at = None
+        family.colours = row.colours or family.colours
+        family.compound = row.compound or family.compound
+        family.product_class = row.conductor_core_pair or family.product_class
         family.hsn_code = row.hsn_code or family.hsn_code
         family.gst_rate = row.gst_rate if row.gst_rate is not None else family.gst_rate
         family.unit = row.unit or family.unit
@@ -431,10 +454,12 @@ def import_electrical_rows(
                 if family.subcategory_id
                 else None
             )
-            display = generate_sku_display_name(
+            display = generate_electrical_sku_display_name(
                 type_name=row.type_name,
                 product_family=row.product_family,
-                product_class=row.conductor_core_pair,
+                colours=row.colours,
+                compound=row.compound,
+                conductor_core_pair=row.conductor_core_pair,
                 size=row.size,
                 brand=row.brand,
                 length=row.length,
@@ -546,6 +571,20 @@ def _family_brand_name(session: Session, family: ProductFamily) -> str:
     return (catalog_brand or "").strip()
 
 
+def _family_colours(session: Session, family: ProductFamily) -> str:
+    value = (family.colours or "").strip()
+    if value:
+        return value
+    return ""
+
+
+def _family_compound(session: Session, family: ProductFamily) -> str:
+    value = (family.compound or "").strip()
+    if value:
+        return value
+    return ""
+
+
 def _family_conductor(session: Session, family: ProductFamily) -> str:
     conductor = (family.product_class or "").strip()
     if conductor:
@@ -582,26 +621,26 @@ def electrical_image_filter_options(
     session: Session,
     *,
     subcategory: str | None = None,
-    conductor_core_pair: str | None = None,
+    colours: str | None = None,
+    compound: str | None = None,
     brand: str | None = None,
 ) -> dict[str, list[str]]:
     """Cascade dropdown values for the fill-image popup."""
     sub_key = normalize_label(subcategory) if subcategory and subcategory.strip() else ""
-    conductor_key = (
-        normalize_label(conductor_core_pair)
-        if conductor_core_pair and conductor_core_pair.strip()
-        else ""
-    )
+    colours_key = normalize_label(colours) if colours and colours.strip() else ""
+    compound_key = normalize_label(compound) if compound and compound.strip() else ""
     brand_key = normalize_label(brand) if brand and brand.strip() else ""
 
     subcategories: set[str] = set()
-    conductors: set[str] = set()
+    colour_values: set[str] = set()
+    compounds: set[str] = set()
     brands: set[str] = set()
     product_families: set[str] = set()
 
     for family in _iter_electrical_families(session):
         sub_name = _family_subcategory_name(session, family)
-        conductor = _family_conductor(session, family)
+        colour_name = _family_colours(session, family)
+        compound_name = _family_compound(session, family)
         brand_name = _family_brand_name(session, family)
         if sub_key and normalize_label(sub_name) != sub_key:
             continue
@@ -609,11 +648,17 @@ def electrical_image_filter_options(
             subcategories.add(sub_name.strip())
         if not sub_key:
             continue
-        if conductor_key and normalize_label(conductor) != conductor_key:
+        if colours_key and normalize_label(colour_name) != colours_key:
             continue
-        if conductor.strip():
-            conductors.add(conductor.strip())
-        if not conductor_key:
+        if colour_name.strip():
+            colour_values.add(colour_name.strip())
+        if not colours_key:
+            continue
+        if compound_key and normalize_label(compound_name) != compound_key:
+            continue
+        if compound_name.strip():
+            compounds.add(compound_name.strip())
+        if not compound_key:
             continue
         if brand_key and normalize_label(brand_name) != brand_key:
             continue
@@ -627,9 +672,12 @@ def electrical_image_filter_options(
     sort_key = lambda value: normalize_label(value)
     return {
         "subcategories": sorted(subcategories, key=sort_key),
-        "conductors": sorted(conductors, key=sort_key),
+        "colours": sorted(colour_values, key=sort_key),
+        "compounds": sorted(compounds, key=sort_key),
         "brands": sorted(brands, key=sort_key),
         "productFamilies": sorted(product_families, key=sort_key),
+        # Legacy key for older web builds
+        "conductors": sorted(compounds, key=sort_key),
     }
 
 
@@ -637,15 +685,17 @@ def resolve_electrical_family_for_image(
     session: Session,
     *,
     subcategory: str,
-    conductor_core_pair: str,
+    colours: str,
+    compound: str,
     brand: str,
     product_family: str,
 ) -> list[ProductFamily]:
     sub_key = normalize_label(subcategory)
-    conductor_key = normalize_label(conductor_core_pair)
+    colours_key = normalize_label(colours)
+    compound_key = normalize_label(compound)
     brand_key = normalize_label(brand)
     family_key = normalize_label(product_family)
-    if not all([sub_key, conductor_key, brand_key, family_key]):
+    if not all([sub_key, colours_key, compound_key, brand_key, family_key]):
         return []
 
     matched: list[ProductFamily] = []
@@ -654,7 +704,9 @@ def resolve_electrical_family_for_image(
             continue
         if normalize_label(_family_subcategory_name(session, family)) != sub_key:
             continue
-        if normalize_label(_family_conductor(session, family)) != conductor_key:
+        if normalize_label(_family_colours(session, family)) != colours_key:
+            continue
+        if normalize_label(_family_compound(session, family)) != compound_key:
             continue
         if normalize_label(_family_brand_name(session, family)) != brand_key:
             continue
@@ -666,7 +718,8 @@ def validate_electrical_family_image(
     session: Session,
     *,
     subcategory: str,
-    conductor_core_pair: str,
+    colours: str,
+    compound: str,
     brand: str,
     product_family: str,
     image_url: str,
@@ -674,8 +727,10 @@ def validate_electrical_family_image(
     errors: list[dict[str, Any]] = []
     if not canonical_label(subcategory):
         errors.append(_err(None, "subcategory", "Sub-category is required"))
-    if not canonical_label(conductor_core_pair):
-        errors.append(_err(None, "conductor_core_pair", "Conductor/Core/Pair is required"))
+    if not canonical_label(colours):
+        errors.append(_err(None, "colours", "Colours is required"))
+    if not canonical_label(compound):
+        errors.append(_err(None, "compound", "Compound is required"))
     if not canonical_label(brand):
         errors.append(_err(None, "brand", "Brand is required"))
     if not canonical_label(product_family):
@@ -690,7 +745,8 @@ def validate_electrical_family_image(
     families = resolve_electrical_family_for_image(
         session,
         subcategory=subcategory,
-        conductor_core_pair=conductor_core_pair,
+        colours=colours,
+        compound=compound,
         brand=brand,
         product_family=product_family,
     )
@@ -700,7 +756,7 @@ def validate_electrical_family_image(
                 None,
                 "product_family",
                 (
-                    "No electrical family matches this sub-category, conductor, brand, and product_family. "
+                    "No electrical family matches sub-category, colours, compound, brand, and product_family. "
                     "Import the electrical master sheet first (same spelling)."
                 ),
             )
@@ -720,16 +776,19 @@ def import_electrical_family_image(
     session: Session,
     *,
     subcategory: str,
-    conductor_core_pair: str,
+    colours: str,
+    compound: str,
     brand: str,
     product_family: str,
     image_url: str,
+    conductor_core_pair: str | None = None,
 ) -> dict[str, Any] | JSONResponse:
     def operation() -> dict[str, Any]:
         errors = validate_electrical_family_image(
             session,
             subcategory=subcategory,
-            conductor_core_pair=conductor_core_pair,
+            colours=colours,
+            compound=compound,
             brand=brand,
             product_family=product_family,
             image_url=image_url,
@@ -743,7 +802,8 @@ def import_electrical_family_image(
         families = resolve_electrical_family_for_image(
             session,
             subcategory=subcategory,
-            conductor_core_pair=conductor_core_pair,
+            colours=colours,
+            compound=compound,
             brand=brand,
             product_family=product_family,
         )

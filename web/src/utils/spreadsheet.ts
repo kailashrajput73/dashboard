@@ -1,4 +1,9 @@
-import { parseCsvBytes, tableToRowRecords, type CsvParseResult } from "./csv";
+import {
+  mergeElectricalSubheaderRow,
+  parseCsvBytes,
+  tableToRowRecords,
+  type CsvParseResult,
+} from "./csv";
 
 const LOCAL_FILE = 0x04034b50;
 const CENTRAL_DIR = 0x02014b50;
@@ -152,7 +157,7 @@ async function parseXlsxBytes(bytes: Uint8Array<ArrayBuffer>): Promise<CsvParseR
     }
     const sharedXml = files.get("xl/sharedStrings.xml");
     const shared = sharedXml ? parseSharedStrings(decodeXml(sharedXml)) : [];
-    const table = parseSheetRows(decodeXml(files.get(path)!), shared);
+    const table = mergeElectricalSubheaderRow(parseSheetRows(decodeXml(files.get(path)!), shared));
     if (table.length < 2) {
       return { ok: false, error: "Spreadsheet must have a header row and at least one data row." };
     }
