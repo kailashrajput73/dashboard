@@ -1,0 +1,1 @@
+Category,Type,Sub-Category,Conductor/Core/Pair,Brand,HSN Code,GST,UoM,product_family,Product Name,Size (mm,cm,in),Length,Product Code,MRP (Rs) per nos,discount,Selling Price,Pack Size,MRP Pkg,ROL,status

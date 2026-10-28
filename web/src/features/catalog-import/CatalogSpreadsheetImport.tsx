@@ -7,8 +7,10 @@ import {
   importCatalogStock,
   importPipesFittings,
   importPipesFittingsImages,
+  importElectrical,
   fetchPipesFittingsImagesTemplate,
   listSubcategories,
+  validateElectricalImport,
   validatePipesFittingsImagesImport,
   validatePipesFittingsImport,
   type SheetValidationError,
@@ -33,6 +35,7 @@ import {
   type ImportTemplateKind,
 } from "../../utils/import-templates";
 import { SheetValidationPanel } from "./SheetValidationPanel";
+import { ElectricalFamilyImageFill } from "./ElectricalFamilyImageFill";
 
 type SheetCheckState = {
   checking: boolean;
@@ -242,7 +245,9 @@ export type CatalogImportKind =
   | "pricing"
   | "stock"
   | "pipes-fittings"
-  | "pipes-fittings-images";
+  | "pipes-fittings-images"
+  | "electrical"
+  | "electrical-images";
 
 type Props = {
   kind: CatalogImportKind;
@@ -691,6 +696,16 @@ export function CatalogSpreadsheetImport(props: Props) {
           errors: check.errors ?? [],
           rowCount: check.rowCount ?? rows.length,
         });
+      } else if (props.kind === "electrical") {
+        const check = await validateElectricalImport({ rows });
+        setSheetCheck({
+          checking: false,
+          valid: check.valid,
+          errors: check.errors ?? [],
+          rowCount: check.rowCount ?? rows.length,
+          skippedBlankRows: check.skippedBlankRows,
+          rejectedHeaderRows: check.rejectedHeaderRows,
+        });
       } else {
         const check = await validatePipesFittingsImport({ rows });
         setSheetCheck({
@@ -759,6 +774,16 @@ export function CatalogSpreadsheetImport(props: Props) {
           setError("No valid rows. Need product_code and qty (or stock_qty).");
         }
       } else if (props.kind === "pipes-fittings") {
+        const rows = parsed.rows as Record<string, string>[];
+        setPayload(rows);
+        setPreviewCount(rows.length);
+        setInvalidCount(0);
+        if (!rows.length) {
+          setError("No data rows found.");
+        } else {
+          await runPipesSheetValidation(rows);
+        }
+      } else if (props.kind === "electrical") {
         const rows = parsed.rows as Record<string, string>[];
         setPayload(rows);
         setPreviewCount(rows.length);
@@ -848,6 +873,35 @@ export function CatalogSpreadsheetImport(props: Props) {
         }
         setSheetCheck(null);
         setResult(`Pipes & fittings: ${response.inserted} new, ${response.updated} updated.`);
+      } else if (props.kind === "electrical") {
+        const rows = payload as Record<string, string>[];
+        if (sheetCheck && !sheetCheck.valid) {
+          return;
+        }
+        const check = await validateElectricalImport({ rows });
+        if (!check.valid) {
+          setSheetCheck({
+            checking: false,
+            valid: false,
+            errors: check.errors ?? [],
+            rowCount: check.rowCount ?? rows.length,
+            skippedBlankRows: check.skippedBlankRows,
+            rejectedHeaderRows: check.rejectedHeaderRows,
+          });
+          return;
+        }
+        const response = await importElectrical({ rows });
+        if (response.errors?.length) {
+          setSheetCheck({
+            checking: false,
+            valid: false,
+            errors: response.errors,
+            rowCount: rows.length,
+          });
+          return;
+        }
+        setSheetCheck(null);
+        setResult(`Electrical: ${response.inserted} new, ${response.updated} updated.`);
       } else if (props.kind === "pipes-fittings-images") {
         const rows = payload as Record<string, string>[];
         if (sheetCheck && !sheetCheck.valid) {
@@ -885,7 +939,9 @@ export function CatalogSpreadsheetImport(props: Props) {
       const apiErrors = errorsFromApi(cause);
       if (
         apiErrors?.length &&
-        (props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images")
+        (props.kind === "pipes-fittings" ||
+          props.kind === "pipes-fittings-images" ||
+          props.kind === "electrical")
       ) {
         setSheetCheck({
           checking: false,
@@ -912,12 +968,16 @@ export function CatalogSpreadsheetImport(props: Props) {
         ? colors.secondary
         : props.kind === "pipes-fittings"
           ? "#7C3AED"
+          : props.kind === "electrical"
+            ? "#CA8A04"
           : props.kind === "pipes-fittings-images"
             ? "#9333EA"
             : "#0D9488";
 
   const pipesImportBlocked =
-    (props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images") &&
+    (props.kind === "pipes-fittings" ||
+      props.kind === "pipes-fittings-images" ||
+      props.kind === "electrical") &&
     sheetCheck !== null &&
     (sheetCheck.checking || !sheetCheck.valid);
 
@@ -931,6 +991,8 @@ export function CatalogSpreadsheetImport(props: Props) {
                 ? "Prices only - matched by Product Code"
                 : props.kind === "pipes-fittings"
                   ? "Pipes & fittings v1 — families + SKUs; validates entire sheet before upload"
+                  : props.kind === "electrical"
+                    ? "Electrical v1 — families + SKUs; Conductor/Core/Pair instead of pipe class"
                   : props.kind === "pipes-fittings-images"
                     ? "Family images — brand, product_family, image_url"
                     : "Stock count - sets on-hand qty by Product Code"}
@@ -1188,6 +1250,8 @@ export function CatalogSpreadsheetImport(props: Props) {
                   downloadImportTemplate(
                     props.kind === "pipes-fittings"
                       ? "pipes_fittings"
+                      : props.kind === "electrical"
+                        ? "electrical"
                       : (props.kind as ImportTemplateKind),
                   )
                 }
@@ -1212,7 +1276,9 @@ export function CatalogSpreadsheetImport(props: Props) {
           <Button
             testID={`run-${props.kind}-import`}
             title={
-              (props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images") &&
+              (props.kind === "pipes-fittings" ||
+          props.kind === "pipes-fittings-images" ||
+          props.kind === "electrical") &&
               sheetCheck?.checking
                 ? "Validating…"
                 : (props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images") &&
@@ -1238,7 +1304,9 @@ export function CatalogSpreadsheetImport(props: Props) {
             />
           ) : null}
         </Card>
-        {(props.kind === "pipes-fittings" || props.kind === "pipes-fittings-images") &&
+        {(props.kind === "pipes-fittings" ||
+          props.kind === "pipes-fittings-images" ||
+          props.kind === "electrical") &&
         sheetCheck ? (
           <SheetValidationPanel
             checking={sheetCheck.checking}
@@ -1412,6 +1480,19 @@ export function CatalogSpreadsheetImport(props: Props) {
       </AppModal>
     </>
   );
+
+  if (props.kind === "electrical-images") {
+    return (
+      <>
+        <ElectricalFamilyImageFill
+          embedded={props.embedded}
+          sectionTitle={props.sectionTitle}
+          sectionId={props.sectionId}
+          onImported={props.onImported}
+        />
+      </>
+    );
+  }
 
   if (props.embedded) {
     return (

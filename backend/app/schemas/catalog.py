@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 
 from app.schemas.taxonomy import AdminPasscodeIn
 
@@ -240,6 +240,16 @@ class PipesFittingsImagesImportIn(BaseModel):
     items: list[PipesFittingsImageRow]
 
 
+class ElectricalFamilyImageIn(BaseModel):
+    subcategory: str
+    conductor_core_pair: str = Field(validation_alias=AliasChoices("conductorCorePair", "conductor"))
+    brand: str
+    product_family: str = Field(validation_alias=AliasChoices("productFamily", "product"))
+    image_url: str = Field(validation_alias=AliasChoices("imageUrl", "image_url"))
+
+    model_config = {"populate_by_name": True}
+
+
 __all__ = [
     "AdminPasscodeIn",
     "CatalogBulkPricingIn",
@@ -252,4 +262,5 @@ __all__ = [
     "CatalogStockImportIn",
     "PipesFittingsImportIn",
     "PipesFittingsImagesImportIn",
+    "ElectricalFamilyImageIn",
 ]

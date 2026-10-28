@@ -103,11 +103,19 @@ export default function ProductManagementPage() {
 
   useEffect(() => {
     const state = location.state as { openImport?: string; scrollFamilyImages?: boolean } | null;
-    if (state?.openImport !== "pipes-fittings") return;
-    setImportInitialStep("pipes-fittings-combined");
-    setImportScrollFamilyImages(Boolean(state.scrollFamilyImages));
-    setImportOpen(true);
-    navigate(location.pathname, { replace: true, state: null });
+    if (state?.openImport === "pipes-fittings") {
+      setImportInitialStep("pipes-fittings-combined");
+      setImportScrollFamilyImages(Boolean(state.scrollFamilyImages));
+      setImportOpen(true);
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+    if (state?.openImport === "electrical") {
+      setImportInitialStep("electrical-combined");
+      setImportScrollFamilyImages(Boolean(state.scrollFamilyImages));
+      setImportOpen(true);
+      navigate(location.pathname, { replace: true, state: null });
+    }
   }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
