@@ -22,9 +22,17 @@ from app.schemas.catalog import (
     CatalogStockImportIn,
     PipesFittingsImagesImportIn,
     PipesFittingsImportIn,
+    ElectricalFamilyImageIn,
 )
 from app.services import catalog_service as service
 from app.services._common import envelope, error_response
+from app.services.electrical_import import (
+    electrical_image_filter_options,
+    import_electrical_family_image,
+    import_electrical_rows,
+    validate_electrical_rows,
+)
+from app.services.electrical_template import TEMPLATE_ID as ELECTRICAL_TEMPLATE_ID
 from app.services.pipes_fittings_import import (
     import_pipes_fittings_images,
     import_pipes_fittings_rows,
@@ -250,6 +258,76 @@ def import_pipes_fittings(
     _admin: CatalogWrite,
 ):
     result = import_pipes_fittings_rows(session, body.rows)
+    if isinstance(result, dict) and not result.get("success", True):
+        return error_response(400, result.get("error") or "Import failed", result.get("data"))
+    return result
+
+
+@router.post("/catalog/import/electrical/validate")
+def validate_electrical_import(
+    body: PipesFittingsImportIn,
+    session: DbSession,
+    _admin: CatalogWrite,
+):
+    result = validate_electrical_rows(session, body.rows)
+    return envelope(
+        {
+            "templateId": ELECTRICAL_TEMPLATE_ID,
+            "valid": result.ok,
+            "errors": result.errors,
+            "rowCount": len(result.rows),
+            "skippedBlankRows": result.skipped_blank_rows,
+            "rejectedHeaderRows": result.rejected_header_rows,
+        },
+    )
+
+
+@router.post("/catalog/import/electrical")
+def import_electrical(
+    body: PipesFittingsImportIn,
+    session: DbSession,
+    _admin: CatalogWrite,
+):
+    result = import_electrical_rows(session, body.rows)
+    if isinstance(result, dict) and not result.get("success", True):
+        return error_response(400, result.get("error") or "Import failed", result.get("data"))
+    return result
+
+
+@router.get("/catalog/import/electrical/images/filter-options")
+def electrical_images_filter_options(
+    session: DbSession,
+    _admin: CatalogRead,
+    subcategory: str | None = None,
+    conductor_core_pair: str | None = Query(
+        None,
+        validation_alias=AliasChoices("conductorCorePair", "conductor"),
+    ),
+    brand: str | None = None,
+):
+    options = electrical_image_filter_options(
+        session,
+        subcategory=subcategory,
+        conductor_core_pair=conductor_core_pair,
+        brand=brand,
+    )
+    return envelope(options)
+
+
+@router.post("/catalog/import/electrical/images")
+def import_electrical_family_image_route(
+    body: ElectricalFamilyImageIn,
+    session: DbSession,
+    _admin: CatalogWrite,
+):
+    result = import_electrical_family_image(
+        session,
+        subcategory=body.subcategory,
+        conductor_core_pair=body.conductor_core_pair,
+        brand=body.brand,
+        product_family=body.product_family,
+        image_url=body.image_url,
+    )
     if isinstance(result, dict) and not result.get("success", True):
         return error_response(400, result.get("error") or "Import failed", result.get("data"))
     return result

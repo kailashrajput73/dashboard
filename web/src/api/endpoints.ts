@@ -894,6 +894,74 @@ export function importPipesFittingsImages(body: {
   );
 }
 
+export function validateElectricalImport(body: { rows: Record<string, string>[] }) {
+  return apiRequest<{
+    templateId: string;
+    valid: boolean;
+    errors: SheetValidationError[];
+    rowCount: number;
+    skippedBlankRows?: number;
+    rejectedHeaderRows?: number;
+  }>("/catalog/import/electrical/validate", { method: "POST", body });
+}
+
+export function importElectrical(body: { rows: Record<string, string>[] }) {
+  return apiRequest<{
+    templateId: string;
+    valid: boolean;
+    inserted: number;
+    updated: number;
+    skipped: number;
+    errors?: SheetValidationError[];
+  }>("/catalog/import/electrical", { method: "POST", body });
+}
+
+export type ElectricalImagesFilterQuery = {
+  subcategory?: string;
+  conductorCorePair?: string;
+  brand?: string;
+};
+
+export function fetchElectricalImagesFilterOptions(query: ElectricalImagesFilterQuery = {}) {
+  return apiRequest<{
+    subcategories: string[];
+    conductors: string[];
+    brands: string[];
+    productFamilies: string[];
+  }>("/catalog/import/electrical/images/filter-options", {
+    method: "GET",
+    query: {
+      subcategory: query.subcategory?.trim() || undefined,
+      conductorCorePair: query.conductorCorePair?.trim() || undefined,
+      brand: query.brand?.trim() || undefined,
+    },
+  });
+}
+
+export function importElectricalFamilyImage(body: {
+  subcategory: string;
+  conductorCorePair: string;
+  brand: string;
+  productFamily: string;
+  imageUrl: string;
+}) {
+  return apiRequest<{
+    updated: number;
+    valid?: boolean;
+    errors?: SheetValidationError[];
+    familyId?: string;
+  }>("/catalog/import/electrical/images", {
+    method: "POST",
+    body: {
+      subcategory: body.subcategory,
+      conductor_core_pair: body.conductorCorePair,
+      brand: body.brand,
+      product_family: body.productFamily,
+      image_url: body.imageUrl,
+    },
+  });
+}
+
 // ---------- Money Config ----------
 
 // NOTE (DB): reads `money_config` by adminId. Auto-creates defaults if missing.

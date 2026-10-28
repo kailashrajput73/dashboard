@@ -25,12 +25,18 @@ _CATEGORY_KEY_ALIASES: dict[str, str] = {
     "pipe & fittings": "pipes & fitting",
     "pipes & fittings": "pipes & fitting",
     "pipes and fittings": "pipes & fitting",
+    "electricals": "electrical",
 }
 
 # Canonical display after alias fold (extend when new top-level categories are added).
 _CATEGORY_DISPLAY: dict[str, str] = {
     "pipes & fitting": "Pipes & Fittings",
+    "electrical": "Electrical",
 }
+
+
+def is_electrical_category_label(category: str | None) -> bool:
+    return normalize_category_for_key(category or "") == "electrical"
 
 
 def _collapse_spaces(value: str) -> str:
@@ -86,6 +92,30 @@ def canonical_brand_label(value: str | None) -> str:
 
 def canonical_product_family_label(value: str | None) -> str:
     return _collapse_spaces(str(value or "")).upper()
+
+
+def canonical_conductor_core_pair_label(value: str | None) -> str:
+    """Electrical Conductor/Core/Pair — preserve wording, normalize spaces."""
+    return _collapse_spaces(str(value or "")).upper()
+
+
+def canonicalize_electrical_master_taxonomy(
+    *,
+    category: str,
+    type_name: str,
+    subcategory: str,
+    conductor_core_pair: str,
+    brand: str,
+    product_family: str,
+) -> tuple[str, str, str, str, str, str]:
+    return (
+        canonical_category_label(category),
+        canonical_type_label(type_name),
+        canonical_subcategory_label(subcategory),
+        canonical_conductor_core_pair_label(conductor_core_pair),
+        canonical_brand_label(brand),
+        canonical_product_family_label(product_family),
+    )
 
 
 def canonicalize_pipes_master_taxonomy(

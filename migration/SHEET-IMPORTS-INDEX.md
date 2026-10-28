@@ -30,6 +30,7 @@ Three merge-by-`product_code` flows (unchanged contract).
 | B1 | Product master (full) | `/import-products` | `product-master-template.csv` | `migration/SHEET-FORMAT.md` | `POST /api/catalog/import/master` |
 | B2 | Import products (batch) | `/import-products-batch` | same headers as B1 | `migration/SHEET-FORMAT.md` | `POST /api/catalog/import/master` |
 | B3 | Pipes & fittings (v1) | `/import-pipes-fittings` | `pipes-fittings-v1-template.csv` | `migration/sheet-pipes-fittings-v1.md` + `migration-db/CATALOG-DESIGN-RULES.md` | `POST /api/catalog/import/pipes-fittings/validate`, `POST /api/catalog/import/pipes-fittings` |
+| B3e | Electrical (v1) | Product master → Electrical | `electrical-v1-template.csv` | `migration/sheet-electrical-v1.md` | `POST /api/catalog/import/electrical/validate`, `POST /api/catalog/import/electrical`, `GET/POST /api/catalog/import/electrical/images*` |
 | B4 | Family images (step 2 on same page) | `/import-pipes-fittings#family-images` | **Download from catalog** (pre-filled `brand`, `product_family`; empty `image_url`) or `pipes-fittings-images-template.csv` | `migration/sheet-pipes-fittings-images.md` | `GET /api/catalog/import/pipes-fittings/images/template`, `POST …/images/validate`, `POST …/images` |
 
 **Order for pipes:** B3 master must succeed before B4 images match families in Postgres.
@@ -53,6 +54,7 @@ Three merge-by-`product_code` flows (unchanged contract).
 |------|------|
 | Legacy master header | `migration/sheet-master.md` |
 | Pipes v1 master header | `migration/sheet-pipes-fittings-v1.md` |
+| Electrical v1 master header | `migration/sheet-electrical-v1.md` |
 | Pipes family images header | `migration/sheet-pipes-fittings-images.md` |
 
 ---

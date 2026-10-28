@@ -10,6 +10,7 @@ import {
   MASTER_TEMPLATE_HEADERS,
   PIPES_FITTINGS_IMAGE_HEADERS,
   PIPES_FITTINGS_TEMPLATE_HEADERS,
+  ELECTRICAL_TEMPLATE_HEADERS,
   PRICING_TEMPLATE_HEADERS,
   STOCK_TEMPLATE_HEADERS,
 } from "../../utils/import-templates";
@@ -18,16 +19,17 @@ export type ImportStep =
   | "pick"
   /** Hub list: product master opens pipes v1 (not legacy client master columns). */
   | "product-master"
-  /** Deep links (/import-pipes-fittings) — same inner flow as product-master. */
+  /** Deep links — same inner flow as product-master. */
   | "pipes-fittings-combined"
+  | "electrical-combined"
   | { kind: CatalogImportKind; batch?: boolean };
 
 /** Catalog uploads under Product master (full) — add more rows as new formats ship. */
 const productMasterUploads: {
-  step: "pipes-fittings-combined";
+  step: "pipes-fittings-combined" | "electrical-combined";
   title: string;
   description: string;
-  icon: "git-branch-outline";
+  icon: "git-branch-outline" | "construct-outline";
   testID: string;
 }[] = [
   {
@@ -36,6 +38,13 @@ const productMasterUploads: {
     description: "Master sheet (families + SKUs), then family image URLs",
     icon: "git-branch-outline",
     testID: "nav-import-pipes-fittings",
+  },
+  {
+    step: "electrical-combined",
+    title: "Electrical (v1)",
+    description: "Master sheet (families + SKUs), then set image by colour / conductor",
+    icon: "construct-outline",
+    testID: "nav-import-electrical",
   },
 ];
 
@@ -107,6 +116,30 @@ function stepConfig(step: ImportStep) {
       showCategoryMode: false,
     };
   }
+  if (step === "electrical-combined") {
+    return {
+      title: "Electrical upload",
+      subtitle: "Step 1: Electrical master sheet · Step 2: Family image (one URL per colour/conductor)",
+      columnHelp: "",
+      showCategoryMode: false,
+    };
+  }
+  if (typeof step === "object" && step.kind === "electrical") {
+    return {
+      title: "Import electrical (catalog)",
+      subtitle: "Category: Electrical — product families + SKU codes",
+      columnHelp: `${ELECTRICAL_TEMPLATE_HEADERS.join(", ")}. Product Name is optional (display names are generated). Conductor/Core/Pair identifies colour or core spec (not pipe class). status: blank = inactive; active/yes = live.`,
+      showCategoryMode: false,
+    };
+  }
+  if (typeof step === "object" && step.kind === "electrical-images") {
+    return {
+      title: "Electrical family images",
+      subtitle: "Pick sub-category → conductor/colour → brand → product_family, then paste one image URL",
+      columnHelp: "One image applies to the whole family (all sizes). Import the master sheet first.",
+      showCategoryMode: false,
+    };
+  }
   if (typeof step === "object" && step.kind === "pipes-fittings") {
     return {
       title: "Import pipes & fittings (catalog)",
@@ -150,7 +183,7 @@ export function CatalogImportHubModal(props: Props) {
   }, [props.visible, props.initialStep]);
 
   useEffect(() => {
-    if (!props.visible || step !== "pipes-fittings-combined") return;
+    if (!props.visible || (step !== "pipes-fittings-combined" && step !== "electrical-combined")) return;
     if (!props.scrollFamilyImages && window.location.hash !== "#family-images") return;
     const timer = window.setTimeout(() => {
       document.getElementById("family-images")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -166,6 +199,8 @@ export function CatalogImportHubModal(props: Props) {
   const config = stepConfig(step);
   const pipesMaster = stepConfig({ kind: "pipes-fittings" as CatalogImportKind });
   const pipesImages = stepConfig({ kind: "pipes-fittings-images" as CatalogImportKind });
+  const electricalMaster = stepConfig({ kind: "electrical" as CatalogImportKind });
+  const electricalImages = stepConfig({ kind: "electrical-images" as CatalogImportKind });
 
   return (
     <AppModal
@@ -262,6 +297,38 @@ export function CatalogImportHubModal(props: Props) {
             title=""
             subtitle=""
             columnHelp={pipesImages.columnHelp}
+            columnHelpDisplay="info"
+            layout="embedded"
+            onImported={props.onImported}
+          />
+        </>
+      ) : step === "electrical-combined" ? (
+        <>
+          <button type="button" onClick={() => setStep("product-master")} style={backLinkStyle}>
+            ← Product master (full)
+          </button>
+          <p style={{ color: colors.textSecondary, fontSize: 13, margin: `0 0 ${spacing.md}px` }}>
+            {config.subtitle}
+          </p>
+          <CatalogSpreadsheetImport
+            embedded
+            sectionTitle="Step 1 — Electrical master sheet (SKUs)"
+            kind="electrical"
+            title=""
+            subtitle=""
+            columnHelp={electricalMaster.columnHelp}
+            columnHelpDisplay="info"
+            layout="embedded"
+            onImported={props.onImported}
+          />
+          <CatalogSpreadsheetImport
+            embedded
+            sectionId="family-images"
+            sectionTitle="Step 2 — Family images"
+            kind="electrical-images"
+            title=""
+            subtitle=""
+            columnHelp={electricalImages.columnHelp}
             columnHelpDisplay="info"
             layout="embedded"
             onImported={props.onImported}

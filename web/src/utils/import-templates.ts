@@ -33,6 +33,29 @@ export const PIPES_FITTINGS_IMAGE_HEADERS = [
   "image_url",
 ];
 
+export const ELECTRICAL_TEMPLATE_HEADERS = [
+  "Category",
+  "Type",
+  "Sub-Category",
+  "Conductor/Core/Pair",
+  "Brand",
+  "HSN Code",
+  "GST",
+  "UoM",
+  "product_family",
+  "Product Name",
+  "Size (mm,cm,in)",
+  "Length",
+  "Product Code",
+  "MRP (Rs) per nos",
+  "discount",
+  "Selling Price",
+  "Pack Size",
+  "MRP Pkg",
+  "ROL",
+  "status",
+];
+
 export const MASTER_TEMPLATE_HEADERS = [
   "Category",
   "Type",
@@ -82,7 +105,8 @@ export type ImportTemplateKind =
   | "purchase"
   | "subcategory"
   | "pipes_fittings"
-  | "pipes_fittings_images";
+  | "pipes_fittings_images"
+  | "electrical";
 
 const FILE_NAMES: Record<ImportTemplateKind, string> = {
   master: "product-master-template.csv",
@@ -92,6 +116,7 @@ const FILE_NAMES: Record<ImportTemplateKind, string> = {
   subcategory: "subcategories-template.csv",
   pipes_fittings: "pipes-fittings-v1-template.csv",
   pipes_fittings_images: "pipes-fittings-images-template.csv",
+  electrical: "electrical-v1-template.csv",
 };
 
 const HEADERS: Record<ImportTemplateKind, string[]> = {
@@ -102,6 +127,7 @@ const HEADERS: Record<ImportTemplateKind, string[]> = {
   subcategory: SUBCATEGORY_TEMPLATE_HEADERS,
   pipes_fittings: PIPES_FITTINGS_TEMPLATE_HEADERS,
   pipes_fittings_images: PIPES_FITTINGS_IMAGE_HEADERS,
+  electrical: ELECTRICAL_TEMPLATE_HEADERS,
 };
 
 function escapeCsvCell(value: string): string {
