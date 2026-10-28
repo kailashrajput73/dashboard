@@ -299,16 +299,15 @@ def electrical_images_filter_options(
     session: DbSession,
     _admin: CatalogRead,
     subcategory: str | None = None,
-    conductor_core_pair: str | None = Query(
-        None,
-        validation_alias=AliasChoices("conductorCorePair", "conductor"),
-    ),
+    colours: str | None = Query(None, validation_alias=AliasChoices("colours", "colors", "color")),
+    compound: str | None = None,
     brand: str | None = None,
 ):
     options = electrical_image_filter_options(
         session,
         subcategory=subcategory,
-        conductor_core_pair=conductor_core_pair,
+        colours=colours,
+        compound=compound,
         brand=brand,
     )
     return envelope(options)
@@ -323,7 +322,8 @@ def import_electrical_family_image_route(
     result = import_electrical_family_image(
         session,
         subcategory=body.subcategory,
-        conductor_core_pair=body.conductor_core_pair,
+        colours=body.colours,
+        compound=body.compound,
         brand=body.brand,
         product_family=body.product_family,
         image_url=body.image_url,

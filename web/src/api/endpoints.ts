@@ -918,21 +918,24 @@ export function importElectrical(body: { rows: Record<string, string>[] }) {
 
 export type ElectricalImagesFilterQuery = {
   subcategory?: string;
-  conductorCorePair?: string;
+  colours?: string;
+  compound?: string;
   brand?: string;
 };
 
 export function fetchElectricalImagesFilterOptions(query: ElectricalImagesFilterQuery = {}) {
   return apiRequest<{
     subcategories: string[];
-    conductors: string[];
+    colours: string[];
+    compounds: string[];
     brands: string[];
     productFamilies: string[];
   }>("/catalog/import/electrical/images/filter-options", {
     method: "GET",
     query: {
       subcategory: query.subcategory?.trim() || undefined,
-      conductorCorePair: query.conductorCorePair?.trim() || undefined,
+      colours: query.colours?.trim() || undefined,
+      compound: query.compound?.trim() || undefined,
       brand: query.brand?.trim() || undefined,
     },
   });
@@ -940,7 +943,8 @@ export function fetchElectricalImagesFilterOptions(query: ElectricalImagesFilter
 
 export function importElectricalFamilyImage(body: {
   subcategory: string;
-  conductorCorePair: string;
+  colours: string;
+  compound: string;
   brand: string;
   productFamily: string;
   imageUrl: string;
@@ -954,7 +958,8 @@ export function importElectricalFamilyImage(body: {
     method: "POST",
     body: {
       subcategory: body.subcategory,
-      conductor_core_pair: body.conductorCorePair,
+      colours: body.colours,
+      compound: body.compound,
       brand: body.brand,
       product_family: body.productFamily,
       image_url: body.imageUrl,

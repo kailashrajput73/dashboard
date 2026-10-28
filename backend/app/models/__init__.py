@@ -380,6 +380,8 @@ class ProductFamily(TimestampMixin, Base):
         nullable=True,
     )
     product_class: Mapped[str | None] = mapped_column(Text, nullable=True)
+    colours: Mapped[str | None] = mapped_column(Text, nullable=True)
+    compound: Mapped[str | None] = mapped_column(Text, nullable=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     family_key: Mapped[str] = mapped_column(Text, nullable=False)
     hsn_code: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -26,13 +26,15 @@ const selectStyle: React.CSSProperties = {
 
 export function ElectricalFamilyImageFill(props: Props) {
   const [subcategory, setSubcategory] = useState("");
-  const [conductor, setConductor] = useState("");
+  const [colours, setColours] = useState("");
+  const [compound, setCompound] = useState("");
   const [brand, setBrand] = useState("");
   const [productFamily, setProductFamily] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [subcategories, setSubcategories] = useState<string[]>([]);
-  const [conductors, setConductors] = useState<string[]>([]);
+  const [colourOptions, setColourOptions] = useState<string[]>([]);
+  const [compoundOptions, setCompoundOptions] = useState<string[]>([]);
   const [brands, setBrands] = useState<string[]>([]);
   const [productFamilies, setProductFamilies] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -45,37 +47,47 @@ export function ElectricalFamilyImageFill(props: Props) {
     try {
       const data = await fetchElectricalImagesFilterOptions({
         subcategory: subcategory.trim() || undefined,
-        conductorCorePair: conductor.trim() || undefined,
+        colours: colours.trim() || undefined,
+        compound: compound.trim() || undefined,
         brand: brand.trim() || undefined,
       });
       setSubcategories(data.subcategories ?? []);
-      setConductors(data.conductors ?? []);
+      setColourOptions(data.colours ?? []);
+      setCompoundOptions(data.compounds ?? []);
       setBrands(data.brands ?? []);
       setProductFamilies(data.productFamilies ?? []);
     } catch {
       setSubcategories([]);
-      setConductors([]);
+      setColourOptions([]);
+      setCompoundOptions([]);
       setBrands([]);
       setProductFamilies([]);
     } finally {
       setOptionsLoading(false);
     }
-  }, [subcategory, conductor, brand]);
+  }, [subcategory, colours, compound, brand]);
 
   useEffect(() => {
     void loadOptions();
   }, [loadOptions]);
 
   useEffect(() => {
-    setConductor("");
+    setColours("");
+    setCompound("");
     setBrand("");
     setProductFamily("");
   }, [subcategory]);
 
   useEffect(() => {
+    setCompound("");
     setBrand("");
     setProductFamily("");
-  }, [conductor]);
+  }, [colours]);
+
+  useEffect(() => {
+    setBrand("");
+    setProductFamily("");
+  }, [compound]);
 
   useEffect(() => {
     setProductFamily("");
@@ -88,12 +100,12 @@ export function ElectricalFamilyImageFill(props: Props) {
       setErrors([{ row: null, column: "subcategory", message: "Choose a sub-category first." }]);
       return;
     }
-    if (!conductor.trim() || !brand.trim() || !productFamily.trim()) {
+    if (!colours.trim() || !compound.trim() || !brand.trim() || !productFamily.trim()) {
       setErrors([
         {
           row: null,
           column: null,
-          message: "Select sub-category, conductor/colour, brand, and product family.",
+          message: "Select sub-category, colours, compound, brand, and product family.",
         },
       ]);
       return;
@@ -107,7 +119,8 @@ export function ElectricalFamilyImageFill(props: Props) {
     try {
       const response = await importElectricalFamilyImage({
         subcategory: subcategory.trim(),
-        conductorCorePair: conductor.trim(),
+        colours: colours.trim(),
+        compound: compound.trim(),
         brand: brand.trim(),
         productFamily: productFamily.trim(),
         imageUrl: imageUrl.trim(),
@@ -131,7 +144,7 @@ export function ElectricalFamilyImageFill(props: Props) {
   const body = (
     <>
       <p style={{ ...font.caption, color: colors.textMuted, margin: `0 0 ${spacing.sm}px`, lineHeight: 1.45 }}>
-        One image per family (same colour / conductor). All SKU sizes under that family share this URL.
+        One image per family (colour + compound + conductor). All SKU sizes under that family share this URL.
       </p>
       <div
         style={{
@@ -158,16 +171,33 @@ export function ElectricalFamilyImageFill(props: Props) {
           </select>
         </label>
         <label style={{ display: "grid", gap: 4 }}>
-          <span style={{ ...font.caption, color: colors.textMuted, fontSize: 11 }}>Conductor / colour</span>
+          <span style={{ ...font.caption, color: colors.textMuted, fontSize: 11 }}>Colours</span>
           <select
-            value={conductor}
-            onChange={(e) => setConductor(e.currentTarget.value)}
-            data-testid="electrical-image-conductor"
+            value={colours}
+            onChange={(e) => setColours(e.currentTarget.value)}
+            data-testid="electrical-image-colours"
             style={selectStyle}
             disabled={!subcategory.trim() || optionsLoading}
           >
             <option value="">Select…</option>
-            {conductors.map((name) => (
+            {colourOptions.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label style={{ display: "grid", gap: 4 }}>
+          <span style={{ ...font.caption, color: colors.textMuted, fontSize: 11 }}>Compound</span>
+          <select
+            value={compound}
+            onChange={(e) => setCompound(e.currentTarget.value)}
+            data-testid="electrical-image-compound"
+            style={selectStyle}
+            disabled={!colours.trim() || optionsLoading}
+          >
+            <option value="">Select…</option>
+            {compoundOptions.map((name) => (
               <option key={name} value={name}>
                 {name}
               </option>
@@ -181,7 +211,7 @@ export function ElectricalFamilyImageFill(props: Props) {
             onChange={(e) => setBrand(e.currentTarget.value)}
             data-testid="electrical-image-brand"
             style={selectStyle}
-            disabled={!conductor.trim() || optionsLoading}
+            disabled={!compound.trim() || optionsLoading}
           >
             <option value="">Select…</option>
             {brands.map((name) => (
@@ -234,7 +264,7 @@ export function ElectricalFamilyImageFill(props: Props) {
         title="Set family image URL"
       >
         <p style={{ ...font.caption, color: colors.textSecondary, marginTop: 0 }}>
-          {subcategory} · {conductor} · {brand} · {productFamily}
+          {subcategory} · {colours} · {compound} · {brand} · {productFamily}
         </p>
         <label style={{ display: "grid", gap: 4, marginBottom: spacing.md }}>
           <span style={{ ...font.caption, color: colors.textMuted }}>Image URL (https)</span>

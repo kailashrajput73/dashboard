@@ -8,7 +8,9 @@ def _row(**kwargs: object) -> dict[str, object]:
         "Category": "Electrical",
         "Type": "CABLE",
         "Sub-Category": "FR",
-        "Conductor/Core/Pair": "RED",
+        "Colours": "Red",
+        "Compound": "FR-LSH LF",
+        "Conductor/Core/Pair": "Class-5",
         "Brand": "POLYCAB",
         "product_family": "FR PVC",
         "HSN Code": "85444999",
@@ -34,7 +36,19 @@ class ElectricalValidationTests(unittest.TestCase):
         result = parse_rows([_row()])
         self.assertTrue(result.ok, result.errors)
         self.assertEqual(len(result.rows), 1)
-        self.assertEqual(result.rows[0].conductor_core_pair, "RED")
+        self.assertEqual(result.rows[0].colours, "Red")
+        self.assertEqual(result.rows[0].compound, "FR-LSH LF")
+        self.assertEqual(result.rows[0].conductor_core_pair, "CLASS-5")
+
+    def test_missing_colours_fails(self) -> None:
+        result = parse_rows([_row(**{"Colours": ""})])
+        self.assertFalse(result.ok)
+        self.assertTrue(any("Colours" in e["message"] for e in result.errors))
+
+    def test_missing_compound_fails(self) -> None:
+        result = parse_rows([_row(**{"Compound": ""})])
+        self.assertFalse(result.ok)
+        self.assertTrue(any("Compound" in e["message"] for e in result.errors))
 
     def test_missing_conductor_fails(self) -> None:
         result = parse_rows([_row(**{"Conductor/Core/Pair": ""})])

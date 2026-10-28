@@ -304,6 +304,34 @@ export function findHeaderRowIndex(table: string[][]): number {
   return 0;
 }
 
+/** Safetech-style row 2: Colours / Compound / Conductor under empty D–F on row 1. */
+export function mergeElectricalSubheaderRow(table: string[][]): string[][] {
+  if (table.length < 3) return table;
+  const headerIdx = findHeaderRowIndex(table);
+  const sub = table[headerIdx + 1] || [];
+  const subNorm = sub.map((c) => normalizeHeader(String(c || "")));
+  const hasSub =
+    subNorm.includes("colours") ||
+    subNorm.includes("colors") ||
+    subNorm.includes("color") ||
+    subNorm.includes("compound");
+  const row1 = table[headerIdx] || [];
+  const row1Norm = row1.map((c) => normalizeHeader(String(c || "")));
+  if (!hasSub || !row1Norm.includes("category")) return table;
+  if (normalizeHeader(String(sub[0] || "")) === "category") return table;
+  const merged = table.map((r) => [...r]);
+  const header = [...merged[headerIdx]];
+  const subRow = merged[headerIdx + 1] || [];
+  for (let i = 0; i < Math.max(header.length, subRow.length); i++) {
+    if (!String(header[i] || "").trim() && String(subRow[i] || "").trim()) {
+      header[i] = subRow[i];
+    }
+  }
+  merged[headerIdx] = header;
+  merged.splice(headerIdx + 1, 1);
+  return merged;
+}
+
 export function tableToRowRecords(table: string[][]): Record<string, string>[] {
   if (table.length < 2) return [];
   const headerIdx = findHeaderRowIndex(table);
