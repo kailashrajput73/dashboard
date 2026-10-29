@@ -22,6 +22,14 @@ export const AppRoutes = {
    * `MaterialPageRoute` (no named route), so a URL is needed for the browser.
    */
   pipeConfigurator: '/category-browse/pipe-configurator',
+  /** Web-only path for Flutter `_ElectricalConfiguratorScreen` (anonymous route). */
+  electricalConfigurator: '/category-browse/electrical-configurator',
+  /** Web-only path for Flutter `_SanitaryConfiguratorScreen` (anonymous route). */
+  sanitaryConfigurator: '/category-browse/sanitary-configurator',
+  /** Web-only path for Flutter `_FittingConfiguratorScreen` (anonymous route). */
+  fittingConfigurator: '/category-browse/fitting-configurator',
+  /** Web-only path for Flutter `_ValveConfiguratorScreen` (anonymous route). */
+  valveConfigurator: '/category-browse/valve-configurator',
 
   cart: '/cart',
   /** Flutter `AppRoutes.selectAddress` — checkout step 2 (address + delivery option). */
@@ -30,6 +38,19 @@ export const AppRoutes = {
   payment: '/checkout/payment',
   /** Flutter `AppRoutes.orderConfirmation` — step 4; router state is `OrderConfirmationArgs`. */
   orderConfirmation: '/checkout/confirmation',
+
+  /** Web-only admin dashboard — admins land here instead of `/main`. */
+  adminDashboard: '/admin/dashboard',
+  /** Web-only admin Product master — Category / Sub-category / Brand / Product group tabs (`?tab=`). */
+  adminProductMaster: '/admin/product-master',
+
+  /** Web-only company pages linked from `StorefrontFooter` (stubs for now). */
+  about: '/about',
+  contact: '/contact',
+  privacyPolicy: '/privacy-policy',
+  terms: '/terms',
+  cancellationRefunds: '/cancellation-refunds',
+  shippingDelivery: '/shipping-delivery',
 } as const;
 
 /** Flutter `OtpPurpose` (passwordReset dropped with screens 7–9). */
@@ -44,13 +65,6 @@ export interface OtpVerificationArgs {
 }
 
 /** Flutter `SignupFlowArgs` — passed as router `state`. */
-  /** Web-only company pages linked from `StorefrontFooter` (stubs for now). */
-  about: '/about',
-  contact: '/contact',
-  privacyPolicy: '/privacy-policy',
-  terms: '/terms',
-  cancellationRefunds: '/cancellation-refunds',
-  shippingDelivery: '/shipping-delivery',
 export interface SignupFlowArgs {
   mobileNumber: string;
   fullName: string;

@@ -1,0 +1,24 @@
+{
+  "_header": {
+    "title": "Sanitary Wares"
+  },
+  "_sidebar": {
+    "allLabel": "All",
+    "sectionLabel": "Category"
+  },
+  "_emptyState": {
+    "title": "No products here yet",
+    "subtitle": "Try another category."
+  },
+  "_iconMap": {
+    "wash": "pi-stop-circle",
+    "wc": "pi-home",
+    "bathroom": "pi-box",
+    "plumbing": "pi-wrench",
+    "water_drop": "pi-filter",
+    "kitchen": "pi-inbox",
+    "shower": "pi-cloud",
+    "tune": "pi-sliders-v",
+    "gesture": "pi-sync"
+  }
+}

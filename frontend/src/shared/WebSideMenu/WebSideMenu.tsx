@@ -23,7 +23,11 @@ import {
   AiSubtitle,
 } from './WebSideMenu.styles';
 
-export type WebSideMenuTab = (typeof shellMock.AppBottomNavigation.tabs)[number];
+export interface WebSideMenuTab {
+  tab: string;
+  icon: string;
+  label: string;
+}
 
 /** Wishlist is left out — it opens from the `StorefrontHeader` heart icon instead. */
 const menuTabs = shellMock.AppBottomNavigation.tabs.filter((tab) => tab.tab !== 'wishlist');
@@ -38,6 +42,10 @@ interface WebSideMenuProps {
   onSelectTab?: (tab: WebSideMenuTab) => void;
   /** AI assistant card — Flutter shows the FAB on the Home tab only. */
   showAi?: boolean;
+  /** Replaces the storefront tabs (e.g. the admin menu, which has Dashboard only). */
+  tabs?: WebSideMenuTab[];
+  /** Catalog category list under the tabs — off for the admin menu. */
+  showCategories?: boolean;
 }
 
 /**
@@ -45,7 +53,13 @@ interface WebSideMenuProps {
  * tabs, the catalog categories and the AI assistant card. Hidden on mobile,
  * where `MainShell` keeps the Flutter bottom navigation.
  */
-export function WebSideMenu({ activeTab, onSelectTab, showAi }: WebSideMenuProps) {
+export function WebSideMenu({
+  activeTab,
+  onSelectTab,
+  showAi,
+  tabs = menuTabs,
+  showCategories = true,
+}: WebSideMenuProps) {
   const navigate = useNavigate();
 
   const selectTab = (tab: WebSideMenuTab) =>
@@ -60,7 +74,7 @@ export function WebSideMenu({ activeTab, onSelectTab, showAi }: WebSideMenuProps
       <SidebarScroll>
         <SidebarLabel>{mock.menuLabel}</SidebarLabel>
         <NavList>
-          {menuTabs.map((tab) => {
+          {tabs.map((tab) => {
             const active = tab.tab === activeTab;
             return (
               <li key={tab.tab}>
@@ -80,20 +94,24 @@ export function WebSideMenu({ activeTab, onSelectTab, showAi }: WebSideMenuProps
           })}
         </NavList>
 
-        <SidebarLabel>{mock.categoriesLabel}</SidebarLabel>
-        <NavList>
-          {categories.map((category) => (
-            <li key={category.id}>
-              <CategoryItem type="button" onClick={() => openCategory(category)}>
-                <CategoryThumb $tint={category.iconBackground}>
-                  <img src={category.imageAsset} alt="" loading="lazy" />
-                </CategoryThumb>
-                <CategoryName>{category.name}</CategoryName>
-                <CategoryCount>{category.itemCount}</CategoryCount>
-              </CategoryItem>
-            </li>
-          ))}
-        </NavList>
+        {showCategories && (
+          <>
+            <SidebarLabel>{mock.categoriesLabel}</SidebarLabel>
+            <NavList>
+              {categories.map((category) => (
+                <li key={category.id}>
+                  <CategoryItem type="button" onClick={() => openCategory(category)}>
+                    <CategoryThumb $tint={category.iconBackground}>
+                      <img src={category.imageAsset} alt="" loading="lazy" />
+                    </CategoryThumb>
+                    <CategoryName>{category.name}</CategoryName>
+                    <CategoryCount>{category.itemCount}</CategoryCount>
+                  </CategoryItem>
+                </li>
+              ))}
+            </NavList>
+          </>
+        )}
       </SidebarScroll>
 
       {showAi && (

@@ -1,0 +1,894 @@
+{
+  "_comment": "Admin Product master sample data (no backend yet). Categories mirror catalog_mock_data.json; sub-categories, brands and products are taken from the Pipes, Electricals and Sanitary mocks.",
+  "categories": [
+    {
+      "id": "cat-pipes-tubing",
+      "code": "PIP",
+      "name": "Pipes & Tubing",
+      "description": "UPVC, CPVC, HDPE and SWR pipes",
+      "icon": "pi-wrench",
+      "imageAsset": "/assets/images/categories/pipes_tubing.png",
+      "iconColor": "#1A56DB",
+      "iconBackground": "#D6E4FF",
+      "displayOrder": 1,
+      "status": "active",
+      "updatedAt": "08 Oct 2026"
+    },
+    {
+      "id": "cat-electricals-lights",
+      "code": "ELE",
+      "name": "Electricals & Lights",
+      "description": "Switches, sockets, LED lights, MCBs and wires",
+      "icon": "pi-bolt",
+      "imageAsset": "/assets/images/categories/electricals_lights.png",
+      "iconColor": "#D97706",
+      "iconBackground": "#FFECD0",
+      "displayOrder": 2,
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "cat-fittings",
+      "code": "FIT",
+      "name": "Fittings",
+      "description": "Elbows, tees, couplers and reducers",
+      "icon": "pi-hammer",
+      "imageAsset": "/assets/images/categories/fittings.png",
+      "iconColor": "#059669",
+      "iconBackground": "#CCFCE7",
+      "displayOrder": 3,
+      "status": "active",
+      "updatedAt": "02 Oct 2026"
+    },
+    {
+      "id": "cat-valves-controls",
+      "code": "VAL",
+      "name": "Valves & Controls",
+      "description": "Ball valves, gate valves and float valves",
+      "icon": "pi-sliders-h",
+      "imageAsset": "/assets/images/categories/valves_controls.png",
+      "iconColor": "#0369A1",
+      "iconBackground": "#E0F2FE",
+      "displayOrder": 4,
+      "status": "active",
+      "updatedAt": "28 Sep 2026"
+    },
+    {
+      "id": "cat-sanitary-wares",
+      "code": "SAN",
+      "name": "Sanitary Wares",
+      "description": "Mixer taps, toilets, sinks, showers and basins",
+      "icon": "pi-filter",
+      "imageAsset": "/assets/images/categories/sanitary_wares.png",
+      "iconColor": "#1A56DB",
+      "iconBackground": "#D6E4FF",
+      "displayOrder": 5,
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "cat-cp-fittings",
+      "code": "CPF",
+      "name": "CP Fittings",
+      "description": "Chrome-plated bath and kitchen fittings",
+      "icon": "pi-cloud",
+      "imageAsset": "/assets/images/categories/cp_fittings.png",
+      "iconColor": "#44484F",
+      "iconBackground": "#E8EDF8",
+      "displayOrder": 6,
+      "status": "active",
+      "updatedAt": "21 Sep 2026"
+    },
+    {
+      "id": "cat-drainage-accessories",
+      "code": "DRN",
+      "name": "Drainage & Accessories",
+      "description": "Floor traps, gratings and drain covers",
+      "icon": "pi-th-large",
+      "imageAsset": "/assets/images/categories/drainage_accessories.png",
+      "iconColor": "#059669",
+      "iconBackground": "#CCFCE7",
+      "displayOrder": 7,
+      "status": "active",
+      "updatedAt": "18 Sep 2026"
+    },
+    {
+      "id": "cat-consumables",
+      "code": "CON",
+      "name": "Consumables",
+      "description": "Solvent cement, Teflon tape and sealants",
+      "icon": "pi-box",
+      "imageAsset": "/assets/images/categories/consumables.png",
+      "iconColor": "#D97706",
+      "iconBackground": "#FFECD0",
+      "displayOrder": 8,
+      "status": "active",
+      "updatedAt": "15 Sep 2026"
+    },
+    {
+      "id": "cat-cement-plaster",
+      "code": "CEM",
+      "name": "Cement & Plaster",
+      "description": "OPC, PPC cement and wall plaster",
+      "icon": "pi-box",
+      "imageAsset": "/assets/images/categories/cement_plaster.png",
+      "iconColor": "#44484F",
+      "iconBackground": "#E8EDF8",
+      "displayOrder": 9,
+      "status": "inactive",
+      "updatedAt": "10 Sep 2026"
+    },
+    {
+      "id": "cat-tiling-grouts",
+      "code": "TIL",
+      "name": "Tiling & Grouts",
+      "description": "Tile adhesives, grouts and spacers",
+      "icon": "pi-th-large",
+      "imageAsset": "/assets/images/categories/tiling_grouts.png",
+      "iconColor": "#0369A1",
+      "iconBackground": "#E0F2FE",
+      "displayOrder": 10,
+      "status": "active",
+      "updatedAt": "05 Sep 2026"
+    },
+    {
+      "id": "cat-paints-putty",
+      "code": "PNT",
+      "name": "Paints & Putty",
+      "description": "Emulsions, primers and wall putty",
+      "icon": "pi-palette",
+      "imageAsset": "/assets/images/categories/paints_putty.png",
+      "iconColor": "#DC2626",
+      "iconBackground": "#FFE0E0",
+      "displayOrder": 11,
+      "status": "inactive",
+      "updatedAt": "01 Sep 2026"
+    },
+    {
+      "id": "cat-locks-handles",
+      "code": "LCK",
+      "name": "Locks & Handles",
+      "description": "Door locks, handles and hinges",
+      "icon": "pi-lock",
+      "imageAsset": "/assets/images/categories/locks_handles.png",
+      "iconColor": "#44484F",
+      "iconBackground": "#E8EDF8",
+      "displayOrder": 12,
+      "status": "active",
+      "updatedAt": "28 Aug 2026"
+    },
+    {
+      "id": "cat-hardware-tools",
+      "code": "HWT",
+      "name": "Hardware & Tools",
+      "description": "Hand tools, fasteners and power tools",
+      "icon": "pi-wrench",
+      "imageAsset": "/assets/images/categories/hardware_tools.png",
+      "iconColor": "#1A56DB",
+      "iconBackground": "#D6E4FF",
+      "displayOrder": 13,
+      "status": "active",
+      "updatedAt": "25 Aug 2026"
+    },
+    {
+      "id": "cat-plumbing-pipes-fittings",
+      "code": "PPF",
+      "name": "Plumbing Pipes & Fittings",
+      "description": "GI, PPR and composite plumbing lines",
+      "icon": "pi-sitemap",
+      "imageAsset": "/assets/images/categories/plumbing_pipes_fittings.png",
+      "iconColor": "#059669",
+      "iconBackground": "#CCFCE7",
+      "displayOrder": 14,
+      "status": "active",
+      "updatedAt": "20 Aug 2026"
+    },
+    {
+      "id": "cat-fevicol-adhesives",
+      "code": "ADH",
+      "name": "Fevicol & Adhesives",
+      "description": "Wood glue, epoxy and construction adhesives",
+      "icon": "pi-filter-fill",
+      "imageAsset": "/assets/images/categories/fevicol_adhesives.png",
+      "iconColor": "#D97706",
+      "iconBackground": "#FFECD0",
+      "displayOrder": 15,
+      "status": "active",
+      "updatedAt": "18 Aug 2026"
+    }
+  ],
+  "subCategories": [
+    {
+      "id": "sub-upvc-pipes",
+      "code": "PIP-UPVC",
+      "name": "UPVC Pipes",
+      "shortName": "UPVC",
+      "categoryId": "cat-pipes-tubing",
+      "description": "Sch 40 and Sch 80 pressure pipes",
+      "hsnCode": "39172390",
+      "status": "active",
+      "updatedAt": "08 Oct 2026"
+    },
+    {
+      "id": "sub-cpvc-pipes",
+      "code": "PIP-CPVC",
+      "name": "CPVC Pipes",
+      "shortName": "CPVC",
+      "categoryId": "cat-pipes-tubing",
+      "description": "SDR 11 and SDR 13.5 hot and cold water pipes",
+      "hsnCode": "39172390",
+      "status": "active",
+      "updatedAt": "08 Oct 2026"
+    },
+    {
+      "id": "sub-hdpe-pipes",
+      "code": "PIP-HDPE",
+      "name": "HDPE Pipes",
+      "shortName": "HDPE",
+      "categoryId": "cat-pipes-tubing",
+      "description": "PE 100 coils for water supply",
+      "hsnCode": "39172190",
+      "status": "active",
+      "updatedAt": "02 Oct 2026"
+    },
+    {
+      "id": "sub-swr-pipes",
+      "code": "PIP-SWR",
+      "name": "SWR Pipes",
+      "shortName": "SWR",
+      "categoryId": "cat-pipes-tubing",
+      "description": "Soil, waste and rain-water pipes",
+      "hsnCode": "39172390",
+      "status": "inactive",
+      "updatedAt": "24 Sep 2026"
+    },
+    {
+      "id": "sub-switches",
+      "code": "ELE-SWT",
+      "name": "Switches",
+      "shortName": "Switches",
+      "categoryId": "cat-electricals-lights",
+      "description": "Rotary, reverse-forward, ON/OFF and change over switches",
+      "hsnCode": "85365010",
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "sub-sockets",
+      "code": "ELE-SKT",
+      "name": "Sockets",
+      "shortName": "Sockets",
+      "categoryId": "cat-electricals-lights",
+      "description": "6A and 16A modular and industrial sockets",
+      "hsnCode": "85366990",
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "sub-led-lights",
+      "code": "ELE-LED",
+      "name": "LED Lights",
+      "shortName": "LED",
+      "categoryId": "cat-electricals-lights",
+      "description": "Bulbs, battens and panel lights",
+      "hsnCode": "94054200",
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "sub-mcb",
+      "code": "ELE-MCB",
+      "name": "MCB",
+      "shortName": "MCB",
+      "categoryId": "cat-electricals-lights",
+      "description": "Miniature circuit breakers, SP to FP",
+      "hsnCode": "85362010",
+      "status": "active",
+      "updatedAt": "05 Oct 2026"
+    },
+    {
+      "id": "sub-wire",
+      "code": "ELE-WIR",
+      "name": "Wire",
+      "shortName": "Wire",
+      "categoryId": "cat-electricals-lights",
+      "description": "FR PVC insulated copper house wire",
+      "hsnCode": "85444992",
+      "status": "active",
+      "updatedAt": "05 Oct 2026"
+    },
+    {
+      "id": "sub-fuses",
+      "code": "ELE-FUS",
+      "name": "Fuses",
+      "shortName": "Fuses",
+      "categoryId": "cat-electricals-lights",
+      "description": "Kit-kat and HRC fuses",
+      "hsnCode": "85361090",
+      "status": "inactive",
+      "updatedAt": "30 Sep 2026"
+    },
+    {
+      "id": "sub-mixer-tap",
+      "code": "SAN-MIX",
+      "name": "Mixer Tap",
+      "shortName": "Mixer",
+      "categoryId": "cat-sanitary-wares",
+      "description": "Basin, wall and sink mixers",
+      "hsnCode": "84818020",
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "sub-toilet",
+      "code": "SAN-TLT",
+      "name": "Toilet",
+      "shortName": "Toilet",
+      "categoryId": "cat-sanitary-wares",
+      "description": "Wall-hung, floor-mounted and one-piece WCs",
+      "hsnCode": "69101000",
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "sub-sink",
+      "code": "SAN-SNK",
+      "name": "Sink",
+      "shortName": "Sink",
+      "categoryId": "cat-sanitary-wares",
+      "description": "Stainless steel kitchen sinks",
+      "hsnCode": "73241000",
+      "status": "active",
+      "updatedAt": "04 Oct 2026"
+    },
+    {
+      "id": "sub-shower",
+      "code": "SAN-SHW",
+      "name": "Shower",
+      "shortName": "Shower",
+      "categoryId": "cat-sanitary-wares",
+      "description": "Overhead and hand showers",
+      "hsnCode": "84818020",
+      "status": "active",
+      "updatedAt": "04 Oct 2026"
+    },
+    {
+      "id": "sub-wash-basin",
+      "code": "SAN-BSN",
+      "name": "Wash Basin",
+      "shortName": "Basin",
+      "categoryId": "cat-sanitary-wares",
+      "description": "Table-top, wall-hung and pedestal basins",
+      "hsnCode": "69101000",
+      "status": "active",
+      "updatedAt": "01 Oct 2026"
+    },
+    {
+      "id": "sub-elbow",
+      "code": "FIT-ELB",
+      "name": "Elbow",
+      "shortName": "Elbow",
+      "categoryId": "cat-fittings",
+      "description": "45° and 90° elbows",
+      "hsnCode": "39174000",
+      "status": "active",
+      "updatedAt": "02 Oct 2026"
+    },
+    {
+      "id": "sub-tee",
+      "code": "FIT-TEE",
+      "name": "Tee",
+      "shortName": "Tee",
+      "categoryId": "cat-fittings",
+      "description": "Equal and reducing tees",
+      "hsnCode": "39174000",
+      "status": "active",
+      "updatedAt": "02 Oct 2026"
+    },
+    {
+      "id": "sub-ball-valve",
+      "code": "VAL-BAL",
+      "name": "Ball Valve",
+      "shortName": "Ball",
+      "categoryId": "cat-valves-controls",
+      "description": "UPVC and brass ball valves",
+      "hsnCode": "84818090",
+      "status": "active",
+      "updatedAt": "28 Sep 2026"
+    }
+  ],
+  "brands": [
+    {
+      "id": "brand-astral",
+      "code": "AST",
+      "name": "Astral",
+      "description": "UPVC, CPVC pipes and fittings",
+      "website": "astralpipes.com",
+      "logoColor": "#1A56DB",
+      "categoryIds": ["cat-pipes-tubing", "cat-fittings", "cat-valves-controls"],
+      "subCategoryIds": [
+        "sub-upvc-pipes",
+        "sub-cpvc-pipes",
+        "sub-elbow",
+        "sub-tee",
+        "sub-ball-valve"
+      ],
+      "status": "active",
+      "updatedAt": "08 Oct 2026"
+    },
+    {
+      "id": "brand-supreme",
+      "code": "SUP",
+      "name": "Supreme",
+      "description": "Plastic piping systems",
+      "website": "supreme.co.in",
+      "logoColor": "#DC2626",
+      "categoryIds": ["cat-pipes-tubing", "cat-fittings"],
+      "subCategoryIds": ["sub-upvc-pipes", "sub-cpvc-pipes", "sub-swr-pipes", "sub-elbow"],
+      "status": "active",
+      "updatedAt": "06 Oct 2026"
+    },
+    {
+      "id": "brand-finolex",
+      "code": "FIN",
+      "name": "Finolex",
+      "description": "Pipes, fittings and electrical wires",
+      "website": "finolex.com",
+      "logoColor": "#059669",
+      "categoryIds": ["cat-pipes-tubing", "cat-electricals-lights"],
+      "subCategoryIds": ["sub-upvc-pipes", "sub-hdpe-pipes", "sub-wire"],
+      "status": "active",
+      "updatedAt": "05 Oct 2026"
+    },
+    {
+      "id": "brand-king",
+      "code": "KNG",
+      "name": "King",
+      "description": "Value range UPVC pipes",
+      "website": "",
+      "logoColor": "#D97706",
+      "categoryIds": ["cat-pipes-tubing"],
+      "subCategoryIds": ["sub-upvc-pipes"],
+      "status": "active",
+      "updatedAt": "29 Sep 2026"
+    },
+    {
+      "id": "brand-havells",
+      "code": "HAV",
+      "name": "Havells",
+      "description": "Switchgear, wires and lighting",
+      "website": "havells.com",
+      "logoColor": "#DC2626",
+      "categoryIds": ["cat-electricals-lights"],
+      "subCategoryIds": ["sub-switches", "sub-mcb", "sub-wire", "sub-led-lights"],
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "brand-anchor",
+      "code": "ANC",
+      "name": "Anchor",
+      "description": "Modular switches and sockets",
+      "website": "lsin.panasonic.com",
+      "logoColor": "#0369A1",
+      "categoryIds": ["cat-electricals-lights"],
+      "subCategoryIds": ["sub-switches", "sub-sockets"],
+      "status": "active",
+      "updatedAt": "03 Oct 2026"
+    },
+    {
+      "id": "brand-polycab",
+      "code": "POL",
+      "name": "Polycab",
+      "description": "Wires, cables and fans",
+      "website": "polycab.com",
+      "logoColor": "#1B2A47",
+      "categoryIds": ["cat-electricals-lights"],
+      "subCategoryIds": ["sub-wire", "sub-mcb"],
+      "status": "active",
+      "updatedAt": "01 Oct 2026"
+    },
+    {
+      "id": "brand-legrand",
+      "code": "LEG",
+      "name": "Legrand",
+      "description": "Switchgear and wiring devices",
+      "website": "legrand.co.in",
+      "logoColor": "#44484F",
+      "categoryIds": ["cat-electricals-lights"],
+      "subCategoryIds": ["sub-mcb", "sub-sockets"],
+      "status": "inactive",
+      "updatedAt": "22 Sep 2026"
+    },
+    {
+      "id": "brand-jaquar",
+      "code": "JAQ",
+      "name": "Jaquar",
+      "description": "Bath fittings and sanitaryware",
+      "website": "jaquar.com",
+      "logoColor": "#1A56DB",
+      "categoryIds": ["cat-sanitary-wares", "cat-cp-fittings"],
+      "subCategoryIds": ["sub-mixer-tap", "sub-shower", "sub-wash-basin", "sub-toilet"],
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "brand-cera",
+      "code": "CER",
+      "name": "Cera",
+      "description": "Sanitaryware and faucets",
+      "website": "cera-india.com",
+      "logoColor": "#059669",
+      "categoryIds": ["cat-sanitary-wares"],
+      "subCategoryIds": ["sub-toilet", "sub-wash-basin", "sub-mixer-tap"],
+      "status": "active",
+      "updatedAt": "04 Oct 2026"
+    },
+    {
+      "id": "brand-hindware",
+      "code": "HIN",
+      "name": "Hindware",
+      "description": "Sanitaryware and kitchen sinks",
+      "website": "hindware.com",
+      "logoColor": "#D97706",
+      "categoryIds": ["cat-sanitary-wares"],
+      "subCategoryIds": ["sub-toilet", "sub-sink", "sub-wash-basin"],
+      "status": "active",
+      "updatedAt": "30 Sep 2026"
+    },
+    {
+      "id": "brand-ashirvad",
+      "code": "ASH",
+      "name": "Ashirvad",
+      "description": "CPVC and SWR plumbing",
+      "website": "ashirvad.com",
+      "logoColor": "#0369A1",
+      "categoryIds": ["cat-pipes-tubing"],
+      "subCategoryIds": ["sub-cpvc-pipes", "sub-swr-pipes"],
+      "status": "inactive",
+      "updatedAt": "15 Sep 2026"
+    }
+  ],
+  "products": [
+    {
+      "id": "prd-01",
+      "sku": "AST-UPVC-S40-15",
+      "name": "Astral UPVC Pipe, Sch 40, 15 MM (½\") 6 Mtr",
+      "brandId": "brand-astral",
+      "categoryId": "cat-pipes-tubing",
+      "subCategoryId": "sub-upvc-pipes",
+      "unit": "Pcs",
+      "price": 486
+    },
+    {
+      "id": "prd-02",
+      "sku": "AST-UPVC-S40-20",
+      "name": "Astral UPVC Pipe, Sch 40, 20 MM (¾\") 6 Mtr",
+      "brandId": "brand-astral",
+      "categoryId": "cat-pipes-tubing",
+      "subCategoryId": "sub-upvc-pipes",
+      "unit": "Pcs",
+      "price": 618
+    },
+    {
+      "id": "prd-03",
+      "sku": "AST-UPVC-S80-15",
+      "name": "Astral UPVC Pipe, Sch 80, 15 MM (½\") 6 Mtr",
+      "brandId": "brand-astral",
+      "categoryId": "cat-pipes-tubing",
+      "subCategoryId": "sub-upvc-pipes",
+      "unit": "Pcs",
+      "price": 612
+    },
+    {
+      "id": "prd-04",
+      "sku": "KNG-UPVC-S40-15",
+      "name": "King UPVC Pipe, Sch 40, 15 MM (½\") 6 Mtr",
+      "brandId": "brand-king",
+      "categoryId": "cat-pipes-tubing",
+      "subCategoryId": "sub-upvc-pipes",
+      "unit": "Pcs",
+      "price": 379
+    },
+    {
+      "id": "prd-05",
+      "sku": "KNG-UPVC-S80-15",
+      "name": "King UPVC Pipe, Sch 80, 15 MM (½\") 6 Mtr",
+      "brandId": "brand-king",
+      "categoryId": "cat-pipes-tubing",
+      "subCategoryId": "sub-upvc-pipes",
+      "unit": "Pcs",
+      "price": 454
+    },
+    {
+      "id": "prd-06",
+      "sku": "SUP-CPVC-11-20",
+      "name": "Supreme CPVC Pipe, SDR 11, 20 MM 3 Mtr",
+      "brandId": "brand-supreme",
+      "categoryId": "cat-pipes-tubing",
+      "subCategoryId": "sub-cpvc-pipes",
+      "unit": "Pcs",
+      "price": 342
+    },
+    {
+      "id": "prd-07",
+      "sku": "FIN-HDPE-32",
+      "name": "Finolex HDPE Pipe, PE 100, 32 MM · 100 m coil",
+      "brandId": "brand-finolex",
+      "categoryId": "cat-pipes-tubing",
+      "subCategoryId": "sub-hdpe-pipes",
+      "unit": "Coil",
+      "price": 5480
+    },
+    {
+      "id": "prd-08",
+      "sku": "AST-ELB-90-20",
+      "name": "Astral UPVC Elbow 90°, 20 MM",
+      "brandId": "brand-astral",
+      "categoryId": "cat-fittings",
+      "subCategoryId": "sub-elbow",
+      "unit": "Pcs",
+      "price": 28
+    },
+    {
+      "id": "prd-09",
+      "sku": "AST-TEE-20",
+      "name": "Astral UPVC Equal Tee, 20 MM",
+      "brandId": "brand-astral",
+      "categoryId": "cat-fittings",
+      "subCategoryId": "sub-tee",
+      "unit": "Pcs",
+      "price": 34
+    },
+    {
+      "id": "prd-10",
+      "sku": "AST-BV-20",
+      "name": "Astral UPVC Ball Valve, 20 MM",
+      "brandId": "brand-astral",
+      "categoryId": "cat-valves-controls",
+      "subCategoryId": "sub-ball-valve",
+      "unit": "Pcs",
+      "price": 186
+    },
+    {
+      "id": "prd-11",
+      "sku": "RF 1603",
+      "name": "L.T. Control Reverse Forward Switch · 16A R/F",
+      "brandId": "brand-havells",
+      "categoryId": "cat-electricals-lights",
+      "subCategoryId": "sub-switches",
+      "unit": "Pcs",
+      "price": 550
+    },
+    {
+      "id": "prd-12",
+      "sku": "ANC-SW-6A",
+      "name": "Anchor Roma 6A 1-Way Switch",
+      "brandId": "brand-anchor",
+      "categoryId": "cat-electricals-lights",
+      "subCategoryId": "sub-switches",
+      "unit": "Pcs",
+      "price": 62
+    },
+    {
+      "id": "prd-13",
+      "sku": "ANC-SKT-16A",
+      "name": "Anchor Roma 16A 3-Pin Socket",
+      "brandId": "brand-anchor",
+      "categoryId": "cat-electricals-lights",
+      "subCategoryId": "sub-sockets",
+      "unit": "Pcs",
+      "price": 168
+    },
+    {
+      "id": "prd-14",
+      "sku": "HAV-MCB-SP-16",
+      "name": "Havells MCB, SP, 16A C-curve",
+      "brandId": "brand-havells",
+      "categoryId": "cat-electricals-lights",
+      "subCategoryId": "sub-mcb",
+      "unit": "Pcs",
+      "price": 245
+    },
+    {
+      "id": "prd-15",
+      "sku": "HAV-LED-9W",
+      "name": "Havells Adore LED Bulb 9W, Cool Day Light",
+      "brandId": "brand-havells",
+      "categoryId": "cat-electricals-lights",
+      "subCategoryId": "sub-led-lights",
+      "unit": "Pcs",
+      "price": 110
+    },
+    {
+      "id": "prd-16",
+      "sku": "WFR150",
+      "name": "FR PVC Insulated Copper Wire 1.5 sq mm · 90 m",
+      "brandId": "brand-polycab",
+      "categoryId": "cat-electricals-lights",
+      "subCategoryId": "sub-wire",
+      "unit": "Coil",
+      "price": 1520
+    },
+    {
+      "id": "prd-17",
+      "sku": "WFR250",
+      "name": "FR PVC Insulated Copper Wire 2.5 sq mm · 90 m",
+      "brandId": "brand-polycab",
+      "categoryId": "cat-electricals-lights",
+      "subCategoryId": "sub-wire",
+      "unit": "Coil",
+      "price": 2410
+    },
+    {
+      "id": "prd-18",
+      "sku": "JAQ-MIX-BSN",
+      "name": "Jaquar Single Lever Basin Mixer",
+      "brandId": "brand-jaquar",
+      "categoryId": "cat-sanitary-wares",
+      "subCategoryId": "sub-mixer-tap",
+      "unit": "Pcs",
+      "price": 3450
+    },
+    {
+      "id": "prd-19",
+      "sku": "JAQ-SHW-OH-200",
+      "name": "Jaquar Overhead Shower 200 mm",
+      "brandId": "brand-jaquar",
+      "categoryId": "cat-sanitary-wares",
+      "subCategoryId": "sub-shower",
+      "unit": "Pcs",
+      "price": 2180
+    },
+    {
+      "id": "prd-20",
+      "sku": "CER-WC-WH",
+      "name": "Cera Wall-hung WC with Soft-close Seat",
+      "brandId": "brand-cera",
+      "categoryId": "cat-sanitary-wares",
+      "subCategoryId": "sub-toilet",
+      "unit": "Set",
+      "price": 9850
+    },
+    {
+      "id": "prd-21",
+      "sku": "CER-BSN-TT",
+      "name": "Cera Table-top Wash Basin 500 mm",
+      "brandId": "brand-cera",
+      "categoryId": "cat-sanitary-wares",
+      "subCategoryId": "sub-wash-basin",
+      "unit": "Pcs",
+      "price": 3290
+    },
+    {
+      "id": "prd-22",
+      "sku": "HIN-SNK-SB",
+      "name": "Hindware Single Bowl SS Kitchen Sink 24\"",
+      "brandId": "brand-hindware",
+      "categoryId": "cat-sanitary-wares",
+      "subCategoryId": "sub-sink",
+      "unit": "Pcs",
+      "price": 4120
+    },
+    {
+      "id": "prd-23",
+      "sku": "JAQ-MIX-SNK",
+      "name": "Jaquar Wall-mounted Sink Mixer",
+      "brandId": "brand-jaquar",
+      "categoryId": "cat-sanitary-wares",
+      "subCategoryId": "sub-mixer-tap",
+      "unit": "Pcs",
+      "price": 3980
+    },
+    {
+      "id": "prd-24",
+      "sku": "HAV-MCB-DP-32",
+      "name": "Havells MCB, DP, 32A C-curve",
+      "brandId": "brand-havells",
+      "categoryId": "cat-electricals-lights",
+      "subCategoryId": "sub-mcb",
+      "unit": "Pcs",
+      "price": 690
+    }
+  ],
+  "productGroups": [
+    {
+      "id": "grp-01",
+      "code": "GRP-UPVC40",
+      "name": "UPVC Sch 40 pipe range",
+      "description": "All Sch 40 UPVC pipes across brands, used for price comparison",
+      "productIds": ["prd-01", "prd-02", "prd-04"],
+      "status": "active",
+      "updatedAt": "08 Oct 2026"
+    },
+    {
+      "id": "grp-02",
+      "code": "GRP-BATH",
+      "name": "Bathroom starter kit",
+      "description": "Basin, mixer, shower and WC for a standard bathroom",
+      "productIds": ["prd-18", "prd-19", "prd-20", "prd-21"],
+      "status": "active",
+      "updatedAt": "07 Oct 2026"
+    },
+    {
+      "id": "grp-03",
+      "code": "GRP-WIRING",
+      "name": "House wiring bundle",
+      "description": "Wire, MCBs and switches for a 2 BHK",
+      "productIds": ["prd-16", "prd-17", "prd-14", "prd-24", "prd-12", "prd-13"],
+      "status": "active",
+      "updatedAt": "05 Oct 2026"
+    },
+    {
+      "id": "grp-04",
+      "code": "GRP-KITCHEN",
+      "name": "Kitchen sink set",
+      "description": "Sink with matching wall mixer",
+      "productIds": ["prd-22", "prd-23"],
+      "status": "inactive",
+      "updatedAt": "29 Sep 2026"
+    },
+    {
+      "id": "grp-05",
+      "code": "GRP-PLUMB20",
+      "name": "20 MM plumbing line",
+      "description": "Pipe, elbow, tee and valve for a 20 MM line",
+      "productIds": ["prd-02", "prd-08", "prd-09", "prd-10"],
+      "status": "active",
+      "updatedAt": "24 Sep 2026"
+    }
+  ],
+  "subCategoryImport": {
+    "fileName": "sub_categories_oct.xlsx",
+    "rows": [
+      {
+        "code": "PIP-PPR",
+        "name": "PPR Pipes",
+        "shortName": "PPR",
+        "categoryCode": "PIP",
+        "description": "PPR hot water pipes",
+        "hsnCode": "39172390"
+      },
+      {
+        "code": "FIT-CPL",
+        "name": "Coupler",
+        "shortName": "Coupler",
+        "categoryCode": "FIT",
+        "description": "Plain and threaded couplers",
+        "hsnCode": "39174000"
+      },
+      {
+        "code": "FIT-RED",
+        "name": "Reducer",
+        "shortName": "Reducer",
+        "categoryCode": "FIT",
+        "description": "Reducing bushes and couplers",
+        "hsnCode": "39174000"
+      },
+      {
+        "code": "VAL-GAT",
+        "name": "Gate Valve",
+        "shortName": "Gate",
+        "categoryCode": "VAL",
+        "description": "Brass gate valves",
+        "hsnCode": "84818090"
+      },
+      {
+        "code": "ELE-MCB",
+        "name": "MCB",
+        "shortName": "MCB",
+        "categoryCode": "ELE",
+        "description": "Miniature circuit breakers",
+        "hsnCode": "85362010"
+      },
+      {
+        "code": "XYZ-001",
+        "name": "Garden Hose",
+        "shortName": "Hose",
+        "categoryCode": "GRD",
+        "description": "PVC garden hose",
+        "hsnCode": "39173990"
+      }
+    ]
+  }
+}

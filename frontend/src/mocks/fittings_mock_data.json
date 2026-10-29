@@ -1,0 +1,2566 @@
+{
+  "category": "Fittings",
+  "description": "Elbows, tees, couplers, reducers, unions, end caps, adapters and bends",
+  "categories": [
+    {
+      "id": "elbow",
+      "name": "Elbow",
+      "shortName": "Elbow",
+      "icon": "swap_horiz",
+      "imageAsset": "",
+      "description": "CPVC, UPVC, SWR and GI elbows",
+      "groups": [
+        {
+          "name": "CPVC Elbow 90°",
+          "products": [
+            {
+              "catalogueNo": "FTE1C015",
+              "productName": "CPVC Elbow 90°",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "90°",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 9
+            },
+            {
+              "catalogueNo": "FTE1C020",
+              "productName": "CPVC Elbow 90°",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "90°",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 13
+            },
+            {
+              "catalogueNo": "FTE1C025",
+              "productName": "CPVC Elbow 90°",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "90°",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 19
+            },
+            {
+              "catalogueNo": "FTE1C032",
+              "productName": "CPVC Elbow 90°",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "90°",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 30
+            },
+            {
+              "catalogueNo": "FTE1C040",
+              "productName": "CPVC Elbow 90°",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "90°",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 41
+            },
+            {
+              "catalogueNo": "FTE1C050",
+              "productName": "CPVC Elbow 90°",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "90°",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 61
+            }
+          ]
+        },
+        {
+          "name": "CPVC Elbow 45°",
+          "products": [
+            {
+              "catalogueNo": "FTE2C015",
+              "productName": "CPVC Elbow 45°",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Elbow 45°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "45°",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 10
+            },
+            {
+              "catalogueNo": "FTE2C020",
+              "productName": "CPVC Elbow 45°",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Elbow 45°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "45°",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 14
+            },
+            {
+              "catalogueNo": "FTE2C025",
+              "productName": "CPVC Elbow 45°",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Elbow 45°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "45°",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 21
+            },
+            {
+              "catalogueNo": "FTE2C032",
+              "productName": "CPVC Elbow 45°",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Elbow 45°",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Angle": "45°",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 33
+            }
+          ]
+        },
+        {
+          "name": "UPVC Elbow 90° SCH 80",
+          "products": [
+            {
+              "catalogueNo": "FTE3U015",
+              "productName": "UPVC Elbow 90° SCH 80",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Angle": "90°",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 14
+            },
+            {
+              "catalogueNo": "FTE3U020",
+              "productName": "UPVC Elbow 90° SCH 80",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Angle": "90°",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 20
+            },
+            {
+              "catalogueNo": "FTE3U025",
+              "productName": "UPVC Elbow 90° SCH 80",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Angle": "90°",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 29
+            },
+            {
+              "catalogueNo": "FTE3U032",
+              "productName": "UPVC Elbow 90° SCH 80",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Angle": "90°",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 46
+            },
+            {
+              "catalogueNo": "FTE3U040",
+              "productName": "UPVC Elbow 90° SCH 80",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Angle": "90°",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 64
+            },
+            {
+              "catalogueNo": "FTE3U050",
+              "productName": "UPVC Elbow 90° SCH 80",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Angle": "90°",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 95
+            }
+          ]
+        },
+        {
+          "name": "SWR Door Elbow 87.5°",
+          "products": [
+            {
+              "catalogueNo": "FTE4S050",
+              "productName": "SWR Door Elbow 87.5°",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Door Elbow 87.5°",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type B",
+                "Angle": "87.5°",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 75
+            },
+            {
+              "catalogueNo": "FTE4S065",
+              "productName": "SWR Door Elbow 87.5°",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "Door Elbow 87.5°",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type B",
+                "Angle": "87.5°",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 115
+            },
+            {
+              "catalogueNo": "FTE4S080",
+              "productName": "SWR Door Elbow 87.5°",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Door Elbow 87.5°",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type B",
+                "Angle": "87.5°",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 160
+            },
+            {
+              "catalogueNo": "FTE4S100",
+              "productName": "SWR Door Elbow 87.5°",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Door Elbow 87.5°",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type B",
+                "Angle": "87.5°",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 4,
+              "unit": "Pcs",
+              "price": 240
+            }
+          ]
+        },
+        {
+          "name": "GI Elbow 90° Heavy",
+          "products": [
+            {
+              "catalogueNo": "FTE5G015",
+              "productName": "GI Elbow 90° Heavy",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Angle": "90°",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 38
+            },
+            {
+              "catalogueNo": "FTE5G020",
+              "productName": "GI Elbow 90° Heavy",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Angle": "90°",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 55
+            },
+            {
+              "catalogueNo": "FTE5G025",
+              "productName": "GI Elbow 90° Heavy",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Angle": "90°",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 80
+            },
+            {
+              "catalogueNo": "FTE5G032",
+              "productName": "GI Elbow 90° Heavy",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Elbow 90°",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Angle": "90°",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 125
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tee",
+      "name": "Tee",
+      "shortName": "Tee",
+      "icon": "compare_arrows",
+      "imageAsset": "",
+      "description": "Equal, reducing and SWR tees",
+      "groups": [
+        {
+          "name": "CPVC Equal Tee",
+          "products": [
+            {
+              "catalogueNo": "FTT1C015",
+              "productName": "CPVC Equal Tee",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 12
+            },
+            {
+              "catalogueNo": "FTT1C020",
+              "productName": "CPVC Equal Tee",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 17
+            },
+            {
+              "catalogueNo": "FTT1C025",
+              "productName": "CPVC Equal Tee",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 25
+            },
+            {
+              "catalogueNo": "FTT1C032",
+              "productName": "CPVC Equal Tee",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 40
+            },
+            {
+              "catalogueNo": "FTT1C040",
+              "productName": "CPVC Equal Tee",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 55
+            },
+            {
+              "catalogueNo": "FTT1C050",
+              "productName": "CPVC Equal Tee",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 82
+            }
+          ]
+        },
+        {
+          "name": "UPVC Equal Tee SCH 80",
+          "products": [
+            {
+              "catalogueNo": "FTT2U015",
+              "productName": "UPVC Equal Tee SCH 80",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 19
+            },
+            {
+              "catalogueNo": "FTT2U020",
+              "productName": "UPVC Equal Tee SCH 80",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 28
+            },
+            {
+              "catalogueNo": "FTT2U025",
+              "productName": "UPVC Equal Tee SCH 80",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 40
+            },
+            {
+              "catalogueNo": "FTT2U032",
+              "productName": "UPVC Equal Tee SCH 80",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 63
+            },
+            {
+              "catalogueNo": "FTT2U040",
+              "productName": "UPVC Equal Tee SCH 80",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 87
+            },
+            {
+              "catalogueNo": "FTT2U050",
+              "productName": "UPVC Equal Tee SCH 80",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 130
+            }
+          ]
+        },
+        {
+          "name": "SWR Single Tee with Door",
+          "products": [
+            {
+              "catalogueNo": "FTT3S050",
+              "productName": "SWR Single Tee with Door",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Single Tee with Door",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type B",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 100
+            },
+            {
+              "catalogueNo": "FTT3S065",
+              "productName": "SWR Single Tee with Door",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "Single Tee with Door",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type B",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 160
+            },
+            {
+              "catalogueNo": "FTT3S080",
+              "productName": "SWR Single Tee with Door",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Single Tee with Door",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type B",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 220
+            },
+            {
+              "catalogueNo": "FTT3S100",
+              "productName": "SWR Single Tee with Door",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Single Tee with Door",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type B",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 4,
+              "unit": "Pcs",
+              "price": 330
+            }
+          ]
+        },
+        {
+          "name": "GI Equal Tee Heavy",
+          "products": [
+            {
+              "catalogueNo": "FTT4G015",
+              "productName": "GI Equal Tee Heavy",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 52
+            },
+            {
+              "catalogueNo": "FTT4G020",
+              "productName": "GI Equal Tee Heavy",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 75
+            },
+            {
+              "catalogueNo": "FTT4G025",
+              "productName": "GI Equal Tee Heavy",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 110
+            },
+            {
+              "catalogueNo": "FTT4G032",
+              "productName": "GI Equal Tee Heavy",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Equal Tee",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 170
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coupler",
+      "name": "Coupler",
+      "shortName": "Coupler",
+      "icon": "plumbing",
+      "imageAsset": "",
+      "description": "Pipe-to-pipe couplers and sockets",
+      "groups": [
+        {
+          "name": "CPVC Coupler",
+          "products": [
+            {
+              "catalogueNo": "FTC1C015",
+              "productName": "CPVC Coupler",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 6
+            },
+            {
+              "catalogueNo": "FTC1C020",
+              "productName": "CPVC Coupler",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 9
+            },
+            {
+              "catalogueNo": "FTC1C025",
+              "productName": "CPVC Coupler",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 13
+            },
+            {
+              "catalogueNo": "FTC1C032",
+              "productName": "CPVC Coupler",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 20
+            },
+            {
+              "catalogueNo": "FTC1C040",
+              "productName": "CPVC Coupler",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 28
+            },
+            {
+              "catalogueNo": "FTC1C050",
+              "productName": "CPVC Coupler",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 41
+            }
+          ]
+        },
+        {
+          "name": "UPVC Coupler SCH 80",
+          "products": [
+            {
+              "catalogueNo": "FTC2U015",
+              "productName": "UPVC Coupler SCH 80",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 9
+            },
+            {
+              "catalogueNo": "FTC2U020",
+              "productName": "UPVC Coupler SCH 80",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 13
+            },
+            {
+              "catalogueNo": "FTC2U025",
+              "productName": "UPVC Coupler SCH 80",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 19
+            },
+            {
+              "catalogueNo": "FTC2U032",
+              "productName": "UPVC Coupler SCH 80",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 30
+            },
+            {
+              "catalogueNo": "FTC2U040",
+              "productName": "UPVC Coupler SCH 80",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 41
+            },
+            {
+              "catalogueNo": "FTC2U050",
+              "productName": "UPVC Coupler SCH 80",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 61
+            }
+          ]
+        },
+        {
+          "name": "SWR Coupler",
+          "products": [
+            {
+              "catalogueNo": "FTC3S050",
+              "productName": "SWR Coupler",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 54
+            },
+            {
+              "catalogueNo": "FTC3S065",
+              "productName": "SWR Coupler",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 84
+            },
+            {
+              "catalogueNo": "FTC3S080",
+              "productName": "SWR Coupler",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 115
+            },
+            {
+              "catalogueNo": "FTC3S100",
+              "productName": "SWR Coupler",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Coupler",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 4,
+              "unit": "Pcs",
+              "price": 175
+            }
+          ]
+        },
+        {
+          "name": "GI Socket",
+          "products": [
+            {
+              "catalogueNo": "FTC4G015",
+              "productName": "GI Socket",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Socket",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 26
+            },
+            {
+              "catalogueNo": "FTC4G020",
+              "productName": "GI Socket",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Socket",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 38
+            },
+            {
+              "catalogueNo": "FTC4G025",
+              "productName": "GI Socket",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Socket",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 55
+            },
+            {
+              "catalogueNo": "FTC4G032",
+              "productName": "GI Socket",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Socket",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 86
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reducer",
+      "name": "Reducer",
+      "shortName": "Reducer",
+      "icon": "donut_large",
+      "imageAsset": "",
+      "description": "Reducer couplers, tees and bushes",
+      "groups": [
+        {
+          "name": "CPVC Reducer Coupler",
+          "products": [
+            {
+              "catalogueNo": "FTR1C020",
+              "productName": "CPVC Reducer Coupler",
+              "variant": "3/4\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 12
+            },
+            {
+              "catalogueNo": "FTR1C025",
+              "productName": "CPVC Reducer Coupler",
+              "variant": "1\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 17
+            },
+            {
+              "catalogueNo": "FTR1C032",
+              "productName": "CPVC Reducer Coupler",
+              "variant": "1-1/4\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 26
+            },
+            {
+              "catalogueNo": "FTR1C040",
+              "productName": "CPVC Reducer Coupler",
+              "variant": "1-1/2\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 37
+            },
+            {
+              "catalogueNo": "FTR1C050",
+              "productName": "CPVC Reducer Coupler",
+              "variant": "2\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Coupler",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 54
+            }
+          ]
+        },
+        {
+          "name": "CPVC Reducer Tee",
+          "products": [
+            {
+              "catalogueNo": "FTR2C020",
+              "productName": "CPVC Reducer Tee",
+              "variant": "3/4\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Tee",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 20
+            },
+            {
+              "catalogueNo": "FTR2C025",
+              "productName": "CPVC Reducer Tee",
+              "variant": "1\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Tee",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 29
+            },
+            {
+              "catalogueNo": "FTR2C032",
+              "productName": "CPVC Reducer Tee",
+              "variant": "1-1/4\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Tee",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 46
+            }
+          ]
+        },
+        {
+          "name": "UPVC Reducer Bush SCH 80",
+          "products": [
+            {
+              "catalogueNo": "FTR3U020",
+              "productName": "UPVC Reducer Bush SCH 80",
+              "variant": "3/4\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Bush",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 14
+            },
+            {
+              "catalogueNo": "FTR3U025",
+              "productName": "UPVC Reducer Bush SCH 80",
+              "variant": "1\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Bush",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 21
+            },
+            {
+              "catalogueNo": "FTR3U032",
+              "productName": "UPVC Reducer Bush SCH 80",
+              "variant": "1-1/4\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Bush",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 33
+            },
+            {
+              "catalogueNo": "FTR3U040",
+              "productName": "UPVC Reducer Bush SCH 80",
+              "variant": "1-1/2\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducer Bush",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 46
+            }
+          ]
+        },
+        {
+          "name": "GI Reducing Socket",
+          "products": [
+            {
+              "catalogueNo": "FTR4G020",
+              "productName": "GI Reducing Socket",
+              "variant": "3/4\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducing Socket",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 44
+            },
+            {
+              "catalogueNo": "FTR4G025",
+              "productName": "GI Reducing Socket",
+              "variant": "1\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducing Socket",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 63
+            },
+            {
+              "catalogueNo": "FTR4G032",
+              "productName": "GI Reducing Socket",
+              "variant": "1-1/4\" × 1/2\"",
+              "specs": {
+                "Item Name": "Reducing Socket",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 99
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "union",
+      "name": "Union",
+      "shortName": "Union",
+      "icon": "sync_alt",
+      "imageAsset": "",
+      "description": "Plastic and brass unions",
+      "groups": [
+        {
+          "name": "CPVC Union",
+          "products": [
+            {
+              "catalogueNo": "FTU1C015",
+              "productName": "CPVC Union",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 42
+            },
+            {
+              "catalogueNo": "FTU1C020",
+              "productName": "CPVC Union",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 61
+            },
+            {
+              "catalogueNo": "FTU1C025",
+              "productName": "CPVC Union",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 88
+            },
+            {
+              "catalogueNo": "FTU1C032",
+              "productName": "CPVC Union",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 140
+            },
+            {
+              "catalogueNo": "FTU1C040",
+              "productName": "CPVC Union",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 12,
+              "unit": "Pcs",
+              "price": 195
+            },
+            {
+              "catalogueNo": "FTU1C050",
+              "productName": "CPVC Union",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 285
+            }
+          ]
+        },
+        {
+          "name": "UPVC Union SCH 80",
+          "products": [
+            {
+              "catalogueNo": "FTU2U015",
+              "productName": "UPVC Union SCH 80",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 55
+            },
+            {
+              "catalogueNo": "FTU2U020",
+              "productName": "UPVC Union SCH 80",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 80
+            },
+            {
+              "catalogueNo": "FTU2U025",
+              "productName": "UPVC Union SCH 80",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 115
+            },
+            {
+              "catalogueNo": "FTU2U032",
+              "productName": "UPVC Union SCH 80",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 180
+            },
+            {
+              "catalogueNo": "FTU2U040",
+              "productName": "UPVC Union SCH 80",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 12,
+              "unit": "Pcs",
+              "price": 255
+            },
+            {
+              "catalogueNo": "FTU2U050",
+              "productName": "UPVC Union SCH 80",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 375
+            }
+          ]
+        },
+        {
+          "name": "GI Union Heavy",
+          "products": [
+            {
+              "catalogueNo": "FTU3G015",
+              "productName": "GI Union Heavy",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 95
+            },
+            {
+              "catalogueNo": "FTU3G020",
+              "productName": "GI Union Heavy",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 18,
+              "unit": "Pcs",
+              "price": 140
+            },
+            {
+              "catalogueNo": "FTU3G025",
+              "productName": "GI Union Heavy",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 12,
+              "unit": "Pcs",
+              "price": 200
+            },
+            {
+              "catalogueNo": "FTU3G032",
+              "productName": "GI Union Heavy",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Union",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 315
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "end-cap",
+      "name": "End Cap",
+      "shortName": "End Cap",
+      "icon": "radio_button_checked",
+      "imageAsset": "",
+      "description": "End caps and plugs",
+      "groups": [
+        {
+          "name": "CPVC End Cap",
+          "products": [
+            {
+              "catalogueNo": "FTN1C015",
+              "productName": "CPVC End Cap",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 5
+            },
+            {
+              "catalogueNo": "FTN1C020",
+              "productName": "CPVC End Cap",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 7
+            },
+            {
+              "catalogueNo": "FTN1C025",
+              "productName": "CPVC End Cap",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 10
+            },
+            {
+              "catalogueNo": "FTN1C032",
+              "productName": "CPVC End Cap",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 16
+            },
+            {
+              "catalogueNo": "FTN1C040",
+              "productName": "CPVC End Cap",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 23
+            },
+            {
+              "catalogueNo": "FTN1C050",
+              "productName": "CPVC End Cap",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 34
+            }
+          ]
+        },
+        {
+          "name": "UPVC End Cap SCH 80",
+          "products": [
+            {
+              "catalogueNo": "FTN2U015",
+              "productName": "UPVC End Cap SCH 80",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 8
+            },
+            {
+              "catalogueNo": "FTN2U020",
+              "productName": "UPVC End Cap SCH 80",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 12
+            },
+            {
+              "catalogueNo": "FTN2U025",
+              "productName": "UPVC End Cap SCH 80",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 17
+            },
+            {
+              "catalogueNo": "FTN2U032",
+              "productName": "UPVC End Cap SCH 80",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 26
+            },
+            {
+              "catalogueNo": "FTN2U040",
+              "productName": "UPVC End Cap SCH 80",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 37
+            },
+            {
+              "catalogueNo": "FTN2U050",
+              "productName": "UPVC End Cap SCH 80",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 54
+            }
+          ]
+        },
+        {
+          "name": "SWR End Cap",
+          "products": [
+            {
+              "catalogueNo": "FTN3S050",
+              "productName": "SWR End Cap",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 48
+            },
+            {
+              "catalogueNo": "FTN3S065",
+              "productName": "SWR End Cap",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 74
+            },
+            {
+              "catalogueNo": "FTN3S080",
+              "productName": "SWR End Cap",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 100
+            },
+            {
+              "catalogueNo": "FTN3S100",
+              "productName": "SWR End Cap",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "End Cap",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 4,
+              "unit": "Pcs",
+              "price": 155
+            }
+          ]
+        },
+        {
+          "name": "GI Plug",
+          "products": [
+            {
+              "catalogueNo": "FTN4G015",
+              "productName": "GI Plug",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Plug",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 18
+            },
+            {
+              "catalogueNo": "FTN4G020",
+              "productName": "GI Plug",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Plug",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 26
+            },
+            {
+              "catalogueNo": "FTN4G025",
+              "productName": "GI Plug",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Plug",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 38
+            },
+            {
+              "catalogueNo": "FTN4G032",
+              "productName": "GI Plug",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Plug",
+                "Material": "Galvanised Iron",
+                "Standard": "IS 1879 · Heavy",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "73079190",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 59
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "adapter",
+      "name": "Adapter",
+      "shortName": "Adapter",
+      "icon": "settings_input_component",
+      "imageAsset": "",
+      "description": "Male / female threaded adapters (MTA / FTA)",
+      "groups": [
+        {
+          "name": "CPVC Male Threaded Adapter (Plastic)",
+          "products": [
+            {
+              "catalogueNo": "FTA1C015",
+              "productName": "CPVC Male Threaded Adapter (Plastic)",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "MTA",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 10
+            },
+            {
+              "catalogueNo": "FTA1C020",
+              "productName": "CPVC Male Threaded Adapter (Plastic)",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "MTA",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 14
+            },
+            {
+              "catalogueNo": "FTA1C025",
+              "productName": "CPVC Male Threaded Adapter (Plastic)",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "MTA",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 21
+            },
+            {
+              "catalogueNo": "FTA1C032",
+              "productName": "CPVC Male Threaded Adapter (Plastic)",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "MTA",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 33
+            },
+            {
+              "catalogueNo": "FTA1C040",
+              "productName": "CPVC Male Threaded Adapter (Plastic)",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "MTA",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 46
+            },
+            {
+              "catalogueNo": "FTA1C050",
+              "productName": "CPVC Male Threaded Adapter (Plastic)",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "MTA",
+                "Material": "CPVC",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 68
+            }
+          ]
+        },
+        {
+          "name": "CPVC Female Threaded Adapter (Brass)",
+          "products": [
+            {
+              "catalogueNo": "FTA2C015",
+              "productName": "CPVC Female Threaded Adapter (Brass)",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Brass FTA",
+                "Material": "CPVC + Brass Insert",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Female",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "74122019",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 68
+            },
+            {
+              "catalogueNo": "FTA2C020",
+              "productName": "CPVC Female Threaded Adapter (Brass)",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Brass FTA",
+                "Material": "CPVC + Brass Insert",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Female",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "74122019",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 99
+            },
+            {
+              "catalogueNo": "FTA2C025",
+              "productName": "CPVC Female Threaded Adapter (Brass)",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Brass FTA",
+                "Material": "CPVC + Brass Insert",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Female",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "74122019",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 145
+            },
+            {
+              "catalogueNo": "FTA2C032",
+              "productName": "CPVC Female Threaded Adapter (Brass)",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Brass FTA",
+                "Material": "CPVC + Brass Insert",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Female",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "74122019",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 225
+            }
+          ]
+        },
+        {
+          "name": "CPVC Male Threaded Adapter (Brass)",
+          "products": [
+            {
+              "catalogueNo": "FTA3C015",
+              "productName": "CPVC Male Threaded Adapter (Brass)",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Brass MTA",
+                "Material": "CPVC + Brass Insert",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "74122019",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 74
+            },
+            {
+              "catalogueNo": "FTA3C020",
+              "productName": "CPVC Male Threaded Adapter (Brass)",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Brass MTA",
+                "Material": "CPVC + Brass Insert",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "74122019",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 105
+            },
+            {
+              "catalogueNo": "FTA3C025",
+              "productName": "CPVC Male Threaded Adapter (Brass)",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Brass MTA",
+                "Material": "CPVC + Brass Insert",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "74122019",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 155
+            },
+            {
+              "catalogueNo": "FTA3C032",
+              "productName": "CPVC Male Threaded Adapter (Brass)",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Brass MTA",
+                "Material": "CPVC + Brass Insert",
+                "Standard": "SDR 11 · ASTM D2846",
+                "Thread": "BSP Male",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "74122019",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 245
+            }
+          ]
+        },
+        {
+          "name": "UPVC Female Threaded Adapter SCH 80",
+          "products": [
+            {
+              "catalogueNo": "FTA4U015",
+              "productName": "UPVC Female Threaded Adapter SCH 80",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "FTA",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Thread": "BSP Female",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 12
+            },
+            {
+              "catalogueNo": "FTA4U020",
+              "productName": "UPVC Female Threaded Adapter SCH 80",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "FTA",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Thread": "BSP Female",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 17
+            },
+            {
+              "catalogueNo": "FTA4U025",
+              "productName": "UPVC Female Threaded Adapter SCH 80",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "FTA",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Thread": "BSP Female",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 25
+            },
+            {
+              "catalogueNo": "FTA4U032",
+              "productName": "UPVC Female Threaded Adapter SCH 80",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "FTA",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Thread": "BSP Female",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 40
+            },
+            {
+              "catalogueNo": "FTA4U040",
+              "productName": "UPVC Female Threaded Adapter SCH 80",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "FTA",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Thread": "BSP Female",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 55
+            },
+            {
+              "catalogueNo": "FTA4U050",
+              "productName": "UPVC Female Threaded Adapter SCH 80",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "FTA",
+                "Material": "UPVC",
+                "Standard": "SCH 80 · ASTM D2467",
+                "Thread": "BSP Female",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 82
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bend",
+      "name": "Bend",
+      "shortName": "Bend",
+      "icon": "turn_right",
+      "imageAsset": "",
+      "description": "Long-radius and SWR bends",
+      "groups": [
+        {
+          "name": "UPVC Long Bend 90°",
+          "products": [
+            {
+              "catalogueNo": "FTB1U015",
+              "productName": "UPVC Long Bend 90°",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Long Bend 90°",
+                "Material": "UPVC",
+                "Standard": "IS 4985 · 6 kgf/cm²",
+                "Angle": "90°",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 100,
+              "unit": "Pcs",
+              "price": 16
+            },
+            {
+              "catalogueNo": "FTB1U020",
+              "productName": "UPVC Long Bend 90°",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Long Bend 90°",
+                "Material": "UPVC",
+                "Standard": "IS 4985 · 6 kgf/cm²",
+                "Angle": "90°",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 75,
+              "unit": "Pcs",
+              "price": 23
+            },
+            {
+              "catalogueNo": "FTB1U025",
+              "productName": "UPVC Long Bend 90°",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Long Bend 90°",
+                "Material": "UPVC",
+                "Standard": "IS 4985 · 6 kgf/cm²",
+                "Angle": "90°",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 34
+            },
+            {
+              "catalogueNo": "FTB1U032",
+              "productName": "UPVC Long Bend 90°",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Long Bend 90°",
+                "Material": "UPVC",
+                "Standard": "IS 4985 · 6 kgf/cm²",
+                "Angle": "90°",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 30,
+              "unit": "Pcs",
+              "price": 53
+            },
+            {
+              "catalogueNo": "FTB1U040",
+              "productName": "UPVC Long Bend 90°",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Long Bend 90°",
+                "Material": "UPVC",
+                "Standard": "IS 4985 · 6 kgf/cm²",
+                "Angle": "90°",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 74
+            },
+            {
+              "catalogueNo": "FTB1U050",
+              "productName": "UPVC Long Bend 90°",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Long Bend 90°",
+                "Material": "UPVC",
+                "Standard": "IS 4985 · 6 kgf/cm²",
+                "Angle": "90°",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 110
+            },
+            {
+              "catalogueNo": "FTB1U080",
+              "productName": "UPVC Long Bend 90°",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Long Bend 90°",
+                "Material": "UPVC",
+                "Standard": "IS 4985 · 6 kgf/cm²",
+                "Angle": "90°",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 230
+            },
+            {
+              "catalogueNo": "FTB1U100",
+              "productName": "UPVC Long Bend 90°",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Long Bend 90°",
+                "Material": "UPVC",
+                "Standard": "IS 4985 · 6 kgf/cm²",
+                "Angle": "90°",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 4,
+              "unit": "Pcs",
+              "price": 350
+            }
+          ]
+        },
+        {
+          "name": "SWR Bend 87.5° with Door",
+          "products": [
+            {
+              "catalogueNo": "FTB2S050",
+              "productName": "SWR Bend 87.5° with Door",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Bend 87.5° with Door",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type A",
+                "Angle": "87.5°",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 88
+            },
+            {
+              "catalogueNo": "FTB2S065",
+              "productName": "SWR Bend 87.5° with Door",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "Bend 87.5° with Door",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type A",
+                "Angle": "87.5°",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 135
+            },
+            {
+              "catalogueNo": "FTB2S080",
+              "productName": "SWR Bend 87.5° with Door",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Bend 87.5° with Door",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type A",
+                "Angle": "87.5°",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 190
+            },
+            {
+              "catalogueNo": "FTB2S100",
+              "productName": "SWR Bend 87.5° with Door",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Bend 87.5° with Door",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type A",
+                "Angle": "87.5°",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 4,
+              "unit": "Pcs",
+              "price": 285
+            }
+          ]
+        },
+        {
+          "name": "SWR Bend 45°",
+          "products": [
+            {
+              "catalogueNo": "FTB3S050",
+              "productName": "SWR Bend 45°",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Bend 45°",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type A",
+                "Angle": "45°",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 68
+            },
+            {
+              "catalogueNo": "FTB3S065",
+              "productName": "SWR Bend 45°",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "Bend 45°",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type A",
+                "Angle": "45°",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 105
+            },
+            {
+              "catalogueNo": "FTB3S080",
+              "productName": "SWR Bend 45°",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Bend 45°",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type A",
+                "Angle": "45°",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 145
+            },
+            {
+              "catalogueNo": "FTB3S100",
+              "productName": "SWR Bend 45°",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Bend 45°",
+                "Material": "PVC SWR",
+                "Standard": "IS 14735 · Type A",
+                "Angle": "45°",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "39174000",
+              "packingQty": 4,
+              "unit": "Pcs",
+              "price": 220
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,590 @@
+{
+  "_comment": "Admin dashboard sample data (no backend yet). Product names/prices come from the catalog mocks; quotation statuses mirror Flutter QuotationStatus (pending / sold); roles mirror UserRole. Amounts are INR. Period = last 30 days ending 2026-10-12.",
+  "period": {
+    "label": "Last 30 days",
+    "range": "13 Sep – 12 Oct 2026",
+    "comparedTo": "vs previous 30 days",
+    "lastUpdated": "12 Oct 2026, 10:30 AM"
+  },
+  "kpis": [
+    {
+      "id": "revenue",
+      "label": "Total revenue",
+      "value": 4825600,
+      "format": "currency",
+      "deltaPct": 12.4,
+      "upIsGood": true,
+      "icon": "pi-indian-rupee",
+      "caption": "Across 1,284 orders"
+    },
+    {
+      "id": "orders",
+      "label": "Orders",
+      "value": 1284,
+      "format": "number",
+      "deltaPct": 8.1,
+      "upIsGood": true,
+      "icon": "pi-shopping-bag",
+      "caption": "Avg order value ₹3,758"
+    },
+    {
+      "id": "activeProducts",
+      "label": "Active products",
+      "value": 612,
+      "format": "number",
+      "deltaPct": 4.1,
+      "upIsGood": true,
+      "icon": "pi-box",
+      "caption": "of 648 SKUs listed"
+    },
+    {
+      "id": "stockAlerts",
+      "label": "Low / out of stock",
+      "value": 23,
+      "format": "number",
+      "deltaPct": 27.8,
+      "upIsGood": false,
+      "icon": "pi-exclamation-triangle",
+      "caption": "7 out of stock now"
+    },
+    {
+      "id": "pendingQuotations",
+      "label": "Pending quotations",
+      "value": 18,
+      "format": "number",
+      "deltaPct": -10,
+      "upIsGood": false,
+      "icon": "pi-file-edit",
+      "caption": "Worth ₹6,42,300"
+    },
+    {
+      "id": "dispatchesToday",
+      "label": "Dispatches today",
+      "value": 46,
+      "format": "number",
+      "deltaPct": 6.9,
+      "upIsGood": true,
+      "icon": "pi-truck",
+      "caption": "3 delayed"
+    },
+    {
+      "id": "referralPartners",
+      "label": "Active referral partners",
+      "value": 142,
+      "format": "number",
+      "deltaPct": 8.4,
+      "upIsGood": true,
+      "icon": "pi-users",
+      "caption": "11 joined this month"
+    },
+    {
+      "id": "kycPending",
+      "label": "KYC awaiting approval",
+      "value": 9,
+      "format": "number",
+      "deltaPct": 12.5,
+      "upIsGood": false,
+      "icon": "pi-id-card",
+      "caption": "PAN · GST · Bank"
+    }
+  ],
+  "revenueTrend": {
+    "title": "Revenue trend",
+    "subtitle": "Weekly revenue, last 12 weeks",
+    "points": [
+      { "weekStart": "2026-07-20", "label": "20 Jul", "revenue": 912000, "orders": 248 },
+      { "weekStart": "2026-07-27", "label": "27 Jul", "revenue": 958000, "orders": 259 },
+      { "weekStart": "2026-08-03", "label": "3 Aug", "revenue": 1004000, "orders": 268 },
+      { "weekStart": "2026-08-10", "label": "10 Aug", "revenue": 978000, "orders": 262 },
+      { "weekStart": "2026-08-17", "label": "17 Aug", "revenue": 1046000, "orders": 281 },
+      { "weekStart": "2026-08-24", "label": "24 Aug", "revenue": 1092000, "orders": 290 },
+      { "weekStart": "2026-08-31", "label": "31 Aug", "revenue": 1068000, "orders": 284 },
+      { "weekStart": "2026-09-07", "label": "7 Sep", "revenue": 1124000, "orders": 299 },
+      { "weekStart": "2026-09-14", "label": "14 Sep", "revenue": 1158000, "orders": 307 },
+      { "weekStart": "2026-09-21", "label": "21 Sep", "revenue": 1196000, "orders": 316 },
+      { "weekStart": "2026-09-28", "label": "28 Sep", "revenue": 1231000, "orders": 328 },
+      { "weekStart": "2026-10-05", "label": "5 Oct", "revenue": 1240600, "orders": 333 }
+    ]
+  },
+  "categorySales": {
+    "title": "Sales by category",
+    "subtitle": "Revenue share, last 30 days",
+    "rows": [
+      {
+        "categoryId": "cat-pipes-tubing",
+        "name": "Pipes & Tubing",
+        "revenue": 1642000,
+        "orders": 438,
+        "imageAsset": "/assets/images/categories/pipes_tubing.png"
+      },
+      {
+        "categoryId": "cat-sanitary-wares",
+        "name": "Sanitary Wares",
+        "revenue": 1128000,
+        "orders": 212,
+        "imageAsset": "/assets/images/categories/sanitary_wares.png"
+      },
+      {
+        "categoryId": "cat-electricals-lights",
+        "name": "Electricals & Lights",
+        "revenue": 864000,
+        "orders": 301,
+        "imageAsset": "/assets/images/categories/electricals_lights.png"
+      },
+      {
+        "categoryId": "cat-fittings",
+        "name": "Fittings",
+        "revenue": 512000,
+        "orders": 164,
+        "imageAsset": "/assets/images/categories/fittings.png"
+      },
+      {
+        "categoryId": "cat-valves-controls",
+        "name": "Valves & Controls",
+        "revenue": 318000,
+        "orders": 88,
+        "imageAsset": "/assets/images/categories/valves_controls.png"
+      },
+      {
+        "categoryId": "cat-cp-fittings",
+        "name": "CP Fittings",
+        "revenue": 214000,
+        "orders": 47,
+        "imageAsset": "/assets/images/categories/cp_fittings.png"
+      },
+      {
+        "categoryId": "other",
+        "name": "Other categories",
+        "revenue": 147600,
+        "orders": 34,
+        "imageAsset": "/assets/images/categories/consumables.png"
+      }
+    ]
+  },
+  "topProducts": {
+    "title": "Popular products",
+    "subtitle": "Best sellers by revenue, last 30 days",
+    "rows": [
+      {
+        "sku": "AST-UPVC-S40-20",
+        "name": "Astral UPVC Pipe, Sch 40, 20 MM (¾\") 6 Mtr",
+        "category": "Pipes & Tubing",
+        "unitPrice": 618,
+        "unitsSold": 1240,
+        "revenue": 766320,
+        "trendPct": 18.2,
+        "stock": 860
+      },
+      {
+        "sku": "T3010101CP",
+        "name": "Single Lever Basin Mixer · Chrome",
+        "category": "Sanitary Wares",
+        "unitPrice": 3850,
+        "unitsSold": 96,
+        "revenue": 369600,
+        "trendPct": 9.1,
+        "stock": 14
+      },
+      {
+        "sku": "FIN-PVC-4K-63",
+        "name": "FINOLEX PVC Pipe, 4 kg, 63MM (2\") 6 Mtr",
+        "category": "Pipes & Tubing",
+        "unitPrice": 834,
+        "unitsSold": 410,
+        "revenue": 341940,
+        "trendPct": 6.4,
+        "stock": 325
+      },
+      {
+        "sku": "WFR150",
+        "name": "FR PVC Insulated Copper Wire 1.5 sq mm · 90 m",
+        "category": "Electricals & Lights",
+        "unitPrice": 2050,
+        "unitsSold": 148,
+        "revenue": 303400,
+        "trendPct": 22.5,
+        "stock": 0
+      },
+      {
+        "sku": "RF 1603",
+        "name": "L.T. Control Reverse Forward Switch 16A R/F",
+        "category": "Electricals & Lights",
+        "unitPrice": 550,
+        "unitsSold": 520,
+        "revenue": 286000,
+        "trendPct": 14.8,
+        "stock": 240
+      },
+      {
+        "sku": "S1044148FG",
+        "name": "CARLTON Rimless Wall-Hung EWC · French Gold",
+        "category": "Sanitary Wares",
+        "unitPrice": 20570,
+        "unitsSold": 12,
+        "revenue": 246840,
+        "trendPct": -3.2,
+        "stock": 6
+      },
+      {
+        "sku": "AST-CPVC-SDR11-15",
+        "name": "ASTRAL CPVC Pipe, SDR11, 15 MM (½\") 5 Mtr",
+        "category": "Pipes & Tubing",
+        "unitPrice": 520,
+        "unitsSold": 436,
+        "revenue": 226720,
+        "trendPct": 4.7,
+        "stock": 512
+      },
+      {
+        "sku": "LB0922",
+        "name": "LED Bulb (B22) 9W · Cool Day Light",
+        "category": "Electricals & Lights",
+        "unitPrice": 95,
+        "unitsSold": 1860,
+        "revenue": 176700,
+        "trendPct": 31.0,
+        "stock": 140
+      }
+    ]
+  },
+  "stockAlerts": {
+    "title": "Stock alerts",
+    "subtitle": "Products running out — sorted by days of cover left",
+    "rows": [
+      {
+        "sku": "WFR150",
+        "name": "FR PVC Insulated Copper Wire 1.5 sq mm · 90 m",
+        "category": "Electricals & Lights",
+        "warehouse": "Pune Central",
+        "stock": 0,
+        "reorderLevel": 40,
+        "avgDailySales": 4.9,
+        "status": "outOfStock"
+      },
+      {
+        "sku": "H5010102MB",
+        "name": "Overhead Rain Shower (Round) 250 mm · Matte Black",
+        "category": "Sanitary Wares",
+        "warehouse": "Mumbai – Bhiwandi",
+        "stock": 0,
+        "reorderLevel": 15,
+        "avgDailySales": 1.2,
+        "status": "outOfStock"
+      },
+      {
+        "sku": "PIP670132",
+        "name": "Weather-Proof Plug 16A x 3Pin · IP67",
+        "category": "Electricals & Lights",
+        "warehouse": "Pune Central",
+        "stock": 0,
+        "reorderLevel": 60,
+        "avgDailySales": 3.1,
+        "status": "outOfStock"
+      },
+      {
+        "sku": "S1044148FG",
+        "name": "CARLTON Rimless Wall-Hung EWC · French Gold",
+        "category": "Sanitary Wares",
+        "warehouse": "Mumbai – Bhiwandi",
+        "stock": 6,
+        "reorderLevel": 10,
+        "avgDailySales": 0.4,
+        "status": "critical"
+      },
+      {
+        "sku": "T3010101CP",
+        "name": "Single Lever Basin Mixer · Chrome",
+        "category": "Sanitary Wares",
+        "warehouse": "Pune Central",
+        "stock": 14,
+        "reorderLevel": 30,
+        "avgDailySales": 3.2,
+        "status": "critical"
+      },
+      {
+        "sku": "V6010101CP",
+        "name": "Angle Valve 15 mm · Chrome",
+        "category": "Sanitary Wares",
+        "warehouse": "Nashik Depot",
+        "stock": 38,
+        "reorderLevel": 80,
+        "avgDailySales": 5.4,
+        "status": "critical"
+      },
+      {
+        "sku": "FSRK32",
+        "name": "SHREE Porcelain Kit Kat Fuse (K-Type) 32A",
+        "category": "Electricals & Lights",
+        "warehouse": "Nashik Depot",
+        "stock": 55,
+        "reorderLevel": 75,
+        "avgDailySales": 4.6,
+        "status": "low"
+      },
+      {
+        "sku": "ASTRAL-CPVC-S80-65",
+        "name": "ASTRAL CPVC Pipe, Sch 80, 65 MM (2½\") 5 Mtr",
+        "category": "Pipes & Tubing",
+        "warehouse": "Mumbai – Bhiwandi",
+        "stock": 22,
+        "reorderLevel": 25,
+        "avgDailySales": 1.1,
+        "status": "low"
+      }
+    ]
+  },
+  "quotations": {
+    "title": "Quotations",
+    "subtitle": "Pending quotes waiting for the admin to confirm the sale",
+    "summary": {
+      "pending": 18,
+      "pendingValue": 642300,
+      "sold": 64,
+      "soldValue": 2318400,
+      "conversionPct": 78
+    },
+    "recent": [
+      {
+        "id": "qt-1012",
+        "quotationLabel": "QT-2026-082",
+        "customerName": "Shree Ganesh Builders",
+        "role": "builder",
+        "grandTotal": 184500,
+        "status": "pending",
+        "createdAt": "12 Oct 2026"
+      },
+      {
+        "id": "qt-1011",
+        "quotationLabel": "QT-2026-081",
+        "customerName": "Anil Patil",
+        "role": "contractor",
+        "grandTotal": 42650,
+        "status": "pending",
+        "createdAt": "11 Oct 2026"
+      },
+      {
+        "id": "qt-1010",
+        "quotationLabel": "QT-2026-080",
+        "customerName": "Om Sai Hardware",
+        "role": "dealer",
+        "grandTotal": 96200,
+        "status": "sold",
+        "createdAt": "11 Oct 2026"
+      },
+      {
+        "id": "qt-1009",
+        "quotationLabel": "QT-2026-079",
+        "customerName": "Meera Joshi",
+        "role": "individualCustomer",
+        "grandTotal": 18740,
+        "status": "pending",
+        "createdAt": "10 Oct 2026"
+      },
+      {
+        "id": "qt-1008",
+        "quotationLabel": "QT-2026-078",
+        "customerName": "Kulkarni Constructions",
+        "role": "builder",
+        "grandTotal": 231900,
+        "status": "sold",
+        "createdAt": "9 Oct 2026"
+      }
+    ]
+  },
+  "dispatches": {
+    "title": "Dispatches",
+    "subtitle": "Today's shipments by status",
+    "statuses": [
+      { "status": "readyToDispatch", "label": "Ready to dispatch", "count": 12 },
+      { "status": "inTransit", "label": "In transit", "count": 19 },
+      { "status": "delivered", "label": "Delivered", "count": 12 },
+      { "status": "delayed", "label": "Delayed", "count": 3 }
+    ],
+    "recent": [
+      {
+        "id": "DSP-24118",
+        "orderId": "ORD-58231",
+        "customerName": "Kulkarni Constructions",
+        "destination": "Kothrud, Pune",
+        "vehicle": "MH 12 RT 4411",
+        "eta": "Today, 2:30 PM",
+        "status": "inTransit"
+      },
+      {
+        "id": "DSP-24117",
+        "orderId": "ORD-58226",
+        "customerName": "Om Sai Hardware",
+        "destination": "Nashik Road",
+        "vehicle": "MH 15 GV 0921",
+        "eta": "Today, 5:00 PM",
+        "status": "delayed"
+      },
+      {
+        "id": "DSP-24116",
+        "orderId": "ORD-58219",
+        "customerName": "Rajesh Kumar",
+        "destination": "Andheri East, Mumbai",
+        "vehicle": "MH 04 KL 7720",
+        "eta": "Delivered 9:40 AM",
+        "status": "delivered"
+      },
+      {
+        "id": "DSP-24115",
+        "orderId": "ORD-58214",
+        "customerName": "Shree Ganesh Builders",
+        "destination": "Hinjewadi, Pune",
+        "vehicle": "—",
+        "eta": "Pickup 12:00 PM",
+        "status": "readyToDispatch"
+      }
+    ]
+  },
+  "warehouses": {
+    "title": "Warehouses",
+    "subtitle": "Space used and today's pick list",
+    "rows": [
+      {
+        "id": "wh-pune",
+        "name": "Pune Central",
+        "city": "Pune",
+        "skus": 486,
+        "utilizationPct": 91,
+        "pendingPicks": 38,
+        "lowStockSkus": 11
+      },
+      {
+        "id": "wh-bhiwandi",
+        "name": "Mumbai – Bhiwandi",
+        "city": "Thane",
+        "skus": 552,
+        "utilizationPct": 74,
+        "pendingPicks": 27,
+        "lowStockSkus": 8
+      },
+      {
+        "id": "wh-nashik",
+        "name": "Nashik Depot",
+        "city": "Nashik",
+        "skus": 238,
+        "utilizationPct": 48,
+        "pendingPicks": 9,
+        "lowStockSkus": 4
+      }
+    ]
+  },
+  "referralPartners": {
+    "title": "Top referral partners",
+    "subtitle": "Rewards are credited when the admin confirms a sale",
+    "rows": [
+      {
+        "id": "rp-01",
+        "name": "Anil Patil",
+        "role": "contractor",
+        "city": "Pune",
+        "referrals": 34,
+        "convertedRevenue": 412800,
+        "rewardPoints": 4128
+      },
+      {
+        "id": "rp-02",
+        "name": "Om Sai Hardware",
+        "role": "dealer",
+        "city": "Nashik",
+        "referrals": 28,
+        "convertedRevenue": 365400,
+        "rewardPoints": 3654
+      },
+      {
+        "id": "rp-03",
+        "name": "Shree Ganesh Builders",
+        "role": "builder",
+        "city": "Pune",
+        "referrals": 19,
+        "convertedRevenue": 318200,
+        "rewardPoints": 3182
+      },
+      {
+        "id": "rp-04",
+        "name": "Sunil Pawar",
+        "role": "contractor",
+        "city": "Thane",
+        "referrals": 22,
+        "convertedRevenue": 204600,
+        "rewardPoints": 2046
+      },
+      {
+        "id": "rp-05",
+        "name": "Patel Plumbing Mart",
+        "role": "dealer",
+        "city": "Mumbai",
+        "referrals": 15,
+        "convertedRevenue": 176900,
+        "rewardPoints": 1769
+      }
+    ]
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Registered customers by profession",
+    "total": 3486,
+    "newThisPeriod": 214,
+    "byRole": [
+      { "role": "contractor", "label": "Contractors", "count": 1248 },
+      { "role": "individualCustomer", "label": "Individual customers", "count": 1032 },
+      { "role": "dealer", "label": "Dealers", "count": 694 },
+      { "role": "builder", "label": "Builders", "count": 512 }
+    ],
+    "kycQueue": [
+      {
+        "id": "kyc-01",
+        "name": "Patel Plumbing Mart",
+        "document": "GST",
+        "submittedAt": "12 Oct 2026"
+      },
+      { "id": "kyc-02", "name": "Sunil Pawar", "document": "PAN", "submittedAt": "11 Oct 2026" },
+      {
+        "id": "kyc-03",
+        "name": "Kulkarni Constructions",
+        "document": "Bank",
+        "submittedAt": "11 Oct 2026"
+      }
+    ]
+  },
+  "recentActivity": [
+    {
+      "id": "act-01",
+      "icon": "pi-file-excel",
+      "text": "Bulk upload: 124 products updated from pricing_oct.xlsx",
+      "actor": "Store manager · Pune",
+      "time": "10 min ago"
+    },
+    {
+      "id": "act-02",
+      "icon": "pi-qrcode",
+      "text": "86 items received at Mumbai – Bhiwandi via barcode scan",
+      "actor": "Warehouse team",
+      "time": "42 min ago"
+    },
+    {
+      "id": "act-03",
+      "icon": "pi-check-circle",
+      "text": "Sale confirmed for QT-2026-080 — 962 points credited to Om Sai Hardware",
+      "actor": "Admin",
+      "time": "1 hr ago"
+    },
+    {
+      "id": "act-04",
+      "icon": "pi-sync",
+      "text": "Stock transfer: 40 × Angle Valve 15 mm, Pune → Nashik",
+      "actor": "Store manager · Nashik",
+      "time": "3 hrs ago"
+    },
+    {
+      "id": "act-05",
+      "icon": "pi-user-plus",
+      "text": "New store manager added with Inventory + Dispatch access",
+      "actor": "Admin",
+      "time": "Yesterday"
+    }
+  ]
+}

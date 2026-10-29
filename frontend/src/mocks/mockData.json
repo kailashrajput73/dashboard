@@ -18,7 +18,8 @@
       "email": "rajesh.kumar@example.com",
       "phone": "+91 98765 43210",
       "businessName": null,
-      "isGuest": false
+      "isGuest": false,
+      "isAdmin": false
     }
   },
   "mockAuth": {
@@ -31,10 +32,21 @@
     "pendingOtpUserId": "pending",
     "registerUserId": "user-register",
     "otpUserId": "user-otp",
-    "otpDefaultFullName": "Verified User"
+    "otpDefaultFullName": "Verified User",
+    "_adminComment": "Web-only: logging in with one of these numbers (OTP 123456) opens the admin dashboard.",
+    "adminMobileNumbers": ["9999999999"],
+    "adminFullName": "Admin"
   },
   "catalog": {
     "pipesTubingCategoryId": "cat-pipes-tubing",
-    "pipesTubingCategoryName": "Pipes & Tubing"
+    "pipesTubingCategoryName": "Pipes & Tubing",
+    "electricalsLightsCategoryId": "cat-electricals-lights",
+    "electricalsLightsCategoryName": "Electricals & Lights",
+    "sanitaryWaresCategoryId": "cat-sanitary-wares",
+    "sanitaryWaresCategoryName": "Sanitary Wares",
+    "fittingsCategoryId": "cat-fittings",
+    "fittingsCategoryName": "Fittings",
+    "valvesControlsCategoryId": "cat-valves-controls",
+    "valvesControlsCategoryName": "Valves & Controls"
   }
 }

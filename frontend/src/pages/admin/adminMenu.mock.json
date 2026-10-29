@@ -1,0 +1,6 @@
+{
+  "tabs": [
+    { "tab": "dashboard", "icon": "pi-th-large", "label": "Dashboard" },
+    { "tab": "productMaster", "icon": "pi-database", "label": "Product master" }
+  ]
+}

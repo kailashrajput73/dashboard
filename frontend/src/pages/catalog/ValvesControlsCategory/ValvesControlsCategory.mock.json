@@ -1,0 +1,23 @@
+{
+  "_header": {
+    "title": "Valves & Controls"
+  },
+  "_sidebar": {
+    "allLabel": "All",
+    "sectionLabel": "Category"
+  },
+  "_emptyState": {
+    "title": "No products here yet",
+    "subtitle": "Try another category."
+  },
+  "_iconMap": {
+    "tune": "pi-sliders-v",
+    "vertical_align_center": "pi-arrows-v",
+    "swap_horiz": "pi-arrow-right-arrow-left",
+    "flip": "pi-sync",
+    "water_drop": "pi-filter",
+    "filter_alt": "pi-filter-fill",
+    "speed": "pi-gauge",
+    "turn_right": "pi-reply"
+  }
+}

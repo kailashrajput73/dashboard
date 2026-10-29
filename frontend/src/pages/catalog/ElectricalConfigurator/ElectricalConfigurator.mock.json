@@ -1,0 +1,16 @@
+{
+  "_addToCart": {
+    "snackBarDurationMs": 3000,
+    "viewCartLabel": "View Cart"
+  },
+  "_labels": {
+    "variant": "Variant",
+    "product": "Product",
+    "specifications": "Specifications",
+    "catalogueNo": "Catalogue No.",
+    "hsnCode": "HSN Code",
+    "standardPacking": "Standard Packing",
+    "selectedVariant": "Selected Variant",
+    "searchProducts": "Search products"
+  }
+}

@@ -8,8 +8,15 @@ import type { AuthUser } from './authModels';
  */
 
 const { mockNetworkDelayMs, mockOtp } = mockData.appConstants;
-const { guestUser, pendingOtpUserId, registerUserId, otpUserId, otpDefaultFullName } =
-  mockData.mockAuth;
+const {
+  guestUser,
+  pendingOtpUserId,
+  registerUserId,
+  otpUserId,
+  otpDefaultFullName,
+  adminMobileNumbers,
+  adminFullName,
+} = mockData.mockAuth;
 
 let currentUser: AuthUser | null = null;
 
@@ -44,6 +51,16 @@ export const mockAuthService = {
     await delay();
     if (otp !== mockOtp) {
       return AuthResult.fail(`Invalid OTP. Please enter ${mockOtp}.`);
+    }
+    if (adminMobileNumbers.includes(mobileNumber.trim())) {
+      currentUser = {
+        id: `admin-${mobileNumber}`,
+        email: '',
+        fullName: adminFullName,
+        mobileNumber,
+        isAdmin: true,
+      };
+      return AuthResult.ok(currentUser);
     }
     // Preserve registration details if the user just registered.
     const existing = currentUser;

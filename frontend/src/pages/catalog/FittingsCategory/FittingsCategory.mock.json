@@ -1,0 +1,23 @@
+{
+  "_header": {
+    "title": "Fittings"
+  },
+  "_sidebar": {
+    "allLabel": "All",
+    "sectionLabel": "Category"
+  },
+  "_emptyState": {
+    "title": "No products here yet",
+    "subtitle": "Try another category."
+  },
+  "_iconMap": {
+    "plumbing": "pi-wrench",
+    "swap_horiz": "pi-arrow-right-arrow-left",
+    "compare_arrows": "pi-sitemap",
+    "donut_large": "pi-circle",
+    "sync_alt": "pi-sync",
+    "radio_button_checked": "pi-stop-circle",
+    "settings_input_component": "pi-cog",
+    "turn_right": "pi-reply"
+  }
+}

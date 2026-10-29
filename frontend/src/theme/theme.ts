@@ -334,6 +334,27 @@ const layout = {
   profileSectionIconSize: 40,
   profileLabelWidth: 128,
   profileBannerMaxWidth: 460,
+
+  // Admin dashboard (web): KPI tile min width, chart plot height, bar/meter thickness.
+  adminKpiMinWidth: 220,
+  adminChartHeight: 260,
+  adminChartAxisWidth: 52,
+  adminChartAxisHeight: 28,
+  adminBarThickness: 12,
+  adminMeterHeight: 8,
+  adminStackHeight: 16,
+  adminThumbSize: 32,
+  adminTooltipWidth: 168,
+
+  // Admin Product master: toolbar search, dialogs, picker list, status switch.
+  masterSearchWidth: 300,
+  masterFilterWidth: 200,
+  masterDialogWidth: 680,
+  masterConfirmWidth: 440,
+  masterPickerHeight: 300,
+  masterSwitchWidth: 36,
+  masterSwitchHeight: 20,
+  masterIconButtonSize: 32,
 } as const;
 
 const media = {

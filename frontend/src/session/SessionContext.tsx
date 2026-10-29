@@ -15,6 +15,8 @@ export interface AppUserProfile {
   phone: string | null;
   businessName: string | null;
   isGuest: boolean;
+  /** Web-only: admin users get the admin dashboard (`/admin/dashboard`). */
+  isAdmin: boolean;
 }
 
 const STORAGE_KEY = mockData.session.storageKey;
@@ -32,6 +34,7 @@ function load(): AppUserProfile | null {
       phone: json.phone ?? null,
       businessName: json.businessName ?? null,
       isGuest: json.isGuest ?? false,
+      isAdmin: json.isAdmin ?? false,
     };
   } catch {
     clear();
@@ -85,6 +88,7 @@ function profileFromAuth(authUser: AuthUser): AppUserProfile {
     phone: authUser.mobileNumber ?? null,
     businessName: authUser.businessName ?? null,
     isGuest: authUser.isGuest ?? false,
+    isAdmin: authUser.isAdmin ?? false,
   };
 }
 

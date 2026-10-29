@@ -63,8 +63,8 @@ export interface PipeConfiguratorArgs {
 /** Flutter `Icons.plumbing_rounded` has no primeicons match — nearest glyph. */
 const plumbingIcon = 'pi-wrench';
 
-/** `_ConfiguratorDropdown` — DropdownButton inside an outlined box. */
-function ConfiguratorDropdown({
+/** `_ConfiguratorDropdown` — DropdownButton inside an outlined box (also used by ElectricalConfigurator). */
+export function ConfiguratorDropdown({
   value,
   options,
   hint,

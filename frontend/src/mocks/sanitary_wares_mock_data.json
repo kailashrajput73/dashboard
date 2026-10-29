@@ -1,0 +1,1317 @@
+{
+  "category": "Sanitary Wares",
+  "description": "Mixer taps, toilets, sinks, showers, waste pipes, wash basins, valves and hoses",
+  "categories": [
+    {
+      "id": "mixer-tap",
+      "name": "Mixer Tap",
+      "shortName": "Mixer Tap",
+      "icon": "water_drop",
+      "imageAsset": "",
+      "description": "Basin, wall and sink mixers",
+      "groups": [
+        {
+          "name": "Single Lever Basin Mixer",
+          "products": [
+            {
+              "catalogueNo": "T3010101CP",
+              "productName": "Single Lever Basin Mixer",
+              "variant": "Chrome",
+              "specs": {
+                "Item Name": "Single Lever Basin Mixer",
+                "Size / Type": "Deck Mounted",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 3850
+            },
+            {
+              "catalogueNo": "T3010101MB",
+              "productName": "Single Lever Basin Mixer",
+              "variant": "Matte Black",
+              "specs": {
+                "Item Name": "Single Lever Basin Mixer",
+                "Size / Type": "Deck Mounted",
+                "Finish / Color": "Matte Black"
+              },
+              "unit": "Pcs",
+              "price": 4600
+            },
+            {
+              "catalogueNo": "T3010101FG",
+              "productName": "Single Lever Basin Mixer",
+              "variant": "French Gold",
+              "specs": {
+                "Item Name": "Single Lever Basin Mixer",
+                "Size / Type": "Deck Mounted",
+                "Finish / Color": "French Gold"
+              },
+              "unit": "Pcs",
+              "price": 5200
+            }
+          ]
+        },
+        {
+          "name": "Wall Mixer with Bend",
+          "products": [
+            {
+              "catalogueNo": "T3020201CP",
+              "productName": "Wall Mixer with Bend",
+              "variant": "Chrome",
+              "specs": {
+                "Item Name": "Wall Mixer with Bend",
+                "Size / Type": "Wall Mounted",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 4250
+            },
+            {
+              "catalogueNo": "T3020201MB",
+              "productName": "Wall Mixer with Bend",
+              "variant": "Matte Black",
+              "specs": {
+                "Item Name": "Wall Mixer with Bend",
+                "Size / Type": "Wall Mounted",
+                "Finish / Color": "Matte Black"
+              },
+              "unit": "Pcs",
+              "price": 4950
+            }
+          ]
+        },
+        {
+          "name": "Sink Mixer with Swivel Spout",
+          "products": [
+            {
+              "catalogueNo": "T3030301CP",
+              "productName": "Sink Mixer with Swivel Spout",
+              "variant": "Chrome",
+              "specs": {
+                "Item Name": "Sink Mixer with Swivel Spout",
+                "Size / Type": "Wall Mounted",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 3550
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "toilet",
+      "name": "Toilet",
+      "shortName": "Toilet",
+      "icon": "wc",
+      "imageAsset": "",
+      "description": "Wall-hung and one-piece EWCs with concealed cistern control knobs",
+      "groups": [
+        {
+          "name": "CARLTON Rimless Wall-Hung EWC",
+          "products": [
+            {
+              "catalogueNo": "S1044148FG",
+              "productName": "CARLTON Rimless Wall-Hung EWC w/ Duroplast Seat",
+              "variant": "French Gold (Glossy)",
+              "specs": {
+                "Model Name": "CARLTON",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Duroplast Seat",
+                "Dimensions (L x W x H)": "490 x 350 x 360 mm",
+                "Finish / Color": "French Gold (Glossy)"
+              },
+              "unit": "Pcs",
+              "price": 20570
+            },
+            {
+              "catalogueNo": "S1044148RG",
+              "productName": "CARLTON Rimless Wall-Hung EWC w/ Duroplast Seat",
+              "variant": "Rose Gold (Glossy)",
+              "specs": {
+                "Model Name": "CARLTON",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Duroplast Seat",
+                "Dimensions (L x W x H)": "490 x 350 x 360 mm",
+                "Finish / Color": "Rose Gold (Glossy)"
+              },
+              "unit": "Pcs",
+              "price": 20570
+            },
+            {
+              "catalogueNo": "S1044148PL",
+              "productName": "CARLTON Rimless Wall-Hung EWC w/ Duroplast Seat",
+              "variant": "Platinum (Glossy)",
+              "specs": {
+                "Model Name": "CARLTON",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Duroplast Seat",
+                "Dimensions (L x W x H)": "490 x 350 x 360 mm",
+                "Finish / Color": "Platinum (Glossy)"
+              },
+              "unit": "Pcs",
+              "price": 20570
+            },
+            {
+              "catalogueNo": "S1044147BG",
+              "productName": "CARLTON Rimless Wall-Hung EWC w/ Slim Soft Seat",
+              "variant": "Beige (Matte)",
+              "specs": {
+                "Model Name": "CARLTON",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Slim Soft Seat",
+                "Dimensions (L x W x H)": "490 x 350 x 360 mm",
+                "Finish / Color": "Beige (Matte)"
+              },
+              "unit": "Pcs",
+              "price": 18360
+            },
+            {
+              "catalogueNo": "S1044147CF",
+              "productName": "CARLTON Rimless Wall-Hung EWC w/ Slim Soft Seat",
+              "variant": "Coffee (Matte)",
+              "specs": {
+                "Model Name": "CARLTON",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Slim Soft Seat",
+                "Dimensions (L x W x H)": "490 x 350 x 360 mm",
+                "Finish / Color": "Coffee (Matte)"
+              },
+              "unit": "Pcs",
+              "price": 18360
+            },
+            {
+              "catalogueNo": "S1044147DG",
+              "productName": "CARLTON Rimless Wall-Hung EWC w/ Slim Soft Seat",
+              "variant": "Dark Grey (Matte)",
+              "specs": {
+                "Model Name": "CARLTON",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Slim Soft Seat",
+                "Dimensions (L x W x H)": "490 x 350 x 360 mm",
+                "Finish / Color": "Dark Grey (Matte)"
+              },
+              "unit": "Pcs",
+              "price": 18360
+            },
+            {
+              "catalogueNo": "S1044147BK",
+              "productName": "CARLTON Rimless Wall-Hung EWC w/ Slim Soft Seat",
+              "variant": "Silky Black",
+              "specs": {
+                "Model Name": "CARLTON",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Slim Soft Seat",
+                "Dimensions (L x W x H)": "490 x 350 x 360 mm",
+                "Finish / Color": "Silky Black"
+              },
+              "unit": "Pcs",
+              "price": 18360
+            }
+          ]
+        },
+        {
+          "name": "CAPITOL Wall-Hung EWC",
+          "products": [
+            {
+              "catalogueNo": "S1044150MB",
+              "productName": "CAPITOL Rimless Wall-Hung EWC w/ Soft Close Seat",
+              "variant": "Black (Matte)",
+              "specs": {
+                "Model Name": "CAPITOL",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Soft Close Seat",
+                "Dimensions (L x W x H)": "530 x 360 x 375 mm",
+                "Finish / Color": "Black (Matte)"
+              },
+              "unit": "Pcs",
+              "price": 24610
+            },
+            {
+              "catalogueNo": "S1044150",
+              "productName": "CAPITOL Wall-Hung EWC (P-Trap)",
+              "variant": "Snow White",
+              "specs": {
+                "Model Name": "CAPITOL",
+                "Description / Features": "Wall-Hung EWC (P-Trap)",
+                "Dimensions (L x W x H)": "530 x 360 x 375 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 19690
+            }
+          ]
+        },
+        {
+          "name": "CARNIVAL Rimless Wall-Hung EWC w/ Soft Close Seat",
+          "products": [
+            {
+              "catalogueNo": "S1044144MB",
+              "productName": "CARNIVAL Rimless Wall-Hung EWC w/ Soft Close Seat",
+              "variant": "Black (Matte Out/Gloss In)",
+              "specs": {
+                "Model Name": "CARNIVAL",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Soft Close Seat",
+                "Dimensions (L x W x H)": "510 x 365 x 380 mm",
+                "Finish / Color": "Black (Matte Out/Gloss In)"
+              },
+              "unit": "Pcs",
+              "price": 15630
+            },
+            {
+              "catalogueNo": "S1044144MW",
+              "productName": "CARNIVAL Rimless Wall-Hung EWC w/ Soft Close Seat",
+              "variant": "White (Matte Out/Gloss In)",
+              "specs": {
+                "Model Name": "CARNIVAL",
+                "Description / Features": "Rimless Wall-Hung EWC w/ Soft Close Seat",
+                "Dimensions (L x W x H)": "510 x 365 x 380 mm",
+                "Finish / Color": "White (Matte Out/Gloss In)"
+              },
+              "unit": "Pcs",
+              "price": 15630
+            }
+          ]
+        },
+        {
+          "name": "CRIOS SQUARE Tankless Wall-Hung EWC (P-Trap)",
+          "products": [
+            {
+              "catalogueNo": "S1045101",
+              "productName": "CRIOS SQUARE Tankless Wall-Hung EWC (P-Trap)",
+              "variant": "Snow White",
+              "specs": {
+                "Model Name": "CRIOS SQUARE",
+                "Description / Features": "Tankless Wall-Hung EWC (P-Trap)",
+                "Dimensions (L x W x H)": "590 x 360 x 385 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 29990
+            }
+          ]
+        },
+        {
+          "name": "CRIOS ROUND Tankless Wall-Hung EWC (P-Trap)",
+          "products": [
+            {
+              "catalogueNo": "S1045102",
+              "productName": "CRIOS ROUND Tankless Wall-Hung EWC (P-Trap)",
+              "variant": "Snow White",
+              "specs": {
+                "Model Name": "CRIOS ROUND",
+                "Description / Features": "Tankless Wall-Hung EWC (P-Trap)",
+                "Dimensions (L x W x H)": "580 x 360 x 380 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 25500
+            }
+          ]
+        },
+        {
+          "name": "CARTICA Rimless Wall-Hung EWC (P-Trap)",
+          "products": [
+            {
+              "catalogueNo": "S1044178",
+              "productName": "CARTICA Rimless Wall-Hung EWC (P-Trap)",
+              "variant": "Snow White",
+              "specs": {
+                "Model Name": "CARTICA",
+                "Description / Features": "Rimless Wall-Hung EWC (P-Trap)",
+                "Dimensions (L x W x H)": "530 x 365 x 375 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 20490
+            }
+          ]
+        },
+        {
+          "name": "CROMA Wall-Hung EWC (P-Trap)",
+          "products": [
+            {
+              "catalogueNo": "S1044177",
+              "productName": "CROMA Wall-Hung EWC (P-Trap)",
+              "variant": "Snow White",
+              "specs": {
+                "Model Name": "CROMA",
+                "Description / Features": "Wall-Hung EWC (P-Trap)",
+                "Dimensions (L x W x H)": "560 x 365 x 355 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 18490
+            }
+          ]
+        },
+        {
+          "name": "CARTIER Wall-Hung EWC (P-Trap)",
+          "products": [
+            {
+              "catalogueNo": "S1044149",
+              "productName": "CARTIER Wall-Hung EWC (P-Trap)",
+              "variant": "Snow White",
+              "specs": {
+                "Model Name": "CARTIER",
+                "Description / Features": "Wall-Hung EWC (P-Trap)",
+                "Dimensions (L x W x H)": "530 x 350 x 375 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 17490
+            }
+          ]
+        },
+        {
+          "name": "CELEBRATE-3D One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013223MB",
+              "productName": "CELEBRATE-3D One-Piece EWC",
+              "variant": "S Trap 300 mm · Matte Black",
+              "specs": {
+                "Model Name": "CELEBRATE-3D",
+                "Trap Type / Size": "S Trap 300 mm",
+                "Dimensions (L x W x H)": "660 x 360 x 730 mm",
+                "Finish / Color": "Matte Black"
+              },
+              "unit": "Pcs",
+              "price": 19990
+            }
+          ]
+        },
+        {
+          "name": "CELEBRATE One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013231MB",
+              "productName": "CELEBRATE One-Piece EWC",
+              "variant": "S Trap 220 mm · Matte Black",
+              "specs": {
+                "Model Name": "CELEBRATE",
+                "Trap Type / Size": "S Trap 220 mm",
+                "Dimensions (L x W x H)": "660 x 360 x 730 mm",
+                "Finish / Color": "Matte Black"
+              },
+              "unit": "Pcs",
+              "price": 19990
+            }
+          ]
+        },
+        {
+          "name": "CHARM 6D One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013271",
+              "productName": "CHARM 6D One-Piece EWC",
+              "variant": "S Trap 300 mm · Snow White",
+              "specs": {
+                "Model Name": "CHARM 6D",
+                "Trap Type / Size": "S Trap 300 mm",
+                "Dimensions (L x W x H)": "650 x 355 x 745 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 19490
+            }
+          ]
+        },
+        {
+          "name": "CAMPER One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013206",
+              "productName": "CAMPER One-Piece EWC",
+              "variant": "S Trap 220 mm · Snow White",
+              "specs": {
+                "Model Name": "CAMPER",
+                "Trap Type / Size": "S Trap 220 mm",
+                "Dimensions (L x W x H)": "640 x 360 x 765 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 18990
+            }
+          ]
+        },
+        {
+          "name": "CANYON-6D One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013225",
+              "productName": "CANYON-6D One-Piece EWC",
+              "variant": "S Trap 300 mm · Snow White",
+              "specs": {
+                "Model Name": "CANYON-6D",
+                "Trap Type / Size": "S Trap 300 mm",
+                "Dimensions (L x W x H)": "670 x 355 x 755 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 18490
+            }
+          ]
+        },
+        {
+          "name": "CEREMONY 5D One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013207",
+              "productName": "CEREMONY 5D One-Piece EWC",
+              "variant": "S Trap 220 mm · Snow White",
+              "specs": {
+                "Model Name": "CEREMONY 5D",
+                "Trap Type / Size": "S Trap 220 mm",
+                "Dimensions (L x W x H)": "655 x 355 x 735 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 17990
+            }
+          ]
+        },
+        {
+          "name": "CLAYTON PRO One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013247",
+              "productName": "CLAYTON PRO One-Piece EWC",
+              "variant": "S Trap 300 mm · Snow White",
+              "specs": {
+                "Model Name": "CLAYTON PRO",
+                "Trap Type / Size": "S Trap 300 mm",
+                "Dimensions (L x W x H)": "650 x 345 x 720 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 17490
+            }
+          ]
+        },
+        {
+          "name": "CETA 3D One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013178",
+              "productName": "CETA 3D One-Piece EWC",
+              "variant": "S Trap 220 mm · Snow White",
+              "specs": {
+                "Model Name": "CETA 3D",
+                "Trap Type / Size": "S Trap 220 mm",
+                "Dimensions (L x W x H)": "680 x 360 x 720 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 17190
+            }
+          ]
+        },
+        {
+          "name": "CURA-6D One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013230",
+              "productName": "CURA-6D One-Piece EWC",
+              "variant": "S Trap 220 mm · Snow White",
+              "specs": {
+                "Model Name": "CURA-6D",
+                "Trap Type / Size": "S Trap 220 mm",
+                "Dimensions (L x W x H)": "660 x 350 x 745 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 16990
+            }
+          ]
+        },
+        {
+          "name": "CHIVE One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013237",
+              "productName": "CHIVE One-Piece EWC",
+              "variant": "S Trap 300 mm · Snow White",
+              "specs": {
+                "Model Name": "CHIVE",
+                "Trap Type / Size": "S Trap 300 mm",
+                "Dimensions (L x W x H)": "675 x 360 x 765 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 16490
+            }
+          ]
+        },
+        {
+          "name": "CONA One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013240",
+              "productName": "CONA One-Piece EWC",
+              "variant": "S Trap 300 mm · Snow White",
+              "specs": {
+                "Model Name": "CONA",
+                "Trap Type / Size": "S Trap 300 mm",
+                "Dimensions (L x W x H)": "690 x 360 x 740 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 14290
+            }
+          ]
+        },
+        {
+          "name": "CUB JUNIOR One-Piece EWC",
+          "products": [
+            {
+              "catalogueNo": "S1013221",
+              "productName": "CUB JUNIOR One-Piece EWC",
+              "variant": "S Trap 150 mm · Snow White",
+              "specs": {
+                "Model Name": "CUB JUNIOR",
+                "Trap Type / Size": "S Trap 150 mm",
+                "Dimensions (L x W x H)": "500 x 275 x 580 mm",
+                "Finish / Color": "Snow White"
+              },
+              "unit": "Pcs",
+              "price": 9990
+            }
+          ]
+        },
+        {
+          "name": "H Knob - Concealed Cistern Control",
+          "products": [
+            {
+              "catalogueNo": "B1120101FG",
+              "productName": "H Knob - Concealed Cistern Control",
+              "variant": "French Gold",
+              "specs": {
+                "Item Name": "H Knob - Concealed Cistern Control",
+                "Finish / Description": "French Gold"
+              },
+              "unit": "Pcs",
+              "price": 2460
+            },
+            {
+              "catalogueNo": "B1120101RG",
+              "productName": "H Knob - Concealed Cistern Control",
+              "variant": "Rose Gold",
+              "specs": {
+                "Item Name": "H Knob - Concealed Cistern Control",
+                "Finish / Description": "Rose Gold"
+              },
+              "unit": "Pcs",
+              "price": 2460
+            },
+            {
+              "catalogueNo": "B1120122MB",
+              "productName": "H Knob - Concealed Cistern Control",
+              "variant": "Matte Black",
+              "specs": {
+                "Item Name": "H Knob - Concealed Cistern Control",
+                "Finish / Description": "Matte Black"
+              },
+              "unit": "Pcs",
+              "price": 2460
+            }
+          ]
+        },
+        {
+          "name": "Q Knob - Concealed Cistern Control",
+          "products": [
+            {
+              "catalogueNo": "B1120104FG",
+              "productName": "Q Knob - Concealed Cistern Control",
+              "variant": "French Gold",
+              "specs": {
+                "Item Name": "Q Knob - Concealed Cistern Control",
+                "Finish / Description": "French Gold"
+              },
+              "unit": "Pcs",
+              "price": 2460
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sink",
+      "name": "Sink",
+      "shortName": "Sink",
+      "icon": "kitchen",
+      "imageAsset": "",
+      "description": "Stainless steel and quartz kitchen sinks",
+      "groups": [
+        {
+          "name": "Stainless Steel Kitchen Sink (Single Bowl)",
+          "products": [
+            {
+              "catalogueNo": "K4010101",
+              "productName": "Stainless Steel Kitchen Sink (Single Bowl)",
+              "variant": "24 x 18 in",
+              "specs": {
+                "Item Name": "Stainless Steel Kitchen Sink",
+                "Size / Type": "Single Bowl",
+                "Dimensions (L x W x H)": "610 x 460 x 200 mm",
+                "Finish / Color": "Satin Steel"
+              },
+              "unit": "Pcs",
+              "price": 4450
+            },
+            {
+              "catalogueNo": "K4010102",
+              "productName": "Stainless Steel Kitchen Sink (Single Bowl)",
+              "variant": "32 x 20 in",
+              "specs": {
+                "Item Name": "Stainless Steel Kitchen Sink",
+                "Size / Type": "Single Bowl",
+                "Dimensions (L x W x H)": "810 x 510 x 230 mm",
+                "Finish / Color": "Satin Steel"
+              },
+              "unit": "Pcs",
+              "price": 6200
+            }
+          ]
+        },
+        {
+          "name": "Stainless Steel Kitchen Sink (Bowl with Drainboard)",
+          "products": [
+            {
+              "catalogueNo": "K4010201",
+              "productName": "Stainless Steel Kitchen Sink (Bowl with Drainboard)",
+              "variant": "37 x 18 in",
+              "specs": {
+                "Item Name": "Stainless Steel Kitchen Sink",
+                "Size / Type": "Bowl with Drainboard",
+                "Dimensions (L x W x H)": "940 x 460 x 200 mm",
+                "Finish / Color": "Satin Steel"
+              },
+              "unit": "Pcs",
+              "price": 5650
+            }
+          ]
+        },
+        {
+          "name": "Quartz Kitchen Sink (Single Bowl)",
+          "products": [
+            {
+              "catalogueNo": "K4020101BK",
+              "productName": "Quartz Kitchen Sink (Single Bowl)",
+              "variant": "Black",
+              "specs": {
+                "Item Name": "Quartz Kitchen Sink",
+                "Size / Type": "Single Bowl",
+                "Dimensions (L x W x H)": "760 x 460 x 220 mm",
+                "Finish / Color": "Black"
+              },
+              "unit": "Pcs",
+              "price": 11800
+            },
+            {
+              "catalogueNo": "K4020101GR",
+              "productName": "Quartz Kitchen Sink (Single Bowl)",
+              "variant": "Grey",
+              "specs": {
+                "Item Name": "Quartz Kitchen Sink",
+                "Size / Type": "Single Bowl",
+                "Dimensions (L x W x H)": "760 x 460 x 220 mm",
+                "Finish / Color": "Grey"
+              },
+              "unit": "Pcs",
+              "price": 11800
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shower",
+      "name": "Shower",
+      "shortName": "Shower",
+      "icon": "shower",
+      "imageAsset": "",
+      "description": "Overhead rain showers, hand showers and shower arms",
+      "groups": [
+        {
+          "name": "Overhead Rain Shower (Round)",
+          "products": [
+            {
+              "catalogueNo": "H5010101CP",
+              "productName": "Overhead Rain Shower (Round)",
+              "variant": "200 mm · Chrome",
+              "specs": {
+                "Item Name": "Overhead Rain Shower (Round)",
+                "Size / Type": "200 mm",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 2150
+            },
+            {
+              "catalogueNo": "H5010102CP",
+              "productName": "Overhead Rain Shower (Round)",
+              "variant": "250 mm · Chrome",
+              "specs": {
+                "Item Name": "Overhead Rain Shower (Round)",
+                "Size / Type": "250 mm",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 2850
+            },
+            {
+              "catalogueNo": "H5010102MB",
+              "productName": "Overhead Rain Shower (Round)",
+              "variant": "250 mm · Matte Black",
+              "specs": {
+                "Item Name": "Overhead Rain Shower (Round)",
+                "Size / Type": "250 mm",
+                "Finish / Color": "Matte Black"
+              },
+              "unit": "Pcs",
+              "price": 3450
+            }
+          ]
+        },
+        {
+          "name": "Hand Shower with Hose",
+          "products": [
+            {
+              "catalogueNo": "H5020101CP",
+              "productName": "Hand Shower with Hose",
+              "variant": "Single Flow · Chrome",
+              "specs": {
+                "Item Name": "Hand Shower with 1.5 m Hose",
+                "Size / Type": "Single Flow",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 1150
+            },
+            {
+              "catalogueNo": "H5020102CP",
+              "productName": "Hand Shower with Hose",
+              "variant": "Multi Flow · Chrome",
+              "specs": {
+                "Item Name": "Hand Shower with 1.5 m Hose",
+                "Size / Type": "Multi Flow",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 1650
+            }
+          ]
+        },
+        {
+          "name": "Shower Arm",
+          "products": [
+            {
+              "catalogueNo": "H5030101CP",
+              "productName": "Shower Arm",
+              "variant": "375 mm · Chrome",
+              "specs": {
+                "Item Name": "Shower Arm with Wall Flange",
+                "Size / Type": "375 mm",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 720
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "waste-pipe",
+      "name": "Waste Pipe",
+      "shortName": "Waste Pipe",
+      "icon": "plumbing",
+      "imageAsset": "",
+      "description": "Pop-up waste couplings, bottle traps and flexible waste pipes",
+      "groups": [
+        {
+          "name": "Waste Coupling with Pop-Up Push Type",
+          "products": [
+            {
+              "catalogueNo": "F8050351FG",
+              "productName": "Waste Coupling with Pop-Up Push Type",
+              "variant": "French Gold",
+              "specs": {
+                "Item Name": "Waste Coupling with Pop-Up Push Type",
+                "Finish / Description": "French Gold"
+              },
+              "unit": "Pcs",
+              "price": 1680
+            },
+            {
+              "catalogueNo": "F8050351RG",
+              "productName": "Waste Coupling with Pop-Up Push Type",
+              "variant": "Rose Gold",
+              "specs": {
+                "Item Name": "Waste Coupling with Pop-Up Push Type",
+                "Finish / Description": "Rose Gold"
+              },
+              "unit": "Pcs",
+              "price": 1680
+            }
+          ]
+        },
+        {
+          "name": "PVC Bottle Trap",
+          "products": [
+            {
+              "catalogueNo": "F8060101",
+              "productName": "PVC Bottle Trap",
+              "variant": "32 mm",
+              "specs": {
+                "Item Name": "PVC Bottle Trap for Wash Basin",
+                "Size / Type": "32 mm",
+                "Finish / Color": "White"
+              },
+              "unit": "Pcs",
+              "price": 390
+            }
+          ]
+        },
+        {
+          "name": "Flexible Waste Pipe",
+          "products": [
+            {
+              "catalogueNo": "F8070101",
+              "productName": "Flexible Waste Pipe",
+              "variant": "32 mm · 750 mm",
+              "specs": {
+                "Item Name": "Flexible Waste Pipe",
+                "Size / Type": "32 mm x 750 mm",
+                "Finish / Color": "White"
+              },
+              "unit": "Pcs",
+              "price": 260
+            },
+            {
+              "catalogueNo": "F8070102",
+              "productName": "Flexible Waste Pipe",
+              "variant": "40 mm · 1000 mm",
+              "specs": {
+                "Item Name": "Flexible Waste Pipe",
+                "Size / Type": "40 mm x 1000 mm",
+                "Finish / Color": "White"
+              },
+              "unit": "Pcs",
+              "price": 340
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wash-basin",
+      "name": "Wash Basin",
+      "shortName": "Wash Basin",
+      "icon": "wash",
+      "imageAsset": "",
+      "description": "Thin rim table top wash basins in metallic, matte and gloss finishes",
+      "groups": [
+        {
+          "name": "CARMONA Thin Rim Table Top Wash Basin",
+          "products": [
+            {
+              "catalogueNo": "S2020162FG",
+              "productName": "CARMONA Thin Rim Table Top Wash Basin",
+              "variant": "French Gold",
+              "specs": {
+                "Model Name": "CARMONA",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "490 x 390 x 110 mm",
+                "Finish / Color": "French Gold"
+              },
+              "unit": "Pcs",
+              "price": 10910
+            },
+            {
+              "catalogueNo": "S2020162RG",
+              "productName": "CARMONA Thin Rim Table Top Wash Basin",
+              "variant": "Rose Gold",
+              "specs": {
+                "Model Name": "CARMONA",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "490 x 390 x 110 mm",
+                "Finish / Color": "Rose Gold"
+              },
+              "unit": "Pcs",
+              "price": 10910
+            },
+            {
+              "catalogueNo": "S2020162PL",
+              "productName": "CARMONA Thin Rim Table Top Wash Basin",
+              "variant": "Platinum",
+              "specs": {
+                "Model Name": "CARMONA",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "490 x 390 x 110 mm",
+                "Finish / Color": "Platinum"
+              },
+              "unit": "Pcs",
+              "price": 10910
+            }
+          ]
+        },
+        {
+          "name": "CATMID Thin Rim Table Top Wash Basin",
+          "products": [
+            {
+              "catalogueNo": "S2020158FG",
+              "productName": "CATMID Thin Rim Table Top Wash Basin",
+              "variant": "French Gold",
+              "specs": {
+                "Model Name": "CATMID",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "550 x 380 x 110 mm",
+                "Finish / Color": "French Gold"
+              },
+              "unit": "Pcs",
+              "price": 10360
+            },
+            {
+              "catalogueNo": "S2020158RG",
+              "productName": "CATMID Thin Rim Table Top Wash Basin",
+              "variant": "Rose Gold",
+              "specs": {
+                "Model Name": "CATMID",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "550 x 380 x 110 mm",
+                "Finish / Color": "Rose Gold"
+              },
+              "unit": "Pcs",
+              "price": 10360
+            },
+            {
+              "catalogueNo": "S2020158PL",
+              "productName": "CATMID Thin Rim Table Top Wash Basin",
+              "variant": "Platinum",
+              "specs": {
+                "Model Name": "CATMID",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "550 x 380 x 110 mm",
+                "Finish / Color": "Platinum"
+              },
+              "unit": "Pcs",
+              "price": 10360
+            },
+            {
+              "catalogueNo": "S2020158BG",
+              "productName": "CATMID Thin Rim Table Top Wash Basin",
+              "variant": "Beige",
+              "specs": {
+                "Model Name": "CATMID",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "550 x 380 x 110 mm",
+                "Finish / Color": "Beige"
+              },
+              "unit": "Pcs",
+              "price": 9250
+            },
+            {
+              "catalogueNo": "S2020158CF",
+              "productName": "CATMID Thin Rim Table Top Wash Basin",
+              "variant": "Coffee",
+              "specs": {
+                "Model Name": "CATMID",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "550 x 380 x 110 mm",
+                "Finish / Color": "Coffee"
+              },
+              "unit": "Pcs",
+              "price": 9250
+            },
+            {
+              "catalogueNo": "S2020158DG",
+              "productName": "CATMID Thin Rim Table Top Wash Basin",
+              "variant": "Dark Grey",
+              "specs": {
+                "Model Name": "CATMID",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "550 x 380 x 110 mm",
+                "Finish / Color": "Dark Grey"
+              },
+              "unit": "Pcs",
+              "price": 9250
+            },
+            {
+              "catalogueNo": "S2020158MB",
+              "productName": "CATMID Thin Rim Table Top Wash Basin",
+              "variant": "Matt Black",
+              "specs": {
+                "Model Name": "CATMID",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "550 x 380 x 110 mm",
+                "Finish / Color": "Matt Black"
+              },
+              "unit": "Pcs",
+              "price": 9250
+            }
+          ]
+        },
+        {
+          "name": "CATMEGA Thin Rim Table Top Wash Basin",
+          "products": [
+            {
+              "catalogueNo": "S2020160MB",
+              "productName": "CATMEGA Thin Rim Table Top Wash Basin",
+              "variant": "Black",
+              "specs": {
+                "Model Name": "CATMEGA",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "710 x 370 x 120 mm",
+                "Finish / Color": "Black"
+              },
+              "unit": "Pcs",
+              "price": 17500
+            }
+          ]
+        },
+        {
+          "name": "CAFÉ Thin Rim Table Top Wash Basin",
+          "products": [
+            {
+              "catalogueNo": "S2020103MW",
+              "productName": "CAFÉ Thin Rim Table Top Wash Basin",
+              "variant": "White (Matte Out/Gloss In)",
+              "specs": {
+                "Model Name": "CAFÉ",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "600 x 400 x 160 mm",
+                "Finish / Color": "White (Matte Out/Gloss In)"
+              },
+              "unit": "Pcs",
+              "price": 9450
+            }
+          ]
+        },
+        {
+          "name": "COYAL Thin Rim Table Top Wash Basin",
+          "products": [
+            {
+              "catalogueNo": "S2020105MB",
+              "productName": "COYAL Thin Rim Table Top Wash Basin",
+              "variant": "Black",
+              "specs": {
+                "Model Name": "COYAL",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "460 x 460 x 160 mm",
+                "Finish / Color": "Black"
+              },
+              "unit": "Pcs",
+              "price": 6250
+            }
+          ]
+        },
+        {
+          "name": "CAMPA Thin Rim Table Top Wash Basin",
+          "products": [
+            {
+              "catalogueNo": "S2020101MB",
+              "productName": "CAMPA Thin Rim Table Top Wash Basin",
+              "variant": "Black",
+              "specs": {
+                "Model Name": "CAMPA",
+                "Product Type": "Thin Rim Table Top Wash Basin",
+                "Dimensions (L x W x H)": "450 x 400 x 160 mm",
+                "Finish / Color": "Black"
+              },
+              "unit": "Pcs",
+              "price": 7190
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "valve",
+      "name": "Valve",
+      "shortName": "Valve",
+      "icon": "tune",
+      "imageAsset": "",
+      "description": "Angle valves, concealed stop cocks and ball valves",
+      "groups": [
+        {
+          "name": "Angle Valve",
+          "products": [
+            {
+              "catalogueNo": "V6010101CP",
+              "productName": "Angle Valve",
+              "variant": "15 mm · Chrome",
+              "specs": {
+                "Item Name": "Angle Valve with Wall Flange",
+                "Size / Type": "15 mm",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 620
+            },
+            {
+              "catalogueNo": "V6010101MB",
+              "productName": "Angle Valve",
+              "variant": "15 mm · Matte Black",
+              "specs": {
+                "Item Name": "Angle Valve with Wall Flange",
+                "Size / Type": "15 mm",
+                "Finish / Color": "Matte Black"
+              },
+              "unit": "Pcs",
+              "price": 780
+            }
+          ]
+        },
+        {
+          "name": "Concealed Stop Cock",
+          "products": [
+            {
+              "catalogueNo": "V6020101CP",
+              "productName": "Concealed Stop Cock",
+              "variant": "15 mm · Chrome",
+              "specs": {
+                "Item Name": "Concealed Stop Cock",
+                "Size / Type": "15 mm",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 1350
+            },
+            {
+              "catalogueNo": "V6020102CP",
+              "productName": "Concealed Stop Cock",
+              "variant": "20 mm · Chrome",
+              "specs": {
+                "Item Name": "Concealed Stop Cock",
+                "Size / Type": "20 mm",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 1550
+            }
+          ]
+        },
+        {
+          "name": "Brass Ball Valve",
+          "products": [
+            {
+              "catalogueNo": "V6030101",
+              "productName": "Brass Ball Valve",
+              "variant": "15 mm",
+              "specs": {
+                "Item Name": "Brass Ball Valve (Lever Handle)",
+                "Size / Type": "15 mm",
+                "Finish / Color": "Brass"
+              },
+              "unit": "Pcs",
+              "price": 420
+            },
+            {
+              "catalogueNo": "V6030102",
+              "productName": "Brass Ball Valve",
+              "variant": "25 mm",
+              "specs": {
+                "Item Name": "Brass Ball Valve (Lever Handle)",
+                "Size / Type": "25 mm",
+                "Finish / Color": "Brass"
+              },
+              "unit": "Pcs",
+              "price": 760
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hose",
+      "name": "Hose",
+      "shortName": "Hose",
+      "icon": "gesture",
+      "imageAsset": "",
+      "description": "Connection pipes, shower hoses and health faucet hoses",
+      "groups": [
+        {
+          "name": "Stainless Steel Connection Pipe",
+          "products": [
+            {
+              "catalogueNo": "C7010101",
+              "productName": "Stainless Steel Connection Pipe",
+              "variant": "450 mm",
+              "specs": {
+                "Item Name": "Stainless Steel Braided Connection Pipe",
+                "Size / Type": "15 mm x 450 mm",
+                "Finish / Color": "Steel"
+              },
+              "unit": "Pcs",
+              "price": 210
+            },
+            {
+              "catalogueNo": "C7010102",
+              "productName": "Stainless Steel Connection Pipe",
+              "variant": "600 mm",
+              "specs": {
+                "Item Name": "Stainless Steel Braided Connection Pipe",
+                "Size / Type": "15 mm x 600 mm",
+                "Finish / Color": "Steel"
+              },
+              "unit": "Pcs",
+              "price": 250
+            },
+            {
+              "catalogueNo": "C7010103",
+              "productName": "Stainless Steel Connection Pipe",
+              "variant": "750 mm",
+              "specs": {
+                "Item Name": "Stainless Steel Braided Connection Pipe",
+                "Size / Type": "15 mm x 750 mm",
+                "Finish / Color": "Steel"
+              },
+              "unit": "Pcs",
+              "price": 290
+            }
+          ]
+        },
+        {
+          "name": "Shower Hose (PVC)",
+          "products": [
+            {
+              "catalogueNo": "C7020101",
+              "productName": "Shower Hose (PVC)",
+              "variant": "1.0 m",
+              "specs": {
+                "Item Name": "PVC Shower Hose",
+                "Size / Type": "1.0 m",
+                "Finish / Color": "Silver"
+              },
+              "unit": "Pcs",
+              "price": 240
+            },
+            {
+              "catalogueNo": "C7020102",
+              "productName": "Shower Hose (PVC)",
+              "variant": "1.5 m",
+              "specs": {
+                "Item Name": "PVC Shower Hose",
+                "Size / Type": "1.5 m",
+                "Finish / Color": "Silver"
+              },
+              "unit": "Pcs",
+              "price": 320
+            }
+          ]
+        },
+        {
+          "name": "Health Faucet Hose",
+          "products": [
+            {
+              "catalogueNo": "C7030101",
+              "productName": "Health Faucet Hose",
+              "variant": "1.2 m",
+              "specs": {
+                "Item Name": "Stainless Steel Health Faucet Hose",
+                "Size / Type": "1.2 m",
+                "Finish / Color": "Chrome"
+              },
+              "unit": "Pcs",
+              "price": 380
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

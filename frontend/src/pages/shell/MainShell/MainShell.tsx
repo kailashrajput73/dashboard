@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AppRoutes } from '../../../routes/appRoutes';
 import type { CategoryBrowseArgs } from '../../../routes/appRoutes';
 import type { HomeCategory } from '../../../services/catalog/catalogModels';
 import catalogMock from '../../../mocks/catalog_mock_data.json';
+import { useSession } from '../../../session/SessionContext';
 import { HomeDashboard } from '../../home/HomeDashboard';
 import { StorefrontHeader } from '../../../shared/StorefrontHeader';
-import { WebSideMenu } from '../../../shared/WebSideMenu';
 import { StorefrontFooter } from '../../../shared/StorefrontFooter';
+import { WebSideMenu } from '../../../shared/WebSideMenu';
 import mock from './MainShell.mock.json';
 import {
   Shell,
@@ -56,8 +57,13 @@ export function MainShell() {
   };
   const openAiAssistant = () => navigate(AppRoutes.aiAssistant);
 
+  const { isLoggedIn, user } = useSession();
+
   const showAi = index === 0;
   const current = tabs[index];
+
+  // Admins get their own dashboard instead of the storefront.
+  if (isLoggedIn && user.isAdmin) return <Navigate to={AppRoutes.adminDashboard} replace />;
 
   return (
     <Shell>
@@ -66,7 +72,7 @@ export function MainShell() {
       <ShellBody>
         <WebSideMenu
           activeTab={current.tab}
-          onSelectTab={(tab) => setIndex(tabs.indexOf(tab))}
+          onSelectTab={(tab) => setIndex(tabIndex(tab.tab))}
           showAi={showAi}
         />
 
@@ -85,14 +91,14 @@ export function MainShell() {
         </Main>
       </ShellBody>
 
+      <StorefrontFooter webOnly />
+
       {showAi && (
         <Fab
           type="button"
           title={mock.floatingActionButton.tooltip}
           aria-label={mock.floatingActionButton.tooltip}
           onClick={openAiAssistant}
-      <StorefrontFooter webOnly />
-
         >
           <i className={`pi ${mock.floatingActionButton.icon}`} aria-hidden="true" />
         </Fab>

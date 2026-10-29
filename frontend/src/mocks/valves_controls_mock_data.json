@@ -1,0 +1,1721 @@
+{
+  "category": "Valves & Controls",
+  "description": "Ball, gate, check, butterfly, float and foot valves, PRVs and angle cocks",
+  "categories": [
+    {
+      "id": "ball-valve",
+      "name": "Ball Valve",
+      "shortName": "Ball Valve",
+      "icon": "tune",
+      "imageAsset": "",
+      "description": "Brass, CPVC and UPVC ball valves",
+      "groups": [
+        {
+          "name": "Brass Ball Valve Full Bore",
+          "products": [
+            {
+              "catalogueNo": "VCB1B015",
+              "productName": "Brass Ball Valve Full Bore",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Lever",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 210
+            },
+            {
+              "catalogueNo": "VCB1B020",
+              "productName": "Brass Ball Valve Full Bore",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Lever",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 18,
+              "unit": "Pcs",
+              "price": 305
+            },
+            {
+              "catalogueNo": "VCB1B025",
+              "productName": "Brass Ball Valve Full Bore",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Lever",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 12,
+              "unit": "Pcs",
+              "price": 440
+            },
+            {
+              "catalogueNo": "VCB1B032",
+              "productName": "Brass Ball Valve Full Bore",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Lever",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 695
+            },
+            {
+              "catalogueNo": "VCB1B040",
+              "productName": "Brass Ball Valve Full Bore",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Lever",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 965
+            },
+            {
+              "catalogueNo": "VCB1B050",
+              "productName": "Brass Ball Valve Full Bore",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Lever",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 1430
+            }
+          ]
+        },
+        {
+          "name": "CPVC Ball Valve",
+          "products": [
+            {
+              "catalogueNo": "VCB2C015",
+              "productName": "CPVC Ball Valve",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "CPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 120
+            },
+            {
+              "catalogueNo": "VCB2C020",
+              "productName": "CPVC Ball Valve",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "CPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 18,
+              "unit": "Pcs",
+              "price": 175
+            },
+            {
+              "catalogueNo": "VCB2C025",
+              "productName": "CPVC Ball Valve",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "CPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 12,
+              "unit": "Pcs",
+              "price": 250
+            },
+            {
+              "catalogueNo": "VCB2C032",
+              "productName": "CPVC Ball Valve",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "CPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 395
+            },
+            {
+              "catalogueNo": "VCB2C040",
+              "productName": "CPVC Ball Valve",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "CPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 550
+            },
+            {
+              "catalogueNo": "VCB2C050",
+              "productName": "CPVC Ball Valve",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "CPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 815
+            }
+          ]
+        },
+        {
+          "name": "UPVC Ball Valve SCH 80",
+          "products": [
+            {
+              "catalogueNo": "VCB3U015",
+              "productName": "UPVC Ball Valve SCH 80",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 135
+            },
+            {
+              "catalogueNo": "VCB3U020",
+              "productName": "UPVC Ball Valve SCH 80",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 18,
+              "unit": "Pcs",
+              "price": 195
+            },
+            {
+              "catalogueNo": "VCB3U025",
+              "productName": "UPVC Ball Valve SCH 80",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 12,
+              "unit": "Pcs",
+              "price": 285
+            },
+            {
+              "catalogueNo": "VCB3U032",
+              "productName": "UPVC Ball Valve SCH 80",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 445
+            },
+            {
+              "catalogueNo": "VCB3U040",
+              "productName": "UPVC Ball Valve SCH 80",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 620
+            },
+            {
+              "catalogueNo": "VCB3U050",
+              "productName": "UPVC Ball Valve SCH 80",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 16",
+                "Handle": "Lever",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 920
+            }
+          ]
+        },
+        {
+          "name": "Brass Ball Valve Butterfly Handle",
+          "products": [
+            {
+              "catalogueNo": "VCB4B015",
+              "productName": "Brass Ball Valve Butterfly Handle",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Butterfly",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 185
+            },
+            {
+              "catalogueNo": "VCB4B020",
+              "productName": "Brass Ball Valve Butterfly Handle",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Butterfly",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 18,
+              "unit": "Pcs",
+              "price": 270
+            },
+            {
+              "catalogueNo": "VCB4B025",
+              "productName": "Brass Ball Valve Butterfly Handle",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Butterfly",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 12,
+              "unit": "Pcs",
+              "price": 390
+            },
+            {
+              "catalogueNo": "VCB4B032",
+              "productName": "Brass Ball Valve Butterfly Handle",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Ball Valve",
+                "Material": "Forged Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Handle": "Butterfly",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 610
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gate-valve",
+      "name": "Gate Valve",
+      "shortName": "Gate Valve",
+      "icon": "vertical_align_center",
+      "imageAsset": "",
+      "description": "Bronze and cast-iron gate valves",
+      "groups": [
+        {
+          "name": "Bronze Gate Valve",
+          "products": [
+            {
+              "catalogueNo": "VCG1Z015",
+              "productName": "Bronze Gate Valve",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Operation": "Hand Wheel",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 20,
+              "unit": "Pcs",
+              "price": 360
+            },
+            {
+              "catalogueNo": "VCG1Z020",
+              "productName": "Bronze Gate Valve",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Operation": "Hand Wheel",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 520
+            },
+            {
+              "catalogueNo": "VCG1Z025",
+              "productName": "Bronze Gate Valve",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Operation": "Hand Wheel",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 755
+            },
+            {
+              "catalogueNo": "VCG1Z032",
+              "productName": "Bronze Gate Valve",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Operation": "Hand Wheel",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 1190
+            },
+            {
+              "catalogueNo": "VCG1Z040",
+              "productName": "Bronze Gate Valve",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Operation": "Hand Wheel",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 5,
+              "unit": "Pcs",
+              "price": 1655
+            },
+            {
+              "catalogueNo": "VCG1Z050",
+              "productName": "Bronze Gate Valve",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Operation": "Hand Wheel",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 2450
+            }
+          ]
+        },
+        {
+          "name": "Cast Iron Gate Valve Flanged",
+          "products": [
+            {
+              "catalogueNo": "VCG2I050",
+              "productName": "Cast Iron Gate Valve Flanged",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Cast Iron",
+                "End Connection": "Flanged",
+                "Pressure Rating": "PN 10",
+                "Operation": "Hand Wheel",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 3535
+            },
+            {
+              "catalogueNo": "VCG2I065",
+              "productName": "Cast Iron Gate Valve Flanged",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Cast Iron",
+                "End Connection": "Flanged",
+                "Pressure Rating": "PN 10",
+                "Operation": "Hand Wheel",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 5,
+              "unit": "Pcs",
+              "price": 5460
+            },
+            {
+              "catalogueNo": "VCG2I080",
+              "productName": "Cast Iron Gate Valve Flanged",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Cast Iron",
+                "End Connection": "Flanged",
+                "Pressure Rating": "PN 10",
+                "Operation": "Hand Wheel",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 7540
+            },
+            {
+              "catalogueNo": "VCG2I100",
+              "productName": "Cast Iron Gate Valve Flanged",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Cast Iron",
+                "End Connection": "Flanged",
+                "Pressure Rating": "PN 10",
+                "Operation": "Hand Wheel",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 2,
+              "unit": "Pcs",
+              "price": 11440
+            },
+            {
+              "catalogueNo": "VCG2I150",
+              "productName": "Cast Iron Gate Valve Flanged",
+              "variant": "6\" (150 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Cast Iron",
+                "End Connection": "Flanged",
+                "Pressure Rating": "PN 10",
+                "Operation": "Hand Wheel",
+                "Size": "6\" / 150 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 1,
+              "unit": "Pcs",
+              "price": 23920
+            }
+          ]
+        },
+        {
+          "name": "Brass Gate Valve Light",
+          "products": [
+            {
+              "catalogueNo": "VCG3B015",
+              "productName": "Brass Gate Valve Light",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Operation": "Hand Wheel",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 20,
+              "unit": "Pcs",
+              "price": 240
+            },
+            {
+              "catalogueNo": "VCG3B020",
+              "productName": "Brass Gate Valve Light",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Operation": "Hand Wheel",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 350
+            },
+            {
+              "catalogueNo": "VCG3B025",
+              "productName": "Brass Gate Valve Light",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Operation": "Hand Wheel",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 505
+            },
+            {
+              "catalogueNo": "VCG3B032",
+              "productName": "Brass Gate Valve Light",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Gate Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Operation": "Hand Wheel",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 790
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "check-valve",
+      "name": "Check Valve",
+      "shortName": "Check Valve",
+      "icon": "swap_horiz",
+      "imageAsset": "",
+      "description": "Non-return (NRV) swing and spring checks",
+      "groups": [
+        {
+          "name": "Bronze Swing Check Valve",
+          "products": [
+            {
+              "catalogueNo": "VCN1Z015",
+              "productName": "Bronze Swing Check Valve",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Swing Check Valve (NRV)",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Horizontal",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 20,
+              "unit": "Pcs",
+              "price": 330
+            },
+            {
+              "catalogueNo": "VCN1Z020",
+              "productName": "Bronze Swing Check Valve",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Swing Check Valve (NRV)",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Horizontal",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 480
+            },
+            {
+              "catalogueNo": "VCN1Z025",
+              "productName": "Bronze Swing Check Valve",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Swing Check Valve (NRV)",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Horizontal",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 695
+            },
+            {
+              "catalogueNo": "VCN1Z032",
+              "productName": "Bronze Swing Check Valve",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Swing Check Valve (NRV)",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Horizontal",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 1090
+            },
+            {
+              "catalogueNo": "VCN1Z040",
+              "productName": "Bronze Swing Check Valve",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Swing Check Valve (NRV)",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Horizontal",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 5,
+              "unit": "Pcs",
+              "price": 1520
+            },
+            {
+              "catalogueNo": "VCN1Z050",
+              "productName": "Bronze Swing Check Valve",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Swing Check Valve (NRV)",
+                "Material": "Bronze",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Horizontal",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 2245
+            }
+          ]
+        },
+        {
+          "name": "Brass Spring Check Valve",
+          "products": [
+            {
+              "catalogueNo": "VCN2B015",
+              "productName": "Brass Spring Check Valve",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Spring Check Valve (NRV)",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Any",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 20,
+              "unit": "Pcs",
+              "price": 190
+            },
+            {
+              "catalogueNo": "VCN2B020",
+              "productName": "Brass Spring Check Valve",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Spring Check Valve (NRV)",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Any",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 275
+            },
+            {
+              "catalogueNo": "VCN2B025",
+              "productName": "Brass Spring Check Valve",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Spring Check Valve (NRV)",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Any",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 400
+            },
+            {
+              "catalogueNo": "VCN2B032",
+              "productName": "Brass Spring Check Valve",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Spring Check Valve (NRV)",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Mounting": "Any",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 625
+            }
+          ]
+        },
+        {
+          "name": "UPVC Non-Return Valve",
+          "products": [
+            {
+              "catalogueNo": "VCN3U015",
+              "productName": "UPVC Non-Return Valve",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Non-Return Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 10",
+                "Mounting": "Vertical / Horizontal",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 20,
+              "unit": "Pcs",
+              "price": 150
+            },
+            {
+              "catalogueNo": "VCN3U020",
+              "productName": "UPVC Non-Return Valve",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Non-Return Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 10",
+                "Mounting": "Vertical / Horizontal",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 220
+            },
+            {
+              "catalogueNo": "VCN3U025",
+              "productName": "UPVC Non-Return Valve",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Non-Return Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 10",
+                "Mounting": "Vertical / Horizontal",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 315
+            },
+            {
+              "catalogueNo": "VCN3U032",
+              "productName": "UPVC Non-Return Valve",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Non-Return Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 10",
+                "Mounting": "Vertical / Horizontal",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 495
+            },
+            {
+              "catalogueNo": "VCN3U040",
+              "productName": "UPVC Non-Return Valve",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Non-Return Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 10",
+                "Mounting": "Vertical / Horizontal",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 5,
+              "unit": "Pcs",
+              "price": 690
+            },
+            {
+              "catalogueNo": "VCN3U050",
+              "productName": "UPVC Non-Return Valve",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Non-Return Valve",
+                "Material": "UPVC",
+                "End Connection": "Solvent Socket",
+                "Pressure Rating": "PN 10",
+                "Mounting": "Vertical / Horizontal",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 1020
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "butterfly-valve",
+      "name": "Butterfly Valve",
+      "shortName": "Butterfly",
+      "icon": "flip",
+      "imageAsset": "",
+      "description": "Wafer and lug butterfly valves",
+      "groups": [
+        {
+          "name": "Cast Iron Butterfly Valve Wafer",
+          "products": [
+            {
+              "catalogueNo": "VCF1W050",
+              "productName": "Cast Iron Butterfly Valve Wafer",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Butterfly Valve",
+                "Material": "CI Body, SS Disc",
+                "End Connection": "Wafer",
+                "Pressure Rating": "PN 16",
+                "Operation": "Lever",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 6460
+            },
+            {
+              "catalogueNo": "VCF1W065",
+              "productName": "Cast Iron Butterfly Valve Wafer",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "Butterfly Valve",
+                "Material": "CI Body, SS Disc",
+                "End Connection": "Wafer",
+                "Pressure Rating": "PN 16",
+                "Operation": "Lever",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 5,
+              "unit": "Pcs",
+              "price": 9975
+            },
+            {
+              "catalogueNo": "VCF1W080",
+              "productName": "Cast Iron Butterfly Valve Wafer",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Butterfly Valve",
+                "Material": "CI Body, SS Disc",
+                "End Connection": "Wafer",
+                "Pressure Rating": "PN 16",
+                "Operation": "Lever",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 13775
+            },
+            {
+              "catalogueNo": "VCF1W100",
+              "productName": "Cast Iron Butterfly Valve Wafer",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Butterfly Valve",
+                "Material": "CI Body, SS Disc",
+                "End Connection": "Wafer",
+                "Pressure Rating": "PN 16",
+                "Operation": "Lever",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 2,
+              "unit": "Pcs",
+              "price": 20900
+            },
+            {
+              "catalogueNo": "VCF1W150",
+              "productName": "Cast Iron Butterfly Valve Wafer",
+              "variant": "6\" (150 mm)",
+              "specs": {
+                "Item Name": "Butterfly Valve",
+                "Material": "CI Body, SS Disc",
+                "End Connection": "Wafer",
+                "Pressure Rating": "PN 16",
+                "Operation": "Lever",
+                "Size": "6\" / 150 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 1,
+              "unit": "Pcs",
+              "price": 43700
+            }
+          ]
+        },
+        {
+          "name": "Ductile Iron Butterfly Valve Lug",
+          "products": [
+            {
+              "catalogueNo": "VCF2L050",
+              "productName": "Ductile Iron Butterfly Valve Lug",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Butterfly Valve",
+                "Material": "DI Body, SS Disc",
+                "End Connection": "Lug",
+                "Pressure Rating": "PN 16",
+                "Operation": "Gear Box",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 9180
+            },
+            {
+              "catalogueNo": "VCF2L080",
+              "productName": "Ductile Iron Butterfly Valve Lug",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Butterfly Valve",
+                "Material": "DI Body, SS Disc",
+                "End Connection": "Lug",
+                "Pressure Rating": "PN 16",
+                "Operation": "Gear Box",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 19575
+            },
+            {
+              "catalogueNo": "VCF2L100",
+              "productName": "Ductile Iron Butterfly Valve Lug",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Butterfly Valve",
+                "Material": "DI Body, SS Disc",
+                "End Connection": "Lug",
+                "Pressure Rating": "PN 16",
+                "Operation": "Gear Box",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 2,
+              "unit": "Pcs",
+              "price": 29700
+            },
+            {
+              "catalogueNo": "VCF2L150",
+              "productName": "Ductile Iron Butterfly Valve Lug",
+              "variant": "6\" (150 mm)",
+              "specs": {
+                "Item Name": "Butterfly Valve",
+                "Material": "DI Body, SS Disc",
+                "End Connection": "Lug",
+                "Pressure Rating": "PN 16",
+                "Operation": "Gear Box",
+                "Size": "6\" / 150 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 1,
+              "unit": "Pcs",
+              "price": 62100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "float-valve",
+      "name": "Float Valve",
+      "shortName": "Float Valve",
+      "icon": "water_drop",
+      "imageAsset": "",
+      "description": "Tank float valves and ball cocks",
+      "groups": [
+        {
+          "name": "PVC Float Valve with Ball",
+          "products": [
+            {
+              "catalogueNo": "VCL1P015",
+              "productName": "PVC Float Valve with Ball",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Float Valve",
+                "Material": "PVC",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Ball": "PVC 6\"",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 25,
+              "unit": "Pcs",
+              "price": 160
+            },
+            {
+              "catalogueNo": "VCL1P020",
+              "productName": "PVC Float Valve with Ball",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Float Valve",
+                "Material": "PVC",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Ball": "PVC 6\"",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 18,
+              "unit": "Pcs",
+              "price": 230
+            },
+            {
+              "catalogueNo": "VCL1P025",
+              "productName": "PVC Float Valve with Ball",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Float Valve",
+                "Material": "PVC",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Ball": "PVC 6\"",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 12,
+              "unit": "Pcs",
+              "price": 335
+            }
+          ]
+        },
+        {
+          "name": "Brass Ball Cock Heavy",
+          "products": [
+            {
+              "catalogueNo": "VCL2B015",
+              "productName": "Brass Ball Cock Heavy",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Ball Cock",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Ball": "Copper 8\"",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 20,
+              "unit": "Pcs",
+              "price": 340
+            },
+            {
+              "catalogueNo": "VCL2B020",
+              "productName": "Brass Ball Cock Heavy",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Ball Cock",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Ball": "Copper 8\"",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 15,
+              "unit": "Pcs",
+              "price": 495
+            },
+            {
+              "catalogueNo": "VCL2B025",
+              "productName": "Brass Ball Cock Heavy",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Ball Cock",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Ball": "Copper 8\"",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 715
+            },
+            {
+              "catalogueNo": "VCL2B032",
+              "productName": "Brass Ball Cock Heavy",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Ball Cock",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Ball": "Copper 8\"",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 1120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "foot-valve",
+      "name": "Foot Valve",
+      "shortName": "Foot Valve",
+      "icon": "filter_alt",
+      "imageAsset": "",
+      "description": "Foot valves with strainer for pump suction",
+      "groups": [
+        {
+          "name": "UPVC Foot Valve",
+          "products": [
+            {
+              "catalogueNo": "VCT1U025",
+              "productName": "UPVC Foot Valve",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "UPVC",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Strainer": "Built-in",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 240
+            },
+            {
+              "catalogueNo": "VCT1U032",
+              "productName": "UPVC Foot Valve",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "UPVC",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Strainer": "Built-in",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 6,
+              "unit": "Pcs",
+              "price": 380
+            },
+            {
+              "catalogueNo": "VCT1U040",
+              "productName": "UPVC Foot Valve",
+              "variant": "1-1/2\" (40 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "UPVC",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Strainer": "Built-in",
+                "Size": "1-1/2\" / 40 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 5,
+              "unit": "Pcs",
+              "price": 530
+            },
+            {
+              "catalogueNo": "VCT1U050",
+              "productName": "UPVC Foot Valve",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "UPVC",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Strainer": "Built-in",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 780
+            },
+            {
+              "catalogueNo": "VCT1U065",
+              "productName": "UPVC Foot Valve",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "UPVC",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Strainer": "Built-in",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 2,
+              "unit": "Pcs",
+              "price": 1210
+            },
+            {
+              "catalogueNo": "VCT1U080",
+              "productName": "UPVC Foot Valve",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "UPVC",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Strainer": "Built-in",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 1,
+              "unit": "Pcs",
+              "price": 1670
+            }
+          ]
+        },
+        {
+          "name": "Cast Iron Foot Valve Flanged",
+          "products": [
+            {
+              "catalogueNo": "VCT2I050",
+              "productName": "Cast Iron Foot Valve Flanged",
+              "variant": "2\" (50 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "Cast Iron",
+                "End Connection": "Flanged",
+                "Pressure Rating": "PN 10",
+                "Strainer": "CI",
+                "Size": "2\" / 50 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 2585
+            },
+            {
+              "catalogueNo": "VCT2I065",
+              "productName": "Cast Iron Foot Valve Flanged",
+              "variant": "2-1/2\" (65 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "Cast Iron",
+                "End Connection": "Flanged",
+                "Pressure Rating": "PN 10",
+                "Strainer": "CI",
+                "Size": "2-1/2\" / 65 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 5,
+              "unit": "Pcs",
+              "price": 3990
+            },
+            {
+              "catalogueNo": "VCT2I080",
+              "productName": "Cast Iron Foot Valve Flanged",
+              "variant": "3\" (80 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "Cast Iron",
+                "End Connection": "Flanged",
+                "Pressure Rating": "PN 10",
+                "Strainer": "CI",
+                "Size": "3\" / 80 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 5510
+            },
+            {
+              "catalogueNo": "VCT2I100",
+              "productName": "Cast Iron Foot Valve Flanged",
+              "variant": "4\" (100 mm)",
+              "specs": {
+                "Item Name": "Foot Valve",
+                "Material": "Cast Iron",
+                "End Connection": "Flanged",
+                "Pressure Rating": "PN 10",
+                "Strainer": "CI",
+                "Size": "4\" / 100 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 2,
+              "unit": "Pcs",
+              "price": 8360
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prv",
+      "name": "Pressure Reducing Valve",
+      "shortName": "PRV",
+      "icon": "speed",
+      "imageAsset": "",
+      "description": "Pressure reducing and relief valves",
+      "groups": [
+        {
+          "name": "Brass Pressure Reducing Valve",
+          "products": [
+            {
+              "catalogueNo": "VCP1B015",
+              "productName": "Brass Pressure Reducing Valve",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Pressure Reducing Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Outlet Range": "1–6 bar",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 1450
+            },
+            {
+              "catalogueNo": "VCP1B020",
+              "productName": "Brass Pressure Reducing Valve",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Pressure Reducing Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Outlet Range": "1–6 bar",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 2100
+            },
+            {
+              "catalogueNo": "VCP1B025",
+              "productName": "Brass Pressure Reducing Valve",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Pressure Reducing Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Outlet Range": "1–6 bar",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 5,
+              "unit": "Pcs",
+              "price": 3045
+            },
+            {
+              "catalogueNo": "VCP1B032",
+              "productName": "Brass Pressure Reducing Valve",
+              "variant": "1-1/4\" (32 mm)",
+              "specs": {
+                "Item Name": "Pressure Reducing Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 25",
+                "Outlet Range": "1–6 bar",
+                "Size": "1-1/4\" / 32 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 3,
+              "unit": "Pcs",
+              "price": 4785
+            }
+          ]
+        },
+        {
+          "name": "Brass Pressure Relief Valve",
+          "products": [
+            {
+              "catalogueNo": "VCP2B015",
+              "productName": "Brass Pressure Relief Valve",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Pressure Relief Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Set Pressure": "6 bar",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 10,
+              "unit": "Pcs",
+              "price": 920
+            },
+            {
+              "catalogueNo": "VCP2B020",
+              "productName": "Brass Pressure Relief Valve",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Pressure Relief Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Set Pressure": "6 bar",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 7,
+              "unit": "Pcs",
+              "price": 1335
+            },
+            {
+              "catalogueNo": "VCP2B025",
+              "productName": "Brass Pressure Relief Valve",
+              "variant": "1\" (25 mm)",
+              "specs": {
+                "Item Name": "Pressure Relief Valve",
+                "Material": "Brass",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 16",
+                "Set Pressure": "6 bar",
+                "Size": "1\" / 25 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 5,
+              "unit": "Pcs",
+              "price": 1930
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "angle-cock",
+      "name": "Angle Cock",
+      "shortName": "Angle Cock",
+      "icon": "turn_right",
+      "imageAsset": "",
+      "description": "Angle cocks and bib cocks",
+      "groups": [
+        {
+          "name": "CP Angle Cock with Wall Flange",
+          "products": [
+            {
+              "catalogueNo": "VCA1C015",
+              "productName": "CP Angle Cock with Wall Flange",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Angle Cock",
+                "Material": "Brass, Chrome Plated",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Finish": "Chrome",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 320
+            }
+          ]
+        },
+        {
+          "name": "CP Bib Cock Long Body",
+          "products": [
+            {
+              "catalogueNo": "VCA2C015",
+              "productName": "CP Bib Cock Long Body",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Bib Cock",
+                "Material": "Brass, Chrome Plated",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Finish": "Chrome",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 380
+            },
+            {
+              "catalogueNo": "VCA2C020",
+              "productName": "CP Bib Cock Long Body",
+              "variant": "3/4\" (20 mm)",
+              "specs": {
+                "Item Name": "Bib Cock",
+                "Material": "Brass, Chrome Plated",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 10",
+                "Finish": "Chrome",
+                "Size": "3/4\" / 20 mm"
+              },
+              "hsnCode": "84818030",
+              "packingQty": 37,
+              "unit": "Pcs",
+              "price": 550
+            }
+          ]
+        },
+        {
+          "name": "PTMT Angle Cock",
+          "products": [
+            {
+              "catalogueNo": "VCA3P015",
+              "productName": "PTMT Angle Cock",
+              "variant": "1/2\" (15 mm)",
+              "specs": {
+                "Item Name": "Angle Cock",
+                "Material": "PTMT",
+                "End Connection": "Screwed (BSP)",
+                "Pressure Rating": "PN 6",
+                "Finish": "White",
+                "Size": "1/2\" / 15 mm"
+              },
+              "hsnCode": "39229000",
+              "packingQty": 50,
+              "unit": "Pcs",
+              "price": 95
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

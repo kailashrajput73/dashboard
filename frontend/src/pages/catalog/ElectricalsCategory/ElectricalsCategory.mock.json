@@ -1,0 +1,26 @@
+{
+  "_header": {
+    "title": "Electricals & Lights"
+  },
+  "_sidebar": {
+    "allLabel": "All",
+    "sectionLabel": "Category"
+  },
+  "_emptyState": {
+    "title": "No products here yet",
+    "subtitle": "Try another category."
+  },
+  "_iconMap": {
+    "swap_horiz": "pi-arrow-right-arrow-left",
+    "power": "pi-power-off",
+    "electrical_services": "pi-bolt",
+    "outlet": "pi-shield",
+    "dns": "pi-server",
+    "bolt": "pi-bolt",
+    "toggle_on": "pi-sliders-h",
+    "lightbulb": "pi-lightbulb",
+    "cable": "pi-link",
+    "plumbing": "pi-wrench",
+    "donut_large": "pi-circle"
+  }
+}

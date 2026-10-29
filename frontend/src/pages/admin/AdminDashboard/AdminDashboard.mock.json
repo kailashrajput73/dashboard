@@ -1,0 +1,64 @@
+{
+  "_title": "Dashboard",
+  "_greeting": "Welcome back, {name}. Here is how the business is doing.",
+  "_updatedPrefix": "Updated",
+  "_quickActions": [
+    { "id": "bulkUpload", "icon": "pi-file-excel", "label": "Bulk upload (Excel)" },
+    { "id": "scan", "icon": "pi-qrcode", "label": "Scan QR / Barcode" },
+    { "id": "export", "icon": "pi-download", "label": "Export report" }
+  ],
+  "_comingSoon": "{action} is coming soon.",
+  "_stockStatus": {
+    "outOfStock": { "label": "Out of stock", "icon": "pi-times-circle" },
+    "critical": { "label": "Critical", "icon": "pi-exclamation-circle" },
+    "low": { "label": "Low", "icon": "pi-exclamation-triangle" }
+  },
+  "_quotationStatus": {
+    "pending": { "label": "Pending", "icon": "pi-clock" },
+    "sold": { "label": "Sold", "icon": "pi-check-circle" }
+  },
+  "_dispatchStatus": {
+    "readyToDispatch": { "label": "Ready", "icon": "pi-box" },
+    "inTransit": { "label": "In transit", "icon": "pi-truck" },
+    "delivered": { "label": "Delivered", "icon": "pi-check-circle" },
+    "delayed": { "label": "Delayed", "icon": "pi-exclamation-circle" }
+  },
+  "_roleLabels": {
+    "dealer": "Dealer",
+    "builder": "Builder",
+    "contractor": "Contractor",
+    "individualCustomer": "Individual"
+  },
+  "_labels": {
+    "viewAll": "View all",
+    "reorder": "Reorder",
+    "review": "Review",
+    "confirmSale": "Confirm sale",
+    "showTable": "Show as table",
+    "showChart": "Show as chart",
+    "product": "Product",
+    "unitsSold": "Units sold",
+    "revenue": "Revenue",
+    "orders": "Orders",
+    "trend": "Trend",
+    "inStock": "in stock",
+    "stockLeft": "Stock",
+    "reorderLevel": "Reorder at",
+    "daysCover": "days left",
+    "week": "Week of",
+    "pendingQuotes": "Pending",
+    "soldQuotes": "Sold",
+    "conversion": "Conversion",
+    "utilization": "Space used",
+    "skus": "SKUs",
+    "pendingPicks": "Pending picks",
+    "lowStockSkus": "Low-stock SKUs",
+    "referrals": "Referrals",
+    "convertedRevenue": "Converted sales",
+    "rewardPoints": "Points",
+    "totalUsers": "Total users",
+    "newUsers": "new this period",
+    "kycQueue": "KYC approval queue",
+    "recentActivity": "Recent activity"
+  }
+}

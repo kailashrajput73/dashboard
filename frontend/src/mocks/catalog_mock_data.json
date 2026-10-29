@@ -12,6 +12,16 @@
       "imageAsset": "/assets/images/categories/pipes_tubing.png"
     },
     {
+      "id": "cat-electricals-lights",
+      "name": "Electricals & Lights",
+      "description": "Wires, cables, panel lights and switches",
+      "icon": "pi-bolt",
+      "itemCount": 0,
+      "iconColor": "#DC2626",
+      "iconBackground": "#FEE2E2",
+      "imageAsset": "/assets/images/categories/electricals_lights.png"
+    },
+    {
       "id": "cat-fittings",
       "name": "Fittings",
       "description": "Elbows, tees, couplers and transitions",
@@ -34,7 +44,7 @@
     {
       "id": "cat-sanitary-wares",
       "name": "Sanitary Wares",
-      "description": "Closets, basins, urinals and cisterns",
+      "description": "Mixer taps, toilets, sinks, showers and valves",
       "icon": "pi-filter",
       "itemCount": 8,
       "iconColor": "#059669",
@@ -140,16 +150,6 @@
       "iconColor": "#6D28D9",
       "iconBackground": "#EDE9FE",
       "imageAsset": "/assets/images/categories/fevicol_adhesives.png"
-    },
-    {
-      "id": "cat-electricals-lights",
-      "name": "Electricals & Lights",
-      "description": "Wires, cables, panel lights and switches",
-      "icon": "pi-bolt",
-      "itemCount": 0,
-      "iconColor": "#DC2626",
-      "iconBackground": "#FEE2E2",
-      "imageAsset": "/assets/images/categories/electricals_lights.png"
     }
   ]
 }

@@ -11,6 +11,8 @@ export interface AuthUser {
   role?: UserRole | null;
   isGuest?: boolean;
   referralCode?: string | null;
+  /** Web-only: admin / store manager — opens the admin dashboard instead of the storefront. */
+  isAdmin?: boolean;
 }
 
 export interface AuthResult {
